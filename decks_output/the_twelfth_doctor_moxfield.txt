@@ -1,0 +1,76 @@
+// Commander
+1 The Twelfth Doctor
+
+// Spellslinger Payoffs
+1 Kessig Flamebreather
+1 Zada, Hedron Grinder
+1 Kindlespark Duo
+1 Surtr, Fiery Jötun
+1 Saruman the White
+1 Voracious Bibliophile
+1 Kraum, Violent Cacophony
+1 Trail of Evidence
+1 Lightshell Duo
+1 Runescale Stormbrood // Chilling Screech
+1 Akroan Crusader
+1 Leyline of Lightning
+
+// Counterspells
+1 Syncopate
+1 Disdainful Stroke
+1 Dazzling Denial
+1 Lofty Denial
+1 Don't Make a Sound
+1 Disruption Protocol
+1 Mindswipe
+1 Thassa's Rebuff
+
+// Burn / Removal Spells
+1 Essence Flux
+1 Retraction Helix
+1 Alchemist's Retrieval
+1 Raze the Effigy
+1 Silent Departure
+1 Trial of Agony
+1 Deface
+1 Clutch of Currents
+
+// Card Draw / Cantrips
+1 Faithless Looting
+1 Opt
+1 Enter the Enigma
+1 Sticky Fingers
+1 Crash Through
+1 Combat Research
+1 Ingenious Prodigy
+1 Renegade Tactics
+1 Voldaren Epicure
+1 Fountainport Bell
+1 Ancestral Anger
+1 Marauding Mako
+
+// Ramp (artifact only)
+1 Mox Jasper
+1 Traveler's Amulet
+1 Prophetic Prism
+1 Flywheel Racer
+1 Piggy Bank
+1 Guidelight Optimizer
+
+// Tierras No-Básicas
+1 Exotic Orchard
+1 Path of Ancestry
+1 Opal Palace
+1 Thriving Isle
+1 Voldaren Estate
+1 Hidden Grotto
+1 Gateway Plaza
+1 Capital City
+1 Study Hall
+1 Rupture Spire
+1 Night Market
+1 Branch of Vitu-Ghazi
+
+// Basic Lands
+21 Mountain
+20 Island

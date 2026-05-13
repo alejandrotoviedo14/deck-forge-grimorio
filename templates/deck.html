@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Deck Forge — Mazos Commander</title>
+<style>
+:root {
+  --bg-deep: #0a0908;
+  --bg-1: #131210;
+  --bg-2: #1c1a17;
+  --gold: #c9a961;
+  --gold-light: #e8d094;
+  --gold-dim: #8a7240;
+  --parchment: #f4e8c8;
+  --color-W: #f4e8c8;
+  --color-U: #5e88c0;
+  --color-B: #4b3850;
+  --color-R: #b6442e;
+  --color-G: #4f7a3e;
+  --color-C: #8a8377;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg-deep);
+  background-image:
+    radial-gradient(at 20% 10%, rgba(201,169,97,0.04) 0%, transparent 50%),
+    radial-gradient(at 80% 90%, rgba(139,44,44,0.04) 0%, transparent 60%);
+  color: var(--parchment);
+  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  font-size: 16px; line-height: 1.6; min-height: 100vh; padding: 0 0 80px;
+}
+.grain {
+  position: fixed; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  opacity: 0.6; z-index: 1; mix-blend-mode: overlay;
+}
+main { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 60px 32px 40px; }
+.cover { text-align: center; padding: 40px 0 60px; border-bottom: 1px solid var(--gold-dim); margin-bottom: 60px; position: relative; }
+.cover::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); bottom: -1px; height: 1px; width: 400px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.cover .pretitle { font-size: 0.7rem; letter-spacing: 0.6em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 24px; }
+.cover h1 { font-family: 'Cormorant Garamond', 'Playfair Display', 'Times New Roman', serif; font-size: clamp(2.4rem, 6vw, 4.5rem); font-weight: 300; letter-spacing: 0.02em; color: var(--gold-light); text-shadow: 0 2px 30px rgba(201,169,97,0.3); font-style: italic; line-height: 1.05; }
+.cover h1 em { font-style: normal; font-weight: 600; color: var(--parchment); }
+.cover .subtitle { margin-top: 24px; font-size: 1rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; }
+.tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 40px; }
+.tab { background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%); border: 1px solid rgba(201,169,97,0.2); padding: 18px 16px; cursor: pointer; transition: all 0.3s ease; text-align: center; }
+.tab:hover { border-color: var(--gold-dim); }
+.tab.active { border-color: var(--gold); box-shadow: 0 0 30px rgba(201,169,97,0.15); }
+.tab-name { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-style: italic; color: var(--gold-light); margin-bottom: 4px; font-weight: 500; }
+.tab-meta { font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold-dim); }
+.tab-colors { display: inline-flex; gap: 4px; margin-top: 8px; }
+.color-pip { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.4); display: inline-block; }
+.color-pip.W { background: var(--color-W); }
+.color-pip.U { background: var(--color-U); }
+.color-pip.B { background: var(--color-B); }
+.color-pip.R { background: var(--color-R); }
+.color-pip.G { background: var(--color-G); }
+.color-pip.C { background: var(--color-C); }
+.deck-panel { display: none; }
+.deck-panel.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.deck-header { text-align: center; padding: 0 0 32px; margin-bottom: 32px; border-bottom: 1px solid rgba(201,169,97,0.15); }
+.commander-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 4vw, 3.2rem); font-style: italic; font-weight: 400; color: var(--gold-light); line-height: 1.1; margin-bottom: 8px; }
+.archetype { font-size: 0.8rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin: 16px 0 24px; }
+.bracket-badge { display: inline-block; padding: 6px 18px; border: 1px solid var(--gold); border-radius: 100px; font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-light); background: rgba(201,169,97,0.05); }
+.strategy { background: linear-gradient(135deg, var(--bg-1) 0%, transparent 100%); border-left: 3px solid var(--gold); padding: 24px 32px; margin: 32px 0; }
+.strategy h3 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500; font-size: 1.3rem; color: var(--gold-light); margin-bottom: 12px; }
+.strategy p { color: rgba(244,232,200,0.85); line-height: 1.75; }
+.bracket-report { background: var(--bg-1); border-left: 3px solid var(--gold-dim); padding: 20px 28px; margin: 24px 0; font-family: 'SF Mono', Menlo, monospace; font-size: 0.85rem; color: rgba(244,232,200,0.75); white-space: pre-wrap; }
+.category { margin-bottom: 8px; border-bottom: 1px solid rgba(201,169,97,0.1); }
+.category-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; cursor: pointer; user-select: none; }
+.category-header:hover { color: var(--gold-light); }
+.category-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-style: italic; font-weight: 500; color: var(--gold); }
+.category-count { font-size: 0.75rem; letter-spacing: 0.2em; color: var(--gold-dim); text-transform: uppercase; }
+.category-body { display: none; padding-bottom: 24px; }
+.category.open .category-body { display: block; }
+.category-toggle { display: inline-block; margin-right: 12px; color: var(--gold); font-size: 0.9rem; transition: transform 0.2s; width: 12px; }
+.category.open .category-toggle { transform: rotate(90deg); }
+.card-row { display: grid; grid-template-columns: 80px 1fr auto; gap: 16px; padding: 14px 12px; border-bottom: 1px dotted rgba(201,169,97,0.08); align-items: start; }
+.card-row:hover { background: rgba(201,169,97,0.03); }
+.card-cmc { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-1) 100%); border: 1px solid var(--gold-dim); color: var(--gold-light); font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; }
+.card-name { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600; color: var(--parchment); display: inline; }
+.card-role { display: inline-block; margin-left: 12px; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 2px 8px; border: 1px solid rgba(201,169,97,0.3); color: var(--gold); border-radius: 2px; vertical-align: middle; }
+.card-type { font-size: 0.78rem; color: var(--gold-dim); margin-top: 3px; font-style: italic; }
+.card-just { margin-top: 8px; font-size: 0.92rem; color: rgba(244,232,200,0.75); line-height: 1.55; }
+.card-rank { text-align: right; font-size: 0.7rem; color: var(--gold-dim); }
+.export-section { margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(201,169,97,0.2); text-align: center; }
+.export-section h3 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.4rem; color: var(--gold-light); margin-bottom: 8px; }
+.export-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.btn { padding: 12px 28px; background: var(--bg-1); border: 1px solid var(--gold-dim); color: var(--gold-light); font-family: inherit; font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+.btn:hover { border-color: var(--gold); background: rgba(201,169,97,0.08); }
+.btn-primary { background: linear-gradient(135deg, rgba(201,169,97,0.15) 0%, rgba(201,169,97,0.05) 100%); border-color: var(--gold); }
+textarea.exported { width: 100%; min-height: 200px; background: var(--bg-deep); border: 1px solid var(--gold-dim); color: var(--parchment); padding: 16px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.85rem; margin-top: 16px; display: none; resize: vertical; }
+textarea.exported.show { display: block; }
+footer { text-align: center; padding: 60px 0 0; color: var(--gold-dim); font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; font-style: italic; }
+#error-banner { background: #c0392b; color: white; padding: 12px 24px; text-align: center; font-family: monospace; font-size: 0.85rem; display: none; }
+</style>
+</head>
+<body>
+
+<div id="error-banner"></div>
+<div class="grain"></div>
+
+<main>
+  <header class="cover">
+    <div class="pretitle">⚜ Deck Forge ⚜</div>
+    <h1>Mazos <em>Commander</em></h1>
+    <div class="subtitle">generados desde tu colección</div>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+  <div id="deck-container"></div>
+
+  <footer>Generado por Deck Forge · Real-only · Sin fakes</footer>
+</main>
+
+<script type="application/json" id="deck-data">__DECK_DATA__</script>
+
+<script>
+(function() {
+  'use strict';
+  function showError(msg) {
+    var b = document.getElementById('error-banner');
+    if (b) { b.style.display = 'block'; b.textContent = 'ERROR: ' + msg; }
+    console.error(msg);
+  }
+
+  var DECK_DATA;
+  try {
+    DECK_DATA = JSON.parse(document.getElementById('deck-data').textContent);
+  } catch (e) { showError('JSON parse: ' + e.message); return; }
+
+  var DECK_KEYS = Object.keys(DECK_DATA);
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function rankBadge(rank) {
+    if (!rank) return '';
+    if (rank <= 500)  return '<span style="color:#d4a04a">★ ' + rank + '</span>';
+    if (rank <= 2000) return '<span style="color:var(--gold-light)">' + rank + '</span>';
+    return '<span style="color:var(--gold-dim)">' + rank + '</span>';
+  }
+
+  function buildTabs() {
+    var html = '';
+    DECK_KEYS.forEach(function(key, i) {
+      var d = DECK_DATA[key];
+      var pips = d.colors.split('').map(function(c) {
+        return '<span class="color-pip ' + c + '"></span>';
+      }).join('');
+      html += '<div class="tab' + (i === 0 ? ' active' : '') + '" data-deck="' + key + '">' +
+        '<div class="tab-name">' + escapeHtml(d.commander.split(',')[0]) + '</div>' +
+        '<div class="tab-meta">Bracket ' + d.bracket + '</div>' +
+        '<div class="tab-colors">' + pips + '</div></div>';
+    });
+    document.getElementById('tabs').innerHTML = html;
+    document.querySelectorAll('.tab').forEach(function(t) {
+      t.addEventListener('click', function() { showDeck(t.getAttribute('data-deck')); });
+    });
+  }
+
+  function renderDeck(key) {
+    var d = DECK_DATA[key];
+    var catsHTML = '';
+    Object.keys(d.categories).forEach(function(catName) {
+      var cards = d.categories[catName];
+      if (!cards || !cards.length) return;
+      var rows = cards.map(function(c) {
+        return '<div class="card-row">' +
+          '<div class="card-cmc">' + (c.cmc || 0) + '</div>' +
+          '<div><span class="card-name">' + escapeHtml(c.name) + '</span>' +
+          '<span class="card-role">' + escapeHtml(c.role) + '</span>' +
+          '<div class="card-type">' + escapeHtml(c.type) + '</div>' +
+          '<div class="card-just">' + escapeHtml(c.justification) + '</div></div>' +
+          '<div class="card-rank">' + rankBadge(c.rank) + '</div></div>';
+      }).join('');
+      var label = cards.length === 1 ? 'CARTA' : 'CARTAS';
+      catsHTML += '<div class="category">' +
+        '<div class="category-header" data-toggle-category>' +
+        '<div class="category-title"><span class="category-toggle">▶</span>' +
+        escapeHtml(catName) + '</div>' +
+        '<div class="category-count">' + cards.length + ' ' + label + '</div></div>' +
+        '<div class="category-body">' + rows + '</div></div>';
+    });
+
+    return '<section class="deck-panel active">' +
+      '<div class="deck-header">' +
+        '<h2 class="commander-name">' + escapeHtml(d.commander) + '</h2>' +
+        '<div class="archetype">' + escapeHtml(d.archetype) + '</div>' +
+        '<span class="bracket-badge">Bracket ' + d.bracket + ' · score ' + d.bracket_score + ' · ' + escapeHtml(d.colors) + '</span>' +
+      '</div>' +
+      '<div class="strategy"><h3>Estrategia</h3><p>' + escapeHtml(d.archetype_description) + '</p></div>' +
+      '<div class="bracket-report">' + escapeHtml(d.bracket_summary) + '</div>' +
+      catsHTML +
+      '<div class="export-section"><h3>Exportar</h3>' +
+      '<div class="export-buttons">' +
+      '<button class="btn btn-primary" data-manabox="' + key + '">⬇ ManaBox CSV</button>' +
+      '<button class="btn" data-moxfield="' + key + '">Mostrar Moxfield</button>' +
+      '<button class="btn" data-copy="' + key + '">Copiar Moxfield</button>' +
+      '</div>' +
+      '<textarea id="export-' + key + '" class="exported" readonly></textarea>' +
+      '</div></section>';
+  }
+
+  function buildMoxfield(key) {
+    var d = DECK_DATA[key];
+    var lines = ['// Commander', '1 ' + d.commander, ''];
+    Object.keys(d.categories).forEach(function(cat) {
+      if (cat === 'Comandante') return;
+      var cards = d.categories[cat];
+      if (!cards || !cards.length) return;
+      lines.push('// ' + cat);
+      cards.forEach(function(c) { lines.push('1 ' + c.name); });
+      lines.push('');
+    });
+    if (d.needed_basics > 0) {
+      lines.push('// Basic Lands');
+      var colors = d.colors.split('');
+      var split = Math.floor(d.needed_basics / colors.length);
+      var rem = d.needed_basics - split * colors.length;
+      var basicMap = { W: 'Plains', U: 'Island', B: 'Swamp', R: 'Mountain', G: 'Forest' };
+      colors.forEach(function(c, i) {
+        var n = split + (i < rem ? 1 : 0);
+        if (n > 0) lines.push(n + ' ' + basicMap[c]);
+      });
+    }
+    return lines.join('\n');
+  }
+
+  function buildManaboxCSV(key) {
+    var d = DECK_DATA[key];
+    var header = ['Name','Set code','Set name','Collector number','Foil','Rarity',
+                  'Quantity','ManaBox ID','Scryfall ID','Purchase price','Misprint',
+                  'Altered','Condition','Language','Purchase price currency'];
+    var rows = [header.join(',')];
+    function csvEscape(v) {
+      if (v == null) return '';
+      var s = String(v);
+      if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0)
+        return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    }
+    function addRow(name, mb, qty) {
+      if (!mb) return;
+      rows.push([csvEscape(name), csvEscape(mb.set_code), csvEscape(mb.set_name),
+        csvEscape(mb.collector_number), csvEscape(mb.foil || 'normal'),
+        csvEscape(mb.rarity), csvEscape(qty), csvEscape(mb.manabox_id),
+        csvEscape(mb.scryfall_id), '', 'false', 'false',
+        csvEscape(mb.condition || 'near_mint'), csvEscape(mb.language || 'en'), 'EUR'
+      ].join(','));
+    }
+    Object.keys(d.categories).forEach(function(cat) {
+      var cards = d.categories[cat];
+      if (!cards) return;
+      cards.forEach(function(c) { addRow(c.name, c.manabox, 1); });
+    });
+    if (d.needed_basics > 0 && d.basics_data) {
+      var colors = d.colors.split('');
+      var split = Math.floor(d.needed_basics / colors.length);
+      var rem = d.needed_basics - split * colors.length;
+      var basicMap = { W:'Plains', U:'Island', B:'Swamp', R:'Mountain', G:'Forest' };
+      colors.forEach(function(c, i) {
+        var n = split + (i < rem ? 1 : 0);
+        var mb = d.basics_data[basicMap[c]];
+        if (mb && n > 0) addRow(basicMap[c], mb, n);
+      });
+    }
+    return rows.join('\n');
+  }
+
+  function downloadCSV(key, btn) {
+    var csv = buildManaboxCSV(key);
+    var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var d = DECK_DATA[key];
+    var fn = d.commander.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_manabox.csv';
+    var a = document.createElement('a');
+    a.href = url; a.download = fn; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    if (btn) {
+      var orig = btn.textContent;
+      btn.textContent = '✓ Descargado';
+      setTimeout(function() { btn.textContent = orig; }, 2000);
+    }
+  }
+
+  function attachListeners() {
+    document.querySelectorAll('[data-toggle-category]').forEach(function(h) {
+      h.addEventListener('click', function() { h.parentElement.classList.toggle('open'); });
+    });
+    document.querySelectorAll('[data-manabox]').forEach(function(b) {
+      b.addEventListener('click', function() { downloadCSV(b.getAttribute('data-manabox'), b); });
+    });
+    document.querySelectorAll('[data-moxfield]').forEach(function(b) {
+      b.addEventListener('click', function() {
+        var key = b.getAttribute('data-moxfield');
+        var ta = document.getElementById('export-' + key);
+        ta.value = buildMoxfield(key);
+        ta.classList.add('show');
+      });
+    });
+    document.querySelectorAll('[data-copy]').forEach(function(b) {
+      b.addEventListener('click', function() {
+        var key = b.getAttribute('data-copy');
+        var ta = document.getElementById('export-' + key);
+        if (!ta.value) { ta.value = buildMoxfield(key); ta.classList.add('show'); }
+        ta.select();
+        navigator.clipboard.writeText(ta.value).then(function() {
+          var orig = b.textContent;
+          b.textContent = '✓ Copiado';
+          setTimeout(function() { b.textContent = orig; }, 1500);
+        });
+      });
+    });
+  }
+
+  function showDeck(key) {
+    document.querySelectorAll('.tab').forEach(function(t) {
+      t.classList.toggle('active', t.getAttribute('data-deck') === key);
+    });
+    document.getElementById('deck-container').innerHTML = renderDeck(key);
+    attachListeners();
+  }
+
+  try { buildTabs(); showDeck(DECK_KEYS[0]); }
+  catch (e) { showError('Init: ' + e.message); }
+})();
+</script>
+
+</body>
+</html>

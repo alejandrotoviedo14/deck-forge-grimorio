@@ -1,0 +1,85 @@
+// Commander
+1 Vorel of the Hull Clade
+
+// Core / Auto-includes
+1 Simic Ascendancy
+1 Forgotten Ancient
+1 Tanazir Quandrix
+1 Ivy Lane Denizen
+1 Death's Presence
+
+// Counter Doublers & Payoffs
+1 Essence Flux
+1 Experimental Augury
+1 Thirsting Roots
+1 Planar Incision
+1 Fertilid
+1 Leyline of Abundance
+1 Ingenious Prodigy
+1 Honored Dreyleader
+1 Canopy Gargantuan
+1 Stocking the Pantry
+1 Pridemalkin
+1 Altered Ego
+1 Quandrix Command
+1 Lilysplash Mentor
+1 The Thirteenth Doctor
+1 Ancient Animus
+
+// Ramp
+1 Mox Jasper
+1 Elvish Mystic
+1 Delighted Halfling
+1 Insidious Fungus
+1 Arboreal Grazer
+1 Traveler's Amulet
+1 Fountainport Bell
+1 Reclaim the Wastes
+1 Point the Way
+
+// Card Draw
+1 Opt
+1 Peregrin Took
+1 Enduring Curiosity
+1 Lórien Revealed
+1 Enter the Enigma
+1 Coastal Piracy
+1 Aether Channeler
+1 Cultivator Colossus
+1 Abundance
+1 Combat Research
+
+// Removal & Interaction
+1 Return to Nature
+1 Meteor Golem
+1 Rewind
+1 Cancel
+1 Wear Down
+1 Disdainful Stroke
+1 Thrashing Brontodon
+1 Broken Wings
+
+// Wincons & Big Threats
+1 Steel Hellkite
+1 Keiga, the Tide Star
+1 Whirlwing Stormbrood // Dynamic Soar
+1 Temur War Shaman
+1 Ancient Imperiosaur
+
+// Tierras No-Básicas
+1 Exotic Orchard
+1 Path of Ancestry
+1 Opal Palace
+1 Thriving Isle
+1 Voldaren Estate
+1 Hidden Grotto
+1 Gateway Plaza
+1 Capital City
+1 Study Hall
+1 Rupture Spire
+1 Night Market
+1 Branch of Vitu-Ghazi
+
+// Basic Lands
+17 Forest
+17 Island
