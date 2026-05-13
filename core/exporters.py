@@ -862,7 +862,7 @@ function renderSidebar(decks) {{
 
   list.innerHTML = keys.map(key => {{
     const d = decks[key];
-    return `<div class="deck-nav-item" onclick="showDeck('${{key}}')" id="nav-${{key}}">
+    return `<div class="deck-nav-item" data-key="${{key}}" id="nav-${{key}}">
       <img class="deck-nav-commander-img" src="${{d.commander_img}}"
            onerror="this.style.display='none'" alt="">
       <div class="deck-nav-info">
@@ -888,7 +888,7 @@ function renderGaps(deck) {{
 function renderDeckPanel(key, deck) {{
   const gaps = renderGaps(deck);
 
-  const categoriesHtml = Object.entries(deck.categories).map(([cat, cards]) => {{
+  const categoriesHtml = Object.entries(deck.categories || {{}}).map(([cat, cards]) => {{
     if (!cards || cards.length === 0) return '';
     const cardsHtml = cards.map(c => {{
       const icons = (c.role_icons || []).slice(0, 3).join('');
@@ -1023,17 +1023,13 @@ function renderDeckPanel(key, deck) {{
   </div>`;
 }}
 
-let _showDeckLock = false;
 function showDeck(key) {{
-  if (_showDeckLock) return;
-  _showDeckLock = true;
   document.querySelectorAll('.deck-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.deck-nav-item').forEach(n => n.classList.remove('active'));
   const panel = document.getElementById('panel-' + key);
   const nav   = document.getElementById('nav-' + key);
   if (panel) panel.classList.add('active');
   if (nav)   nav.classList.add('active');
-  _showDeckLock = false;
 }}
 
 function showTooltip(e, el) {{
@@ -1099,6 +1095,16 @@ function showDeck(key) {{
     return;
   }}
   renderSidebar(DECK_DATA);
+
+  // Event delegation — single listener on sidebar, no inline onclick
+  document.getElementById('deck-list').addEventListener('click', function(e) {{
+    const item = e.target.closest('.deck-nav-item');
+    if (item && item.dataset.key) {{
+      e.stopPropagation();
+      showDeck(item.dataset.key);
+    }}
+  }});
+
   const panels = document.getElementById('panels');
   keys.forEach(key => {{
     panels.innerHTML += renderDeckPanel(key, DECK_DATA[key]);
