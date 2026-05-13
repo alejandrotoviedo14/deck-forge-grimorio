@@ -1023,13 +1023,17 @@ function renderDeckPanel(key, deck) {{
   </div>`;
 }}
 
+let _showDeckLock = false;
 function showDeck(key) {{
+  if (_showDeckLock) return;
+  _showDeckLock = true;
   document.querySelectorAll('.deck-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.deck-nav-item').forEach(n => n.classList.remove('active'));
   const panel = document.getElementById('panel-' + key);
   const nav   = document.getElementById('nav-' + key);
   if (panel) panel.classList.add('active');
   if (nav)   nav.classList.add('active');
+  _showDeckLock = false;
 }}
 
 function showTooltip(e, el) {{
