@@ -38,12 +38,18 @@ def _index_path(output_dir: Path) -> Path:
 
 
 def load_index(output_dir: Path) -> dict:
-    """Carga el índice. Devuelve dict vacío si no existe."""
+    """Carga el índice. Devuelve dict vacío si no existe o está corrupto."""
     path = _index_path(output_dir)
     if not path.exists():
         return {"decks": {}}
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+            if not content:
+                return {"decks": {}}
+            return json.loads(content)
+    except (json.JSONDecodeError, OSError):
+        return {"decks": {}}
 
 
 def save_index(index: dict, output_dir: Path) -> None:
@@ -62,6 +68,7 @@ def register_deck(
     bracket_score: float,
     cards: list[dict],      # sin básicas, sin comandante
     needed_basics: int,
+    html_data: dict | None = None,  # datos completos para el HTML
 ) -> None:
     """
     Registra un mazo recién construido en el índice.
@@ -70,7 +77,7 @@ def register_deck(
     output_dir.mkdir(parents=True, exist_ok=True)
     index = load_index(output_dir)
 
-    index["decks"][deck_key] = {
+    entry = {
         "commander": commander_card["name"],
         "archetype": archetype_key,
         "colors": colors,
@@ -81,7 +88,10 @@ def register_deck(
         "cards": cards,
         "needed_basics": needed_basics,
     }
+    if html_data:
+        entry.update(html_data)
 
+    index["decks"][deck_key] = entry
     save_index(index, output_dir)
 
 

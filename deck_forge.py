@@ -191,7 +191,9 @@ def cmd_build(args):
         f.write(to_html_multi([deck], [bracket], args.real_csv, basics))
     print(f"✓ HTML: {html_path}")
 
-    # Registrar en índice
+    # Registrar en índice con datos HTML completos
+    from core.exporters import _build_deck_data_json
+    html_data = _build_deck_data_json(deck, bracket)
     register_deck(
         output_dir=output_dir,
         deck_key=safe,
@@ -202,6 +204,7 @@ def cmd_build(args):
         bracket_score=bracket.score,
         cards=[dc.card for dc in deck.cards],
         needed_basics=deck.needed_basics,
+        html_data=html_data,
     )
     print(f"✓ Registrado en índice ({output_dir / 'decks_index.json'})")
 
