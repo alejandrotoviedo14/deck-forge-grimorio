@@ -1,0 +1,82 @@
+// Commander
+1 Emmara, Soul of the Accord
+
+// Token Generators
+1 Voice of Victory
+1 Arasta of the Endless Web
+1 Martial Coup
+1 Horn of Gondor
+1 Mavren Fein, Dusk Apostle
+1 From Beyond
+1 King Darien XLVIII
+1 Entrapment Maneuver
+1 Irregular Cohort
+1 Dance of the Tumbleweeds
+1 Nightpack Ambusher
+1 Ulvenwald Mysteries
+
+// Sacrifice Outlets
+1 Portcullis Vine
+1 Demonmail Hauberk
+
+// Death Triggers / Drain
+1 Workshop Assistant
+1 Death's Presence
+1 Filigree Familiar
+1 Iron Apprentice
+1 Young Wolf
+1 Quirion Beastcaller
+1 Packsong Pup
+1 Perilous Myr
+1 Su-Chi Cave Guard
+1 Friendly Teddy
+
+// Ramp
+1 Mox Jasper
+1 Elvish Mystic
+1 Delighted Halfling
+1 Insidious Fungus
+1 Thirsting Roots
+1 Arboreal Grazer
+1 Traveler's Amulet
+1 Fountainport Bell
+
+// Card Draw
+1 Mentor of the Meek
+1 Peregrin Took
+1 Spirited Companion
+1 Secret Rendezvous
+1 Cultivator Colossus
+1 Abundance
+1 Starfall Invocation
+
+// Removal
+1 Austere Command
+1 Wrath of God
+1 Return to Nature
+1 Meteor Golem
+1 Cathar Commando
+1 Banishing Light
+
+// Big Wincons
+1 Steel Hellkite
+1 Zetalpa, Primal Dawn
+1 Temple Altisaur
+
+// Tierras No-Básicas
+1 Exotic Orchard
+1 Path of Ancestry
+1 Opal Palace
+1 Voldaren Estate
+1 Hidden Grotto
+1 Gateway Plaza
+1 Capital City
+1 Study Hall
+1 Rupture Spire
+1 Night Market
+1 Branch of Vitu-Ghazi
+1 Public Thoroughfare
+
+// Basic Lands
+20 Forest
+19 Plains

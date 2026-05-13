@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Deck Forge — Mazos Commander</title>
+<style>
+:root {
+  --bg-deep: #0a0908;
+  --bg-1: #131210;
+  --bg-2: #1c1a17;
+  --gold: #c9a961;
+  --gold-light: #e8d094;
+  --gold-dim: #8a7240;
+  --parchment: #f4e8c8;
+  --color-W: #f4e8c8;
+  --color-U: #5e88c0;
+  --color-B: #4b3850;
+  --color-R: #b6442e;
+  --color-G: #4f7a3e;
+  --color-C: #8a8377;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg-deep);
+  background-image:
+    radial-gradient(at 20% 10%, rgba(201,169,97,0.04) 0%, transparent 50%),
+    radial-gradient(at 80% 90%, rgba(139,44,44,0.04) 0%, transparent 60%);
+  color: var(--parchment);
+  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  font-size: 16px; line-height: 1.6; min-height: 100vh; padding: 0 0 80px;
+}
+.grain {
+  position: fixed; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  opacity: 0.6; z-index: 1; mix-blend-mode: overlay;
+}
+main { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 60px 32px 40px; }
+.cover { text-align: center; padding: 40px 0 60px; border-bottom: 1px solid var(--gold-dim); margin-bottom: 60px; position: relative; }
+.cover::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); bottom: -1px; height: 1px; width: 400px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.cover .pretitle { font-size: 0.7rem; letter-spacing: 0.6em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 24px; }
+.cover h1 { font-family: 'Cormorant Garamond', 'Playfair Display', 'Times New Roman', serif; font-size: clamp(2.4rem, 6vw, 4.5rem); font-weight: 300; letter-spacing: 0.02em; color: var(--gold-light); text-shadow: 0 2px 30px rgba(201,169,97,0.3); font-style: italic; line-height: 1.05; }
+.cover h1 em { font-style: normal; font-weight: 600; color: var(--parchment); }
+.cover .subtitle { margin-top: 24px; font-size: 1rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; }
+.tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 40px; }
+.tab { background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%); border: 1px solid rgba(201,169,97,0.2); padding: 18px 16px; cursor: pointer; transition: all 0.3s ease; text-align: center; }
+.tab:hover { border-color: var(--gold-dim); }
+.tab.active { border-color: var(--gold); box-shadow: 0 0 30px rgba(201,169,97,0.15); }
+.tab-name { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-style: italic; color: var(--gold-light); margin-bottom: 4px; font-weight: 500; }
+.tab-meta { font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold-dim); }
+.tab-colors { display: inline-flex; gap: 4px; margin-top: 8px; }
+.color-pip { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.4); display: inline-block; }
+.color-pip.W { background: var(--color-W); }
+.color-pip.U { background: var(--color-U); }
+.color-pip.B { background: var(--color-B); }
+.color-pip.R { background: var(--color-R); }
+.color-pip.G { background: var(--color-G); }
+.color-pip.C { background: var(--color-C); }
+.deck-panel { display: none; }
+.deck-panel.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.deck-header { text-align: center; padding: 0 0 32px; margin-bottom: 32px; border-bottom: 1px solid rgba(201,169,97,0.15); }
+.commander-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 4vw, 3.2rem); font-style: italic; font-weight: 400; color: var(--gold-light); line-height: 1.1; margin-bottom: 8px; }
+.archetype { font-size: 0.8rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin: 16px 0 24px; }
+.bracket-badge { display: inline-block; padding: 6px 18px; border: 1px solid var(--gold); border-radius: 100px; font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-light); background: rgba(201,169,97,0.05); }
+.strategy { background: linear-gradient(135deg, var(--bg-1) 0%, transparent 100%); border-left: 3px solid var(--gold); padding: 24px 32px; margin: 32px 0; }
+.strategy h3 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500; font-size: 1.3rem; color: var(--gold-light); margin-bottom: 12px; }
+.strategy p { color: rgba(244,232,200,0.85); line-height: 1.75; }
+.bracket-report { background: var(--bg-1); border-left: 3px solid var(--gold-dim); padding: 20px 28px; margin: 24px 0; font-family: 'SF Mono', Menlo, monospace; font-size: 0.85rem; color: rgba(244,232,200,0.75); white-space: pre-wrap; }
+.category { margin-bottom: 8px; border-bottom: 1px solid rgba(201,169,97,0.1); }
+.category-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; cursor: pointer; user-select: none; }
+.category-header:hover { color: var(--gold-light); }
+.category-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-style: italic; font-weight: 500; color: var(--gold); }
+.category-count { font-size: 0.75rem; letter-spacing: 0.2em; color: var(--gold-dim); text-transform: uppercase; }
+.category-body { display: none; padding-bottom: 24px; }
+.category.open .category-body { display: block; }
+.category-toggle { display: inline-block; margin-right: 12px; color: var(--gold); font-size: 0.9rem; transition: transform 0.2s; width: 12px; }
+.category.open .category-toggle { transform: rotate(90deg); }
+.card-row { display: grid; grid-template-columns: 80px 1fr auto; gap: 16px; padding: 14px 12px; border-bottom: 1px dotted rgba(201,169,97,0.08); align-items: start; }
+.card-row:hover { background: rgba(201,169,97,0.03); }
+.card-cmc { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-1) 100%); border: 1px solid var(--gold-dim); color: var(--gold-light); font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; }
+.card-name { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600; color: var(--parchment); display: inline; }
+.card-role { display: inline-block; margin-left: 12px; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 2px 8px; border: 1px solid rgba(201,169,97,0.3); color: var(--gold); border-radius: 2px; vertical-align: middle; }
+.card-type { font-size: 0.78rem; color: var(--gold-dim); margin-top: 3px; font-style: italic; }
+.card-just { margin-top: 8px; font-size: 0.92rem; color: rgba(244,232,200,0.75); line-height: 1.55; }
+.card-rank { text-align: right; font-size: 0.7rem; color: var(--gold-dim); }
+.export-section { margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(201,169,97,0.2); text-align: center; }
+.export-section h3 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.4rem; color: var(--gold-light); margin-bottom: 8px; }
+.export-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.btn { padding: 12px 28px; background: var(--bg-1); border: 1px solid var(--gold-dim); color: var(--gold-light); font-family: inherit; font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+.btn:hover { border-color: var(--gold); background: rgba(201,169,97,0.08); }
+.btn-primary { background: linear-gradient(135deg, rgba(201,169,97,0.15) 0%, rgba(201,169,97,0.05) 100%); border-color: var(--gold); }
+textarea.exported { width: 100%; min-height: 200px; background: var(--bg-deep); border: 1px solid var(--gold-dim); color: var(--parchment); padding: 16px; font-family: 'SF Mono', Menlo, monospace; font-size: 0.85rem; margin-top: 16px; display: none; resize: vertical; }
+textarea.exported.show { display: block; }
+footer { text-align: center; padding: 60px 0 0; color: var(--gold-dim); font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; font-style: italic; }
+#error-banner { background: #c0392b; color: white; padding: 12px 24px; text-align: center; font-family: monospace; font-size: 0.85rem; display: none; }
+</style>
+</head>
+<body>
+
+<div id="error-banner"></div>
+<div class="grain"></div>
+
+<main>
+  <header class="cover">
+    <div class="pretitle">⚜ Deck Forge ⚜</div>
+    <h1>Mazos <em>Commander</em></h1>
+    <div class="subtitle">generados desde tu colección</div>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+  <div id="deck-container"></div>
+
+  <footer>Generado por Deck Forge · Real-only · Sin fakes</footer>
+</main>
+
+<script type="application/json" id="deck-data">{"deck_1_spellslinger": {"commander": "The Twelfth Doctor", "archetype": "Spellslinger / Cantrips", "archetype_description": "Mazo cargado de instants y sorceries. Payoffs por cada hechizo. Wincons: storm-lite, burn incremental, comandante voltron con counters.", "colors": "RU", "bracket": 1, "bracket_score": 1.2, "bracket_summary": "Bracket estimado: 1  (score: 1.20/5.0)\n  Game changers: 0 \n  Fast mana: 0 \n  Tutores restrictivos: 0 \n  Mass Land Destruction: 0\n  Combos infinitos detectados: 0\n  CMC promedio (no-tierra): 1.96\n  Manabase score: 5.08/10\n  EDHREC rank promedio: 24140\n  Notas:\n    - +0.2 por manabase decente (5.1/10)\n    - +0.4 por CMC bajo (1.96)\n    - -0.4 sin staples universales (Sol Ring, Signet, Command Tower)", "card_count": 100, "needed_basics": 41, "categories": {"Comandante": [{"name": "The Twelfth Doctor", "cmc": 5, "type": "Legendary Creature — Time Lord Doctor", "color_identity": ["R", "U"], "oracle": "The first spell you cast from anywhere other than your hand each turn has demonstrate. (When you cast that spell, you may copy it. If you do, choose an opponent to also copy it. A copy of a permanent spell becomes a token.)\nWhenever you copy a spell, put a +1/+1 counter on The Twelfth Doctor.", "rank": 6981, "role": "Commander", "justification": "Comandante: el motor del mazo.", "set": "WHO", "is_creature": true, "is_land": false, "manabox": {"set_code": "WHO", "set_name": "Doctor Who", "collector_number": "164", "foil": "normal", "rarity": "rare", "manabox_id": "87142", "scryfall_id": "2400d681-05ef-43b1-b720-c15ca4226c27", "language": "en", "condition": "near_mint"}}], "Spellslinger Payoffs": [{"name": "Kessig Flamebreather", "cmc": 2, "type": "Creature — Human Shaman", "color_identity": ["R"], "oracle": "Whenever you cast a noncreature spell, this creature deals 1 damage to each opponent.", "rank": 1327, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "VOW", "is_creature": true, "is_land": false, "manabox": {"set_code": "VOW", "set_name": "Innistrad: Crimson Vow", "collector_number": "164", "foil": "normal", "rarity": "common", "manabox_id": "64150", "scryfall_id": "303ad78a-b02a-44dc-afe6-7f95781a5062", "language": "en", "condition": "near_mint"}}, {"name": "Zada, Hedron Grinder", "cmc": 4, "type": "Legendary Creature — Goblin Ally", "color_identity": ["R"], "oracle": "Whenever you cast an instant or sorcery spell that targets only Zada, copy that spell for each other creature you control that the spell could target. Each copy targets a different one of those creatures.", "rank": 3582, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "MUL", "is_creature": true, "is_land": false, "manabox": {"set_code": "MUL", "set_name": "Multiverse Legends", "collector_number": "25", "foil": "normal", "rarity": "uncommon", "manabox_id": "81147", "scryfall_id": "8994524c-b9ff-4ca0-9ff0-2d074911bfe6", "language": "en", "condition": "near_mint"}}, {"name": "Kindlespark Duo", "cmc": 3, "type": "Creature — Lizard Otter", "color_identity": ["R"], "oracle": "{T}: This creature deals 1 damage to target opponent.\nWhenever you cast a noncreature spell, untap this creature.", "rank": 5637, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "BLB", "is_creature": true, "is_land": false, "manabox": {"set_code": "BLB", "set_name": "Bloomburrow", "collector_number": "142", "foil": "normal", "rarity": "common", "manabox_id": "96096", "scryfall_id": "a839fba3-1b66-4dd1-bf43-9b015b44fc81", "language": "en", "condition": "near_mint"}}, {"name": "Surtr, Fiery Jötun", "cmc": 5, "type": "Legendary Creature — Giant God Warrior", "color_identity": ["R"], "oracle": "Trample (This creature can deal excess combat damage to the player it's attacking.)\nWhenever you cast a historic spell, Surtr deals 3 damage to any target. (Artifacts, legendaries, and Sagas are historic.)", "rank": 7138, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "ACR", "is_creature": true, "is_land": false, "manabox": {"set_code": "ACR", "set_name": "Assassin's Creed", "collector_number": "293", "foil": "normal", "rarity": "rare", "manabox_id": "95478", "scryfall_id": "be38985c-f7a9-4885-9035-09390b4b754a", "language": "en", "condition": "near_mint"}}, {"name": "Saruman the White", "cmc": 5, "type": "Legendary Creature — Avatar Wizard", "color_identity": ["U"], "oracle": "Ward {2}\nWhenever you cast your second spell each turn, amass Orcs 2. (Put two +1/+1 counters on an Army you control. It's also an Orc. If you don't control an Army, create a 0/0 black Orc Army creature token first.)", "rank": 7922, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "LTR", "is_creature": true, "is_land": false, "manabox": {"set_code": "LTR", "set_name": "The Lord of the Rings: Tales of Middle-earth", "collector_number": "67", "foil": "normal", "rarity": "uncommon", "manabox_id": "82903", "scryfall_id": "1bfccbab-29fa-4e92-8919-6cd4815fb655", "language": "en", "condition": "near_mint"}}, {"name": "Voracious Bibliophile", "cmc": 4, "type": "Creature — Dragon", "color_identity": ["U"], "oracle": "Flying, vigilance\nWhenever you cast a spell with one or more targets, draw that many cards.", "rank": 8444, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "TDC", "is_creature": true, "is_land": false, "manabox": {"set_code": "TDC", "set_name": "Tarkir: Dragonstorm Commander", "collector_number": "23", "foil": "normal", "rarity": "rare", "manabox_id": "104746", "scryfall_id": "77d2c30b-3130-4d9d-bd3d-484fe6dc306d", "language": "en", "condition": "near_mint"}}, {"name": "Kraum, Violent Cacophony", "cmc": 4, "type": "Legendary Creature — Zombie Horror", "color_identity": ["R", "U"], "oracle": "Flying\nWhenever you cast your second spell each turn, put a +1/+1 counter on Kraum and draw a card.", "rank": 8457, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "OTJ", "is_creature": true, "is_land": false, "manabox": {"set_code": "OTJ", "set_name": "Outlaws of Thunder Junction", "collector_number": "214", "foil": "normal", "rarity": "uncommon", "manabox_id": "93270", "scryfall_id": "958a3e6b-7e20-40ea-8b2c-7c728934b5e5", "language": "en", "condition": "near_mint"}}, {"name": "Trail of Evidence", "cmc": 3, "type": "Enchantment", "color_identity": ["U"], "oracle": "Whenever you cast an instant or sorcery spell, investigate. (Create a Clue token. It's an artifact with \"{2}, Sacrifice this token: Draw a card.\")", "rank": 8779, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "SOI", "is_creature": false, "is_land": false, "manabox": {"set_code": "SOI", "set_name": "Shadows over Innistrad", "collector_number": "93", "foil": "normal", "rarity": "uncommon", "manabox_id": "8903", "scryfall_id": "4b150797-ee8d-42f8-adcb-2f4b1783c074", "language": "en", "condition": "near_mint"}}, {"name": "Lightshell Duo", "cmc": 4, "type": "Creature — Rat Otter", "color_identity": ["U"], "oracle": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)\nWhen this creature enters, surveil 2. (Look at the top two cards of your library, then put any number of them into your graveyard and the rest on top of your library in any order.)", "rank": 9822, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "FDN", "is_creature": true, "is_land": false, "manabox": {"set_code": "FDN", "set_name": "Foundations", "collector_number": "157", "foil": "normal", "rarity": "common", "manabox_id": "101063", "scryfall_id": "bb75315c-ea8f-4eb0-899e-c73ef75fc396", "language": "en", "condition": "near_mint"}}, {"name": "Runescale Stormbrood // Chilling Screech", "cmc": 4, "type": "Creature — Dragon // Instant — Omen", "color_identity": ["R", "U"], "oracle": "Flying\nWhenever you cast a noncreature spell or a Dragon spell, this creature gets +2/+0 until end of turn.", "rank": 10260, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "TDM", "is_creature": true, "is_land": false, "manabox": {"set_code": "TDM", "set_name": "Tarkir: Dragonstorm", "collector_number": "316", "foil": "normal", "rarity": "uncommon", "manabox_id": "104733", "scryfall_id": "72e8f916-5a01-4918-bcb5-7fd69fe32785", "language": "en", "condition": "near_mint"}}, {"name": "Akroan Crusader", "cmc": 1, "type": "Creature — Human Soldier", "color_identity": ["R"], "oracle": "Heroic — Whenever you cast a spell that targets this creature, create a 1/1 red Soldier creature token with haste. (It can attack and {T} as soon as it comes under your control.)", "rank": 10379, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "UMA", "is_creature": true, "is_land": false, "manabox": {"set_code": "UMA", "set_name": "Ultimate Masters", "collector_number": "121", "foil": "normal", "rarity": "common", "manabox_id": "43388", "scryfall_id": "73d295ac-3c83-47db-a324-aa4907bcefdd", "language": "en", "condition": "near_mint"}}, {"name": "Leyline of Lightning", "cmc": 4, "type": "Enchantment", "color_identity": ["R"], "oracle": "If this card is in your opening hand, you may begin the game with it on the battlefield.\nWhenever you cast a spell, you may pay {1}. If you do, this enchantment deals 1 damage to target player or planeswalker.", "rank": 12134, "role": "Payoff", "justification": "Premia cada hechizo casteado.", "set": "WOT", "is_creature": false, "is_land": false, "manabox": {"set_code": "WOT", "set_name": "Wilds of Eldraine: Enchanting Tales", "collector_number": "45", "foil": "normal", "rarity": "rare", "manabox_id": "85739", "scryfall_id": "d1670149-b64b-44a8-8858-59637679065c", "language": "es", "condition": "near_mint"}}], "Counterspells": [{"name": "Syncopate", "cmc": 1, "type": "Instant", "color_identity": ["U"], "oracle": "Counter target spell unless its controller pays {X}. If that spell is countered this way, exile it instead of putting it into its owner's graveyard.", "rank": 4167, "role": "Counter", "justification": "Reactivo.", "set": "INR", "is_creature": false, "is_land": false, "manabox": {"set_code": "INR", "set_name": "Innistrad Remastered", "collector_number": "89", "foil": "normal", "rarity": "common", "manabox_id": "102690", "scryfall_id": "9aebd769-7ae3-4dac-81ea-458061762cce", "language": "en", "condition": "near_mint"}}, {"name": "Disdainful Stroke", "cmc": 2, "type": "Instant", "color_identity": ["U"], "oracle": "Counter target spell with mana value 4 or greater.", "rank": 2498, "role": "Counter", "justification": "Reactivo.", "set": "GRN", "is_creature": false, "is_land": false, "manabox": {"set_code": "GRN", "set_name": "Guilds of Ravnica", "collector_number": "37", "foil": "normal", "rarity": "common", "manabox_id": "446", "scryfall_id": "0193dfa3-8409-44be-b4be-6c3cad42d4a4", "language": "en", "condition": "near_mint"}}, {"name": "Dazzling Denial", "cmc": 2, "type": "Instant", "color_identity": ["U"], "oracle": "Counter target spell unless its controller pays {2}. If you control a Bird, counter that spell unless its controller pays {4} instead.", "rank": 4183, "role": "Counter", "justification": "Reactivo.", "set": "BLB", "is_creature": false, "is_land": false, "manabox": {"set_code": "BLB", "set_name": "Bloomburrow", "collector_number": "45", "foil": "normal", "rarity": "common", "manabox_id": "96369", "scryfall_id": "8739f1ac-2e57-4b52-a7ff-cc8df5936aad", "language": "en", "condition": "near_mint"}}, {"name": "Lofty Denial", "cmc": 2, "type": "Instant", "color_identity": ["U"], "oracle": "Counter target spell unless its controller pays {1}. If you control a creature with flying, counter that spell unless its controller pays {4} instead.", "rank": 5194, "role": "Counter", "justification": "Reactivo.", "set": "M21", "is_creature": false, "is_land": false, "manabox": {"set_code": "M21", "set_name": "Core Set 2021", "collector_number": "56", "foil": "normal", "rarity": "common", "manabox_id": "50836", "scryfall_id": "64832674-beb1-446e-b2f7-8a5e271139a5", "language": "en", "condition": "near_mint"}}, {"name": "Don't Make a Sound", "cmc": 2, "type": "Instant", "color_identity": ["U"], "oracle": "Counter target spell unless its controller pays {2}. If they do, surveil 2. (Look at the top two cards of your library, then put any number of them into your graveyard and the rest on top of your library in any order.)", "rank": 5933, "role": "Counter", "justification": "Reactivo.", "set": "DSK", "is_creature": false, "is_land": false, "manabox": {"set_code": "DSK", "set_name": "Duskmourn: House of Horror", "collector_number": "49", "foil": "normal", "rarity": "common", "manabox_id": "99305", "scryfall_id": "b5f42e59-7315-41cb-9c41-346e44f0c5fb", "language": "en", "condition": "near_mint"}}, {"name": "Disruption Protocol", "cmc": 2, "type": "Instant", "color_identity": ["U"], "oracle": "As an additional cost to cast this spell, tap an untapped artifact you control or pay {1}.\nCounter target spell.", "rank": 6193, "role": "Counter", "justification": "Reactivo.", "set": "NEO", "is_creature": false, "is_land": false, "manabox": {"set_code": "NEO", "set_name": "Kamigawa: Neon Dynasty", "collector_number": "51", "foil": "normal", "rarity": "common", "manabox_id": "66631", "scryfall_id": "053ab598-06a4-43ae-b9fd-c291bd05642c", "language": "en", "condition": "near_mint"}}, {"name": "Mindswipe", "cmc": 2, "type": "Instant", "color_identity": ["R", "U"], "oracle": "Counter target spell unless its controller pays {X}. Mindswipe deals X damage to that spell's controller.", "rank": 14095, "role": "Counter", "justification": "Reactivo.", "set": "KTK", "is_creature": false, "is_land": false, "manabox": {"set_code": "KTK", "set_name": "Khans of Tarkir", "collector_number": "189", "foil": "normal", "rarity": "rare", "manabox_id": "13209", "scryfall_id": "557e8303-a021-4257-b41a-7d25f04618c8", "language": "es", "condition": "near_mint"}}, {"name": "Thassa's Rebuff", "cmc": 2, "type": "Instant", "color_identity": ["U"], "oracle": "Counter target spell unless its controller pays {X}, where X is your devotion to blue. (Each {U} in the mana costs of permanents you control counts toward your devotion to blue.)", "rank": 14694, "role": "Counter", "justification": "Reactivo.", "set": "BNG", "is_creature": false, "is_land": false, "manabox": {"set_code": "BNG", "set_name": "Born of the Gods", "collector_number": "54", "foil": "normal", "rarity": "uncommon", "manabox_id": "14906", "scryfall_id": "816a6ff7-cede-4346-b3e6-aee33aefac3a", "language": "en", "condition": "near_mint"}}], "Burn / Removal Spells": [{"name": "Essence Flux", "cmc": 1, "type": "Instant", "color_identity": ["U"], "oracle": "Exile target creature you control, then return that card to the battlefield under its owner's control. If it's a Spirit, put a +1/+1 counter on it.", "rank": 965, "role": "Burn/Removal", "justification": "Daño puntual.", "set": "INR", "is_creature": false, "is_land": false, "manabox": {"set_code": "INR", "set_name": "Innistrad Remastered", "collector_number": "64", "foil": "normal", "rarity": "common", "manabox_id": "102778", "scryfall_id": "c94b37df-aaa5-4981-be3b-c934a7971123", "language": "en", "condition": "near_mint"}}, {"name": "Retraction Helix", "cmc": 1, "type": "Instant", "color_identity": ["U"], "oracle": "Until end of turn, target creature gains \"{T}: Return target nonland permanent to its owner's hand.\"", "rank": 4382, "role": "Burn/Removal", "justification": "Daño puntual.", "set": "A25", "is_creature": false, "is_land": false, "manabox": {"set_code": "A25", "set_name": "Masters 25", "collector_number": "71", "foil": "normal", "rarity": "common", "manabox_id": "2645", "scryfall_id": "7aa3fdd0-34d8-47b3-9753-d2929838732e", "language": "en", "condition": "near_mint"}}, {"name": "Alchemist's Retrieval", "cmc": 1, "type": "Instant", "color_identity": ["U"], "oracle": "Cleave {1}{U} (You may cast this spell for its cleave cost. If you do, remove the words in square brackets.)\nReturn target nonland permanent [you control] to its owner's hand.", "rank": 7825, "role": "Burn/Removal", "justification": "Daño puntual.", "set": "VOW", "is_creature": false, "is_land": false, "manabox": {"set_code": "VOW", "set_name": "Innistrad: Crimson Vow", "collector_number": "47", "foil": "normal", "rarity": "common", "manabox_id": "64462", "scryfall_id": "edbf9d4f-6027-40b8-81c1-7f001a9119dd", "language": "en", "condition": "near_mint"}}, {"name": "Raze the Effigy", "cmc": 1, "type": "Instant", "color_identity": ["R"], "oracle": "Choose one —\n• Destroy target artifact.\n• Target attacking creature gets +2/+2 until end of turn.", "rank": 8465, "role": "Burn/Removal", "justification": "Daño puntual.", "set": "MID", "is_creature": false, "is_land": false, "manabox": {"set_code": "MID", "set_name": "Innistrad: Midnight Hunt", "collector_number": "156", "foil": "normal", "rarity": "common", "manabox_id": "63471", "scryfall_id": "e0dd378c-5050-48c9-9a16-6d91afa62d21", "language": "en", "condition": "near_mint"}}, {"name": "Silent Departure", "cmc": 1, "type": "Sorcery", "color_identity": ["U"], "oracle": "Return target creature to its owner's hand.\nFlashback {4}{U} (You may cast this card from your graveyard for its flashback cost. Then exile it.)", "rank": 13922, "role": "Burn/Removal", "justification": "Daño puntual.", "set": "INR", "is_creature": false, "is_land": false, "manabox": {"set_code": "INR", "set_name": "Innistrad Remastered", "collector_number": "84", "foil": "normal", "rarity": "common", "manabox_id": "102532", "scryfall_id": "4d1552e7-20b2-42b0-af47-6618ab163115", "language": "en", "condition": "near_mint"}}, {"name": "Trial of Agony", "cmc": 1, "type": "Sorcery", "color_identity": ["R"], "oracle": "Choose two target creatures controlled by the same opponent. That player chooses one of those creatures. Trial of Agony deals 5 damage to that creature, and the other can't block this turn.", "rank": 14707, "role": "Burn/Removal", "justification": "Daño puntual.", "set": "DSK", "is_creature": false, "is_land": false, "manabox": {"set_code": "DSK", "set_name": "Duskmourn: House of Horror", "collector_number": "159", "foil": "normal", "rarity": "uncommon", "manabox_id": "98947", "scryfall_id": "fa62f67a-d20f-4d99-b0a2-327634299c9f", "language": "en", "condition": "near_mint"}}, {"name": "Deface", "cmc": 1, "type": "Sorcery", "color_identity": ["R"], "oracle": "Choose one —\n• Destroy target artifact.\n• Destroy target creature with defender.", "rank": 18547, "role": "Burn/Removal", "justification": "Daño puntual.", "set": "RNA", "is_creature": false, "is_land": false, "manabox": {"set_code": "RNA", "set_name": "Ravnica Allegiance", "collector_number": "98", "foil": "normal", "rarity": "common", "manabox_id": "43766", "scryfall_id": "43df9f41-944e-4cf3-ac80-524eadac221d", "language": "en", "condition": "near_mint"}}, {"name": "Clutch of Currents", "cmc": 1, "type": "Sorcery", "color_identity": ["U"], "oracle": "Return target creature to its owner's hand.\nAwaken 3—{4}{U} (If you cast this spell for {4}{U}, also put three +1/+1 counters on target land you control and it becomes a 0/0 Elemental creature with haste. It's still a land.)", "rank": 19109, "role": "Burn/Removal", "justification": "Daño puntual.", "set": "BFZ", "is_creature": false, "is_land": false, "manabox": {"set_code": "BFZ", "set_name": "Battle for Zendikar", "collector_number": "72", "foil": "normal", "rarity": "common", "manabox_id": "10279", "scryfall_id": "3d20f482-e0b2-4e4a-be32-347ab112912c", "language": "en", "condition": "near_mint"}}], "Card Draw / Cantrips": [{"name": "Faithless Looting", "cmc": 1, "type": "Sorcery", "color_identity": ["R"], "oracle": "Draw two cards, then discard two cards.\nFlashback {2}{R} (You may cast this card from your graveyard for its flashback cost. Then exile it.)", "rank": 94, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "INR", "is_creature": false, "is_land": false, "manabox": {"set_code": "INR", "set_name": "Innistrad Remastered", "collector_number": "151", "foil": "normal", "rarity": "common", "manabox_id": "102544", "scryfall_id": "52e47757-0aa9-48b0-8b43-e2483d7eed67", "language": "en", "condition": "near_mint"}}, {"name": "Opt", "cmc": 1, "type": "Instant", "color_identity": ["U"], "oracle": "Scry 1. (Look at the top card of your library. You may put that card on the bottom.)\nDraw a card.", "rank": 213, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "FDN", "is_creature": false, "is_land": false, "manabox": {"set_code": "FDN", "set_name": "Foundations", "collector_number": "512", "foil": "normal", "rarity": "common", "manabox_id": "100539", "scryfall_id": "58d26b54-0093-4e90-a2b1-b57c64340f9c", "language": "en", "condition": "near_mint"}}, {"name": "Enter the Enigma", "cmc": 1, "type": "Sorcery", "color_identity": ["U"], "oracle": "Target creature can't be blocked this turn.\nDraw a card.", "rank": 1402, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "DSK", "is_creature": false, "is_land": false, "manabox": {"set_code": "DSK", "set_name": "Duskmourn: House of Horror", "collector_number": "52", "foil": "normal", "rarity": "common", "manabox_id": "99008", "scryfall_id": "cf5479c7-9e46-4a57-abe7-8cc670de89e4", "language": "en", "condition": "near_mint"}}, {"name": "Sticky Fingers", "cmc": 1, "type": "Enchantment — Aura", "color_identity": ["R"], "oracle": "Enchant creature\nEnchanted creature has menace and \"Whenever this creature deals combat damage to a player, create a Treasure token.\" (It can't be blocked except by two or more creatures. The token is an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")\nWhen enchanted creature dies, draw a card.", "rank": 1775, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "SNC", "is_creature": false, "is_land": false, "manabox": {"set_code": "SNC", "set_name": "Streets of New Capenna", "collector_number": "124", "foil": "normal", "rarity": "common", "manabox_id": "67696", "scryfall_id": "3678fa3d-d41f-4b7a-b25e-6fc5f78876c7", "language": "en", "condition": "near_mint"}}, {"name": "Crash Through", "cmc": 1, "type": "Sorcery", "color_identity": ["R"], "oracle": "Creatures you control gain trample until end of turn. (Each of those creatures can deal excess combat damage to the player or planeswalker it's attacking.)\nDraw a card.", "rank": 2029, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "FDN", "is_creature": false, "is_land": false, "manabox": {"set_code": "FDN", "set_name": "Foundations", "collector_number": "620", "foil": "normal", "rarity": "common", "manabox_id": "100903", "scryfall_id": "9eb16918-6363-4849-8d74-e26822a0ddf7", "language": "en", "condition": "near_mint"}}, {"name": "Combat Research", "cmc": 1, "type": "Enchantment — Aura", "color_identity": ["U"], "oracle": "Enchant creature\nEnchanted creature has \"Whenever this creature deals combat damage to a player, draw a card.\"\nAs long as enchanted creature is legendary, it gets +1/+1 and has ward {1}. (Whenever enchanted creature becomes the target of a spell or ability an opponent controls, counter it unless that player pays {1}.)", "rank": 2122, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "DMU", "is_creature": false, "is_land": false, "manabox": {"set_code": "DMU", "set_name": "Dominaria United", "collector_number": "44", "foil": "normal", "rarity": "uncommon", "manabox_id": "71514", "scryfall_id": "6c44738c-706f-40b2-a09d-b21cd0889049", "language": "en", "condition": "near_mint"}}, {"name": "Ingenious Prodigy", "cmc": 1, "type": "Creature — Human Wizard", "color_identity": ["U"], "oracle": "Skulk (This creature can't be blocked by creatures with greater power.)\nThis creature enters with X +1/+1 counters on it.\nAt the beginning of your upkeep, if this creature has one or more +1/+1 counters on it, you may remove a +1/+1 counter from it. If you do, draw a card.", "rank": 3356, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "WOE", "is_creature": true, "is_land": false, "manabox": {"set_code": "WOE", "set_name": "Wilds of Eldraine", "collector_number": "56", "foil": "normal", "rarity": "rare", "manabox_id": "85734", "scryfall_id": "cf224968-b676-40dd-83c1-a9ee2ceba574", "language": "es", "condition": "near_mint"}}, {"name": "Renegade Tactics", "cmc": 1, "type": "Sorcery", "color_identity": ["R"], "oracle": "Target creature can't block this turn.\nDraw a card.", "rank": 3413, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "CMR", "is_creature": false, "is_land": false, "manabox": {"set_code": "CMR", "set_name": "Commander Legends", "collector_number": "195", "foil": "normal", "rarity": "common", "manabox_id": "56116", "scryfall_id": "7dfa0e65-1ce0-4f8e-a78b-2ade2d25e748", "language": "en", "condition": "near_mint"}}, {"name": "Voldaren Epicure", "cmc": 1, "type": "Creature — Vampire", "color_identity": ["R"], "oracle": "When this creature enters, it deals 1 damage to each opponent. Create a Blood token. (It's an artifact with \"{1}, {T}, Discard a card, Sacrifice this token: Draw a card.\")", "rank": 5066, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "INR", "is_creature": true, "is_land": false, "manabox": {"set_code": "INR", "set_name": "Innistrad Remastered", "collector_number": "182", "foil": "normal", "rarity": "common", "manabox_id": "102824", "scryfall_id": "e8fe855c-fe94-4de7-a033-9892a9d6ee0e", "language": "en", "condition": "near_mint"}}, {"name": "Fountainport Bell", "cmc": 1, "type": "Artifact", "color_identity": [], "oracle": "When this artifact enters, you may search your library for a basic land card, reveal it, then shuffle and put that card on top.\n{1}, Sacrifice this artifact: Draw a card.", "rank": 5143, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "BLB", "is_creature": false, "is_land": false, "manabox": {"set_code": "BLB", "set_name": "Bloomburrow", "collector_number": "245", "foil": "normal", "rarity": "common", "manabox_id": "96094", "scryfall_id": "a5c94bc0-a49d-451b-8e8d-64d46b8b8603", "language": "en", "condition": "near_mint"}}, {"name": "Ancestral Anger", "cmc": 1, "type": "Sorcery", "color_identity": ["R"], "oracle": "Target creature gains trample and gets +X/+0 until end of turn, where X is 1 plus the number of cards named Ancestral Anger in your graveyard.\nDraw a card.", "rank": 5286, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "INR", "is_creature": false, "is_land": false, "manabox": {"set_code": "INR", "set_name": "Innistrad Remastered", "collector_number": "141", "foil": "normal", "rarity": "common", "manabox_id": "102837", "scryfall_id": "eeaca66d-23bd-4e8f-8d4a-c5864dd447be", "language": "en", "condition": "near_mint"}}, {"name": "Marauding Mako", "cmc": 1, "type": "Creature — Shark Pirate", "color_identity": ["R"], "oracle": "Whenever you discard one or more cards, put that many +1/+1 counters on this creature.\nCycling {2} ({2}, Discard this card: Draw a card.)", "rank": 5704, "role": "Cantrip", "justification": "Mantiene el motor.", "set": "DFT", "is_creature": true, "is_land": false, "manabox": {"set_code": "DFT", "set_name": "Aetherdrift", "collector_number": "138", "foil": "normal", "rarity": "uncommon", "manabox_id": "103199", "scryfall_id": "9efbfd67-e0f5-43e0-9fff-1eb4a2bed0d8", "language": "en", "condition": "near_mint"}}], "Ramp (artifact only)": [{"name": "Mox Jasper", "cmc": 0, "type": "Legendary Artifact", "color_identity": [], "oracle": "{T}: Add one mana of any color. Activate only if you control a Dragon.", "rank": 2927, "role": "Ramp", "justification": "Mana fix sin verde.", "set": "TDM", "is_creature": false, "is_land": false, "manabox": {"set_code": "TDM", "set_name": "Tarkir: Dragonstorm", "collector_number": "246", "foil": "normal", "rarity": "mythic", "manabox_id": "103999", "scryfall_id": "a851d2d3-7e93-4887-bee5-4d6c9aaf9419", "language": "en", "condition": "near_mint"}}, {"name": "Traveler's Amulet", "cmc": 1, "type": "Artifact", "color_identity": [], "oracle": "{1}, Sacrifice this artifact: Search your library for a basic land card, reveal it, put it into your hand, then shuffle.", "rank": 4594, "role": "Ramp", "justification": "Mana fix sin verde.", "set": "HOU", "is_creature": false, "is_land": false, "manabox": {"set_code": "HOU", "set_name": "Hour of Devastation", "collector_number": "167", "foil": "normal", "rarity": "common", "manabox_id": "4508", "scryfall_id": "195464f1-f01c-4211-950d-963c5bad786f", "language": "en", "condition": "near_mint"}}, {"name": "Prophetic Prism", "cmc": 2, "type": "Artifact", "color_identity": [], "oracle": "When this artifact enters, draw a card.\n{1}, {T}: Add one mana of any color.", "rank": 4737, "role": "Ramp", "justification": "Mana fix sin verde.", "set": "DMC", "is_creature": false, "is_land": false, "manabox": {"set_code": "DMC", "set_name": "Dominaria United Commander", "collector_number": "189", "foil": "normal", "rarity": "common", "manabox_id": "71652", "scryfall_id": "a0dcb495-9562-4961-b095-8b844dfdb601", "language": "en", "condition": "near_mint"}}, {"name": "Flywheel Racer", "cmc": 2, "type": "Artifact — Vehicle", "color_identity": [], "oracle": "Vigilance\n{T}: Add one mana of any color. Activate only if this permanent is a creature.\nCrew 1 (Tap any number of creatures you control with total power 1 or more: This Vehicle becomes an artifact creature until end of turn.)", "rank": 9385, "role": "Ramp", "justification": "Mana fix sin verde.", "set": "MOM", "is_creature": false, "is_land": false, "manabox": {"set_code": "MOM", "set_name": "March of the Machine", "collector_number": "259", "foil": "normal", "rarity": "common", "manabox_id": "81448", "scryfall_id": "c694485d-a753-4e55-929c-d8e4a53c7d08", "language": "en", "condition": "near_mint"}}, {"name": "Piggy Bank", "cmc": 2, "type": "Artifact Creature — Boar Toy", "color_identity": ["R"], "oracle": "When this creature dies, create a Treasure token. (It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")", "rank": 11092, "role": "Ramp", "justification": "Mana fix sin verde.", "set": "DSK", "is_creature": true, "is_land": false, "manabox": {"set_code": "DSK", "set_name": "Duskmourn: House of Horror", "collector_number": "148", "foil": "normal", "rarity": "uncommon", "manabox_id": "98827", "scryfall_id": "55d35442-5ca0-4fd7-8ff1-b7347b3e6690", "language": "en", "condition": "near_mint"}}, {"name": "Guidelight Optimizer", "cmc": 2, "type": "Artifact Creature — Robot", "color_identity": ["U"], "oracle": "{T}: Add {U}. Spend this mana only to cast an artifact spell or activate an ability.", "rank": 11402, "role": "Ramp", "justification": "Mana fix sin verde.", "set": "DFT", "is_creature": true, "is_land": false, "manabox": {"set_code": "DFT", "set_name": "Aetherdrift", "collector_number": "45", "foil": "normal", "rarity": "common", "manabox_id": "103658", "scryfall_id": "e9fc07dd-05b1-49ed-a3ee-46c31b8e0a3d", "language": "en", "condition": "near_mint"}}], "Tierras No-Básicas": [{"name": "Exotic Orchard", "cmc": 0, "type": "Land", "color_identity": [], "oracle": "{T}: Add one mana of any color that a land an opponent controls could produce.", "rank": 9, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "40K", "is_creature": false, "is_land": true, "manabox": {"set_code": "40K", "set_name": "Warhammer 40,000 Commander", "collector_number": "278", "foil": "normal", "rarity": "rare", "manabox_id": "72563", "scryfall_id": "ec9c7011-694b-4705-b85c-bf4edf26e437", "language": "es", "condition": "near_mint"}}, {"name": "Path of Ancestry", "cmc": 0, "type": "Land", "color_identity": [], "oracle": "This land enters tapped.\n{T}: Add one mana of any color in your commander's color identity. When that mana is spent to cast a creature spell that shares a creature type with your commander, scry 1. (Look at the top card of your library. You may put that card on the bottom.)", "rank": 14, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "DRC", "is_creature": false, "is_land": true, "manabox": {"set_code": "DRC", "set_name": "Aetherdrift Commander", "collector_number": "166", "foil": "normal", "rarity": "common", "manabox_id": "103021", "scryfall_id": "4898fba1-d692-4440-bfff-ae535bdc1ba8", "language": "en", "condition": "near_mint"}}, {"name": "Opal Palace", "cmc": 0, "type": "Land", "color_identity": [], "oracle": "{T}: Add {C}.\n{1}, {T}: Add one mana of any color in your commander's color identity. If you spend this mana to cast your commander, it enters with a number of additional +1/+1 counters on it equal to the number of times it's been cast from the command zone this game.", "rank": 634, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "M3C", "is_creature": false, "is_land": true, "manabox": {"set_code": "M3C", "set_name": "Modern Horizons 3 Commander", "collector_number": "361", "foil": "normal", "rarity": "common", "manabox_id": "94972", "scryfall_id": "76219ec4-65dc-4137-9b3b-070e02524397", "language": "en", "condition": "near_mint"}}, {"name": "Thriving Isle", "cmc": 0, "type": "Land", "color_identity": ["U"], "oracle": "This land enters tapped. As it enters, choose a color other than blue.\n{T}: Add {U} or one mana of the chosen color.", "rank": 1038, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "DSC", "is_creature": false, "is_land": true, "manabox": {"set_code": "DSC", "set_name": "Duskmourn: House of Horror Commander", "collector_number": "316", "foil": "normal", "rarity": "common", "manabox_id": "99139", "scryfall_id": "4a67f455-f193-4999-9286-bbccee546fa3", "language": "en", "condition": "near_mint"}}, {"name": "Voldaren Estate", "cmc": 0, "type": "Land", "color_identity": [], "oracle": "{T}: Add {C}.\n{T}, Pay 1 life: Add one mana of any color. Spend this mana only to cast a Vampire spell.\n{5}, {T}: Create a Blood token. This ability costs {1} less to activate for each Vampire you control. (It's an artifact with \"{1}, {T}, Discard a card, Sacrifice this token: Draw a card.\")", "rank": 2378, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "LCC", "is_creature": false, "is_land": true, "manabox": {"set_code": "LCC", "set_name": "The Lost Caverns of Ixalan Commander", "collector_number": "369", "foil": "normal", "rarity": "rare", "manabox_id": "88326", "scryfall_id": "1fcbc704-4fb3-49c3-9040-aa1681e86e2c", "language": "en", "condition": "near_mint"}}, {"name": "Hidden Grotto", "cmc": 0, "type": "Land", "color_identity": [], "oracle": "When this land enters, surveil 1. (Look at the top card of your library. You may put it into your graveyard.)\n{T}: Add {C}.\n{1}, {T}: Add one mana of any color.", "rank": 2379, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "BLB", "is_creature": false, "is_land": true, "manabox": {"set_code": "BLB", "set_name": "Bloomburrow", "collector_number": "254", "foil": "normal", "rarity": "common", "manabox_id": "95918", "scryfall_id": "4ba8f2e7-8357-4862-97dc-1942d066023a", "language": "en", "condition": "near_mint"}}, {"name": "Gateway Plaza", "cmc": 0, "type": "Land — Gate", "color_identity": [], "oracle": "This land enters tapped.\nWhen this land enters, sacrifice it unless you pay {1}.\n{T}: Add one mana of any color.", "rank": 2455, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "RNA", "is_creature": false, "is_land": true, "manabox": {"set_code": "RNA", "set_name": "Ravnica Allegiance", "collector_number": "247", "foil": "normal", "rarity": "common", "manabox_id": "43618", "scryfall_id": "3433a2c2-d252-4cd8-97e8-389875b2cda0", "language": "en", "condition": "near_mint"}}, {"name": "Capital City", "cmc": 0, "type": "Land — Town", "color_identity": [], "oracle": "{T}: Add {C}.\n{1}, {T}: Add one mana of any color.\nCycling {2} ({2}, Discard this card: Draw a card.)", "rank": 4236, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "FIN", "is_creature": false, "is_land": true, "manabox": {"set_code": "FIN", "set_name": "Final Fantasy", "collector_number": "274", "foil": "normal", "rarity": "uncommon", "manabox_id": "106379", "scryfall_id": "f73ce8ec-c916-48eb-ae20-c0d6d03d7145", "language": "en", "condition": "near_mint"}}, {"name": "Study Hall", "cmc": 0, "type": "Land", "color_identity": [], "oracle": "{T}: Add {C}.\n{1}, {T}: Add one mana of any color. When you spend this mana to cast your commander, scry X, where X is the number of times it's been cast from the command zone this game.", "rank": 5361, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "C21", "is_creature": false, "is_land": true, "manabox": {"set_code": "C21", "set_name": "Commander 2021", "collector_number": "80", "foil": "normal", "rarity": "common", "manabox_id": "58649", "scryfall_id": "a3de9859-98b6-4efe-847a-43bac5b1ef9f", "language": "en", "condition": "near_mint"}}, {"name": "Rupture Spire", "cmc": 0, "type": "Land", "color_identity": [], "oracle": "This land enters tapped.\nWhen this land enters, sacrifice it unless you pay {1}.\n{T}: Add one mana of any color.", "rank": 5891, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "CMR", "is_creature": false, "is_land": true, "manabox": {"set_code": "CMR", "set_name": "Commander Legends", "collector_number": "355", "foil": "normal", "rarity": "common", "manabox_id": "56188", "scryfall_id": "c7ef4b15-efab-4255-ac2d-7794f253aa52", "language": "en", "condition": "near_mint"}}, {"name": "Night Market", "cmc": 0, "type": "Land", "color_identity": [], "oracle": "This land enters tapped. As it enters, choose a color.\n{T}: Add one mana of the chosen color.\nCycling {3} ({3}, Discard this card: Draw a card.)", "rank": 6986, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "DFT", "is_creature": false, "is_land": true, "manabox": {"set_code": "DFT", "set_name": "Aetherdrift", "collector_number": "258", "foil": "normal", "rarity": "common", "manabox_id": "103214", "scryfall_id": "a8c1dce3-6136-4294-9d2b-5ef8527d733b", "language": "en", "condition": "near_mint"}}, {"name": "Branch of Vitu-Ghazi", "cmc": 0, "type": "Land", "color_identity": [], "oracle": "{T}: Add {C}.\nDisguise {3} (You may cast this card face down for {3} as a 2/2 creature with ward {2}. Turn it face up any time for its disguise cost.)\nWhen this land is turned face up, add two mana of any one color. Until end of turn, you don't lose this mana as steps and phases end.", "rank": 7106, "role": "Land", "justification": "Tierra de utilidad / dual.", "set": "MKM", "is_creature": false, "is_land": true, "manabox": {"set_code": "MKM", "set_name": "Murders at Karlov Manor", "collector_number": "258", "foil": "normal", "rarity": "uncommon", "manabox_id": "90969", "scryfall_id": "73a8169f-b858-47a5-9c76-2e7c50ad4ecd", "language": "en", "condition": "near_mint"}}]}, "basics_data": {"Mountain": {"set_code": "FDN", "set_name": "Foundations", "collector_number": "278", "foil": "normal", "rarity": "common", "manabox_id": "100284", "scryfall_id": "279df7e2-2a3b-464a-a7df-e91da28e3a8c", "language": "en", "condition": "near_mint"}, "Island": {"set_code": "ACR", "set_name": "Assassin's Creed", "collector_number": "103", "foil": "normal", "rarity": "common", "manabox_id": "95444", "scryfall_id": "a22426c4-914a-4e0b-a28a-b8573b63e320", "language": "en", "condition": "near_mint"}, "Forest": {"set_code": "ACR", "set_name": "Assassin's Creed", "collector_number": "109", "foil": "normal", "rarity": "common", "manabox_id": "95472", "scryfall_id": "b8a081ef-a2d4-4989-8b06-721f8b2c9798", "language": "en", "condition": "near_mint"}, "Plains": {"set_code": "ACR", "set_name": "Assassin's Creed", "collector_number": "102", "foil": "normal", "rarity": "common", "manabox_id": "95353", "scryfall_id": "4578c984-afb6-4532-b5be-093ed4ecb8b9", "language": "en", "condition": "near_mint"}, "Swamp": {"set_code": "INR", "set_name": "Innistrad Remastered", "collector_number": "293", "foil": "normal", "rarity": "common", "manabox_id": "102530", "scryfall_id": "4bc918af-527c-46d7-861d-32e9150ed3df", "language": "en", "condition": "near_mint"}}}}</script>
+
+<script>
+(function() {
+  'use strict';
+  function showError(msg) {
+    var b = document.getElementById('error-banner');
+    if (b) { b.style.display = 'block'; b.textContent = 'ERROR: ' + msg; }
+    console.error(msg);
+  }
+
+  var DECK_DATA;
+  try {
+    DECK_DATA = JSON.parse(document.getElementById('deck-data').textContent);
+  } catch (e) { showError('JSON parse: ' + e.message); return; }
+
+  var DECK_KEYS = Object.keys(DECK_DATA);
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function rankBadge(rank) {
+    if (!rank) return '';
+    if (rank <= 500)  return '<span style="color:#d4a04a">★ ' + rank + '</span>';
+    if (rank <= 2000) return '<span style="color:var(--gold-light)">' + rank + '</span>';
+    return '<span style="color:var(--gold-dim)">' + rank + '</span>';
+  }
+
+  function buildTabs() {
+    var html = '';
+    DECK_KEYS.forEach(function(key, i) {
+      var d = DECK_DATA[key];
+      var pips = d.colors.split('').map(function(c) {
+        return '<span class="color-pip ' + c + '"></span>';
+      }).join('');
+      html += '<div class="tab' + (i === 0 ? ' active' : '') + '" data-deck="' + key + '">' +
+        '<div class="tab-name">' + escapeHtml(d.commander.split(',')[0]) + '</div>' +
+        '<div class="tab-meta">Bracket ' + d.bracket + '</div>' +
+        '<div class="tab-colors">' + pips + '</div></div>';
+    });
+    document.getElementById('tabs').innerHTML = html;
+    document.querySelectorAll('.tab').forEach(function(t) {
+      t.addEventListener('click', function() { showDeck(t.getAttribute('data-deck')); });
+    });
+  }
+
+  function renderDeck(key) {
+    var d = DECK_DATA[key];
+    var catsHTML = '';
+    Object.keys(d.categories).forEach(function(catName) {
+      var cards = d.categories[catName];
+      if (!cards || !cards.length) return;
+      var rows = cards.map(function(c) {
+        return '<div class="card-row">' +
+          '<div class="card-cmc">' + (c.cmc || 0) + '</div>' +
+          '<div><span class="card-name">' + escapeHtml(c.name) + '</span>' +
+          '<span class="card-role">' + escapeHtml(c.role) + '</span>' +
+          '<div class="card-type">' + escapeHtml(c.type) + '</div>' +
+          '<div class="card-just">' + escapeHtml(c.justification) + '</div></div>' +
+          '<div class="card-rank">' + rankBadge(c.rank) + '</div></div>';
+      }).join('');
+      var label = cards.length === 1 ? 'CARTA' : 'CARTAS';
+      catsHTML += '<div class="category">' +
+        '<div class="category-header" data-toggle-category>' +
+        '<div class="category-title"><span class="category-toggle">▶</span>' +
+        escapeHtml(catName) + '</div>' +
+        '<div class="category-count">' + cards.length + ' ' + label + '</div></div>' +
+        '<div class="category-body">' + rows + '</div></div>';
+    });
+
+    return '<section class="deck-panel active">' +
+      '<div class="deck-header">' +
+        '<h2 class="commander-name">' + escapeHtml(d.commander) + '</h2>' +
+        '<div class="archetype">' + escapeHtml(d.archetype) + '</div>' +
+        '<span class="bracket-badge">Bracket ' + d.bracket + ' · score ' + d.bracket_score + ' · ' + escapeHtml(d.colors) + '</span>' +
+      '</div>' +
+      '<div class="strategy"><h3>Estrategia</h3><p>' + escapeHtml(d.archetype_description) + '</p></div>' +
+      '<div class="bracket-report">' + escapeHtml(d.bracket_summary) + '</div>' +
+      catsHTML +
+      '<div class="export-section"><h3>Exportar</h3>' +
+      '<div class="export-buttons">' +
+      '<button class="btn btn-primary" data-manabox="' + key + '">⬇ ManaBox CSV</button>' +
+      '<button class="btn" data-moxfield="' + key + '">Mostrar Moxfield</button>' +
+      '<button class="btn" data-copy="' + key + '">Copiar Moxfield</button>' +
+      '</div>' +
+      '<textarea id="export-' + key + '" class="exported" readonly></textarea>' +
+      '</div></section>';
+  }
+
+  function buildMoxfield(key) {
+    var d = DECK_DATA[key];
+    var lines = ['// Commander', '1 ' + d.commander, ''];
+    Object.keys(d.categories).forEach(function(cat) {
+      if (cat === 'Comandante') return;
+      var cards = d.categories[cat];
+      if (!cards || !cards.length) return;
+      lines.push('// ' + cat);
+      cards.forEach(function(c) { lines.push('1 ' + c.name); });
+      lines.push('');
+    });
+    if (d.needed_basics > 0) {
+      lines.push('// Basic Lands');
+      var colors = d.colors.split('');
+      var split = Math.floor(d.needed_basics / colors.length);
+      var rem = d.needed_basics - split * colors.length;
+      var basicMap = { W: 'Plains', U: 'Island', B: 'Swamp', R: 'Mountain', G: 'Forest' };
+      colors.forEach(function(c, i) {
+        var n = split + (i < rem ? 1 : 0);
+        if (n > 0) lines.push(n + ' ' + basicMap[c]);
+      });
+    }
+    return lines.join('\n');
+  }
+
+  function buildManaboxCSV(key) {
+    var d = DECK_DATA[key];
+    var header = ['Name','Set code','Set name','Collector number','Foil','Rarity',
+                  'Quantity','ManaBox ID','Scryfall ID','Purchase price','Misprint',
+                  'Altered','Condition','Language','Purchase price currency'];
+    var rows = [header.join(',')];
+    function csvEscape(v) {
+      if (v == null) return '';
+      var s = String(v);
+      if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0)
+        return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    }
+    function addRow(name, mb, qty) {
+      if (!mb) return;
+      rows.push([csvEscape(name), csvEscape(mb.set_code), csvEscape(mb.set_name),
+        csvEscape(mb.collector_number), csvEscape(mb.foil || 'normal'),
+        csvEscape(mb.rarity), csvEscape(qty), csvEscape(mb.manabox_id),
+        csvEscape(mb.scryfall_id), '', 'false', 'false',
+        csvEscape(mb.condition || 'near_mint'), csvEscape(mb.language || 'en'), 'EUR'
+      ].join(','));
+    }
+    Object.keys(d.categories).forEach(function(cat) {
+      var cards = d.categories[cat];
+      if (!cards) return;
+      cards.forEach(function(c) { addRow(c.name, c.manabox, 1); });
+    });
+    if (d.needed_basics > 0 && d.basics_data) {
+      var colors = d.colors.split('');
+      var split = Math.floor(d.needed_basics / colors.length);
+      var rem = d.needed_basics - split * colors.length;
+      var basicMap = { W:'Plains', U:'Island', B:'Swamp', R:'Mountain', G:'Forest' };
+      colors.forEach(function(c, i) {
+        var n = split + (i < rem ? 1 : 0);
+        var mb = d.basics_data[basicMap[c]];
+        if (mb && n > 0) addRow(basicMap[c], mb, n);
+      });
+    }
+    return rows.join('\n');
+  }
+
+  function downloadCSV(key, btn) {
+    var csv = buildManaboxCSV(key);
+    var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var d = DECK_DATA[key];
+    var fn = d.commander.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_manabox.csv';
+    var a = document.createElement('a');
+    a.href = url; a.download = fn; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    if (btn) {
+      var orig = btn.textContent;
+      btn.textContent = '✓ Descargado';
+      setTimeout(function() { btn.textContent = orig; }, 2000);
+    }
+  }
+
+  function attachListeners() {
+    document.querySelectorAll('[data-toggle-category]').forEach(function(h) {
+      h.addEventListener('click', function() { h.parentElement.classList.toggle('open'); });
+    });
+    document.querySelectorAll('[data-manabox]').forEach(function(b) {
+      b.addEventListener('click', function() { downloadCSV(b.getAttribute('data-manabox'), b); });
+    });
+    document.querySelectorAll('[data-moxfield]').forEach(function(b) {
+      b.addEventListener('click', function() {
+        var key = b.getAttribute('data-moxfield');
+        var ta = document.getElementById('export-' + key);
+        ta.value = buildMoxfield(key);
+        ta.classList.add('show');
+      });
+    });
+    document.querySelectorAll('[data-copy]').forEach(function(b) {
+      b.addEventListener('click', function() {
+        var key = b.getAttribute('data-copy');
+        var ta = document.getElementById('export-' + key);
+        if (!ta.value) { ta.value = buildMoxfield(key); ta.classList.add('show'); }
+        ta.select();
+        navigator.clipboard.writeText(ta.value).then(function() {
+          var orig = b.textContent;
+          b.textContent = '✓ Copiado';
+          setTimeout(function() { b.textContent = orig; }, 1500);
+        });
+      });
+    });
+  }
+
+  function showDeck(key) {
+    document.querySelectorAll('.tab').forEach(function(t) {
+      t.classList.toggle('active', t.getAttribute('data-deck') === key);
+    });
+    document.getElementById('deck-container').innerHTML = renderDeck(key);
+    attachListeners();
+  }
+
+  try { buildTabs(); showDeck(DECK_KEYS[0]); }
+  catch (e) { showError('Init: ' + e.message); }
+})();
+</script>
+
+</body>
+</html>
