@@ -1,0 +1,71 @@
+// Commander
+1 Flubs, the Fool
+
+// Landfall Payoffs
+1 Spitfire Lagac
+1 Scale the Heights
+1 Kazandu Nectarpot
+1 Dúnedain Rangers
+1 Akoum Hellhound
+1 Canopy Baloth
+1 Skyclave Squid
+
+// Land Ramp (fetch extra lands)
+1 Mox Jasper
+1 Elvish Mystic
+1 Delighted Halfling
+1 Impulsive Pilferer
+1 Sticky Fingers
+1 Insidious Fungus
+1 Thirsting Roots
+1 Arboreal Grazer
+1 Traveler's Amulet
+1 Fountainport Bell
+1 Reclaim the Wastes
+1 Point the Way
+
+// Card Draw
+1 Faithless Looting
+1 Thrill of Possibility
+1 Opt
+1 Demand Answers
+1 Peregrin Took
+1 Enduring Curiosity
+1 Cathartic Reunion
+1 Lórien Revealed
+
+// Removal & Interaction
+1 Abrade
+1 Return to Nature
+1 Meteor Golem
+1 Essence Flux
+1 Planar Incision
+1 Wear Down
+1 Thrashing Brontodon
+1 Starstorm
+
+// Wincon Threats
+1 Steel Hellkite
+1 Cultivator Colossus
+1 Canopy Gargantuan
+1 Keiga, the Tide Star
+1 Zara, Renegade Recruiter
+
+// Tierras No-Básicas
+1 Exotic Orchard
+1 Path of Ancestry
+1 Opal Palace
+1 Thriving Isle
+1 Voldaren Estate
+1 Hidden Grotto
+1 Gateway Plaza
+1 Capital City
+1 Study Hall
+1 Rupture Spire
+1 Night Market
+1 Branch of Vitu-Ghazi
+
+// Basic Lands
+16 Forest
+16 Mountain
+15 Island
