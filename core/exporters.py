@@ -573,6 +573,55 @@ body {{
   box-shadow: 0 8px 24px rgba(0,0,0,0.6);
   z-index: 10;
 }}
+
+/* CARD ZOOM MODAL */
+.card-modal {{
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0,0,0,0.85);
+  align-items: center;
+  justify-content: center;
+  animation: modalFadeIn 0.2s ease-out;
+}}
+.card-modal.visible {{ display: flex; }}
+.card-modal-img {{
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 16px;
+  box-shadow: 0 16px 64px rgba(0,0,0,0.9);
+  animation: modalZoomIn 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}}
+.card-modal-close {{
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+}}
+.card-modal-close:hover {{
+  background: rgba(231, 76, 60, 0.8);
+  transform: scale(1.1);
+}}
+@keyframes modalFadeIn {{
+  from {{ opacity: 0; }}
+  to   {{ opacity: 1; }}
+}}
+@keyframes modalZoomIn {{
+  from {{ transform: scale(0.4); opacity: 0; }}
+  to   {{ transform: scale(1);   opacity: 1; }}
+}}
 .card-name {{
   font-size: 11px;
   color: var(--text2);
@@ -844,6 +893,11 @@ body {{
   <div class="tooltip-justification" id="tt-just"></div>
 </div>
 
+<div class="card-modal" id="card-modal">
+  <button class="card-modal-close" id="card-modal-close" aria-label="Cerrar">✕</button>
+  <img class="card-modal-img" id="card-modal-img" alt="">
+</div>
+
 <script>
 const DECK_DATA = {json_str};
 
@@ -894,8 +948,10 @@ function renderDeckPanel(key, deck) {{
       const icons = (c.role_icons || []).slice(0, 3).join('');
       const img = c.img
         ? `<img src="${{c.img}}" alt="${{c.name}}" loading="lazy"
+               style="cursor:zoom-in"
                onmousemove="showTooltip(event,this)"
                onmouseleave="hideTooltip()"
+               onclick="openCardModal(this)"
                data-name="${{c.name.replace(/"/g,'&quot;')}}"
                data-type="${{(c.type||'').replace(/"/g,'&quot;')}}"
                data-oracle="${{(c.oracle||'').replace(/"/g,'&quot;')}}"
@@ -1056,6 +1112,32 @@ function positionTooltip(e) {{
 function hideTooltip() {{
   document.getElementById('tooltip').classList.remove('visible');
 }}
+
+// CARD ZOOM MODAL
+function openCardModal(imgEl) {{
+  hideTooltip();
+  const modal    = document.getElementById('card-modal');
+  const modalImg = document.getElementById('card-modal-img');
+  modalImg.src = imgEl.src;
+  modalImg.alt = imgEl.alt || '';
+  modal.classList.add('visible');
+}}
+
+function closeCardModal() {{
+  document.getElementById('card-modal').classList.remove('visible');
+}}
+
+// Cerrar con click fuera de la imagen o en la cruz
+document.getElementById('card-modal').addEventListener('click', e => {{
+  if (e.target.id === 'card-modal' || e.target.id === 'card-modal-close') {{
+    closeCardModal();
+  }}
+}});
+
+// Cerrar con Escape
+document.addEventListener('keydown', e => {{
+  if (e.key === 'Escape') closeCardModal();
+}});
 
 document.addEventListener('mousemove', e => {{
   if (document.getElementById('tooltip').classList.contains('visible')) {{
