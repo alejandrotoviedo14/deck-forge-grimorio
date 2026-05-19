@@ -1071,15 +1071,8 @@ function toggleSidebar() {{
   overlay.classList.toggle('open', !isOpen);
 }}
 
-// Close sidebar when selecting a deck on mobile
-const _origShowDeck = showDeck;
-function showDeck(key) {{
-  _origShowDeck(key);
-  if (window.innerWidth <= 768) {{
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebar-overlay').classList.remove('open');
-  }}
-}}
+// (Mobile sidebar close ahora se integra dentro del listener click,
+//  no redefiniendo showDeck para evitar recursion infinita)
 
 // INIT
 (function init() {{
@@ -1102,6 +1095,13 @@ function showDeck(key) {{
     if (item && item.dataset.key) {{
       e.stopPropagation();
       showDeck(item.dataset.key);
+      // Cerrar sidebar en mobile tras seleccionar mazo
+      if (window.innerWidth <= 768) {{
+        const sb = document.getElementById('sidebar');
+        const ov = document.getElementById('sidebar-overlay');
+        if (sb) sb.classList.remove('open');
+        if (ov) ov.classList.remove('open');
+      }}
     }}
   }});
 
