@@ -949,9 +949,10 @@ function renderDeckPanel(key, deck) {{
       const img = c.img
         ? `<img src="${{c.img}}" alt="${{c.name}}" loading="lazy"
                style="cursor:zoom-in"
-               onmousemove="showTooltip(event,this)"
+               onmouseenter="showTooltip(event,this)"
                onmouseleave="hideTooltip()"
-               onclick="openCardModal(this)"
+               onclick="openCardModal(this); return false;"
+               ontouchend="event.preventDefault(); openCardModal(this);"
                data-name="${{c.name.replace(/"/g,'&quot;')}}"
                data-type="${{(c.type||'').replace(/"/g,'&quot;')}}"
                data-oracle="${{(c.oracle||'').replace(/"/g,'&quot;')}}"
