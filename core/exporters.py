@@ -622,6 +622,124 @@ body {{
   from {{ transform: scale(0.4); opacity: 0; }}
   to   {{ transform: scale(1);   opacity: 1; }}
 }}
+
+/* VIEW CONTROLS (toggle grid/list + sort) */
+.view-controls {{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}}
+.view-controls-label {{
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}}
+.view-toggle {{
+  display: flex;
+  background: var(--bg3);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}}
+.view-toggle button {{
+  background: transparent;
+  color: var(--text2);
+  border: none;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, color 0.2s;
+}}
+.view-toggle button.active {{
+  background: var(--accent2);
+  color: var(--bg);
+  font-weight: 600;
+}}
+.view-toggle button:hover:not(.active) {{
+  background: var(--border);
+  color: var(--text);
+}}
+.sort-select {{
+  background: var(--bg3);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}}
+.sort-select:focus {{ outline: none; border-color: var(--accent2); }}
+
+/* LIST VIEW */
+.card-list {{
+  display: none;
+  flex-direction: column;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}}
+.category-section.list-mode .card-grid {{ display: none; }}
+.category-section.list-mode .card-list {{ display: flex; }}
+
+.card-list-row {{
+  display: grid;
+  grid-template-columns: 40px 1fr 80px 60px 80px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: zoom-in;
+  transition: background 0.15s;
+}}
+.card-list-row:last-child {{ border-bottom: none; }}
+.card-list-row:hover {{ background: var(--bg3); }}
+.card-list-thumb {{
+  width: 30px;
+  height: 42px;
+  border-radius: 3px;
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid var(--border);
+}}
+.card-list-name {{
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}}
+.card-list-type {{
+  font-size: 11px;
+  color: var(--text3);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}}
+.card-list-cmc {{
+  font-size: 12px;
+  color: var(--text2);
+  text-align: center;
+  font-weight: 600;
+}}
+.card-list-roles {{
+  font-size: 12px;
+  text-align: right;
+  letter-spacing: 2px;
+}}
+@media (max-width: 768px) {{
+  .card-list-row {{ grid-template-columns: 30px 1fr 40px; gap: 8px; padding: 6px 10px; }}
+  .card-list-type, .card-list-roles {{ display: none; }}
+}}
 .card-name {{
   font-size: 11px;
   color: var(--text2);
@@ -939,13 +1057,81 @@ function renderGaps(deck) {{
   return gaps;
 }}
 
+// State for view mode and sorting
+let currentSort = 'default';
+let currentView = 'grid';
+
+const TYPE_ORDER = {{
+  'Creature': 1, 'Artifact': 2, 'Enchantment': 3,
+  'Planeswalker': 4, 'Instant': 5, 'Sorcery': 6, 'Land': 7,
+}};
+
+function getTypeOrder(type) {{
+  if (!type) return 99;
+  for (const key in TYPE_ORDER) {{
+    if (type.includes(key)) return TYPE_ORDER[key];
+  }}
+  return 99;
+}}
+
+function sortCards(cards, mode) {{
+  const arr = [...cards];
+  switch (mode) {{
+    case 'name':
+      return arr.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    case 'cmc':
+      return arr.sort((a, b) => (a.cmc ?? 99) - (b.cmc ?? 99) || (a.name || '').localeCompare(b.name || ''));
+    case 'cmc_desc':
+      return arr.sort((a, b) => (b.cmc ?? -1) - (a.cmc ?? -1) || (a.name || '').localeCompare(b.name || ''));
+    case 'type':
+      return arr.sort((a, b) => getTypeOrder(a.type) - getTypeOrder(b.type) || (a.cmc ?? 99) - (b.cmc ?? 99));
+    case 'rank':
+      return arr.sort((a, b) => (a.rank ?? 999999) - (b.rank ?? 999999));
+    case 'default':
+    default:
+      return arr;
+  }}
+}}
+
+function setView(btn, view) {{
+  currentView = view;
+  // Update toggle buttons
+  btn.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+  // Apply list-mode class to all category sections in the active panel
+  const panel = btn.closest('.deck-panel');
+  if (panel) {{
+    panel.querySelectorAll('.category-section').forEach(sec => {{
+      sec.classList.toggle('list-mode', view === 'list');
+    }});
+  }}
+}}
+
+function setSort(mode) {{
+  currentSort = mode;
+  // Re-render all panels to apply new sort
+  const activePanel = document.querySelector('.deck-panel.active');
+  const activeKey = activePanel ? activePanel.id.replace('panel-', '') : null;
+  const panels = document.getElementById('panels');
+  panels.innerHTML = '';
+  Object.keys(DECK_DATA).forEach(key => {{
+    panels.innerHTML += renderDeckPanel(key, DECK_DATA[key]);
+  }});
+  if (activeKey) showDeck(activeKey);
+}}
+
 function renderDeckPanel(key, deck) {{
   const gaps = renderGaps(deck);
 
   const categoriesHtml = Object.entries(deck.categories || {{}}).map(([cat, cards]) => {{
     if (!cards || cards.length === 0) return '';
-    const cardsHtml = cards.map(c => {{
+    const sorted = sortCards(cards, currentSort);
+    const cardsHtml = sorted.map(c => {{
       const icons = (c.role_icons || []).slice(0, 3).join('');
+      const cardData = `data-name="${{c.name.replace(/"/g,'&quot;')}}"
+               data-type="${{(c.type||'').replace(/"/g,'&quot;')}}"
+               data-oracle="${{(c.oracle||'').replace(/"/g,'&quot;')}}"
+               data-role="${{(c.role||'').replace(/"/g,'&quot;')}}"
+               data-just="${{(c.justification||'').replace(/"/g,'&quot;')}}"`;
       const img = c.img
         ? `<img src="${{c.img}}" alt="${{c.name}}" loading="lazy"
                style="cursor:zoom-in"
@@ -953,11 +1139,7 @@ function renderDeckPanel(key, deck) {{
                onmouseleave="hideTooltip()"
                onclick="openCardModal(this); return false;"
                ontouchend="event.preventDefault(); openCardModal(this);"
-               data-name="${{c.name.replace(/"/g,'&quot;')}}"
-               data-type="${{(c.type||'').replace(/"/g,'&quot;')}}"
-               data-oracle="${{(c.oracle||'').replace(/"/g,'&quot;')}}"
-               data-role="${{(c.role||'').replace(/"/g,'&quot;')}}"
-               data-just="${{(c.justification||'').replace(/"/g,'&quot;')}}">`
+               ${{cardData}}>`
         : `<div style="height:196px;background:#1a1a24;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#5a5468;border:1px solid #2a2a3a">${{c.name}}</div>`;
       return `<div class="card-item">
         ${{img}}
@@ -965,12 +1147,32 @@ function renderDeckPanel(key, deck) {{
         <div class="card-name">${{c.name}}</div>
       </div>`;
     }}).join('');
+
+    // Vista lista
+    const rowsHtml = sorted.map(c => {{
+      const icons = (c.role_icons || []).slice(0, 3).join('');
+      const thumb = c.img
+        ? `<img class="card-list-thumb" src="${{c.img}}" alt="" loading="lazy">`
+        : `<div class="card-list-thumb" style="background:#1a1a24"></div>`;
+      const onclickAttr = c.img
+        ? `onclick="openCardModal(this.querySelector('img'))" ontouchend="event.preventDefault(); openCardModal(this.querySelector('img'));"`
+        : '';
+      return `<div class="card-list-row" ${{onclickAttr}}>
+        ${{thumb}}
+        <div class="card-list-name">${{c.name}}</div>
+        <div class="card-list-type">${{c.type || ''}}</div>
+        <div class="card-list-cmc">${{c.cmc != null ? c.cmc : '—'}}</div>
+        <div class="card-list-roles">${{icons}}</div>
+      </div>`;
+    }}).join('');
+
     return `<div class="category-section">
       <div class="category-title">
         ${{cat}}
         <span class="category-count">${{cards.length}}</span>
       </div>
       <div class="card-grid">${{cardsHtml}}</div>
+      <div class="card-list">${{rowsHtml}}</div>
     </div>`;
   }}).join('');
 
@@ -1073,6 +1275,22 @@ function renderDeckPanel(key, deck) {{
 
       <div class="section">
         <div class="section-title">Cartas del mazo</div>
+        <div class="view-controls">
+          <span class="view-controls-label">Vista:</span>
+          <div class="view-toggle">
+            <button class="active" data-view="grid" onclick="setView(this, 'grid')">Cartas</button>
+            <button data-view="list" onclick="setView(this, 'list')">Lista</button>
+          </div>
+          <span class="view-controls-label" style="margin-left:auto">Ordenar por:</span>
+          <select class="sort-select" onchange="setSort(this.value)">
+            <option value="default">Por defecto</option>
+            <option value="name">Alfabético</option>
+            <option value="cmc">CMC (asc)</option>
+            <option value="cmc_desc">CMC (desc)</option>
+            <option value="type">Tipo</option>
+            <option value="rank">Popularidad EDHREC</option>
+          </select>
+        </div>
         ${{categoriesHtml}}
       </div>
 
