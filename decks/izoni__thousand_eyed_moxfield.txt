@@ -2,69 +2,69 @@
 1 Izoni, Thousand-Eyed
 
 // Token Generators
-1 Arasta of the Endless Web
-1 Horn of Gondor
-1 From Beyond
-1 Within Range
-1 Tangled Colony
-1 Dance of the Tumbleweeds
-1 Nightpack Ambusher
-1 Ulvenwald Mysteries
-1 Doomed Dissenter
 1 Aatchik, Emerald Radian
-1 Chatter of the Squirrel
-1 Twin-Silk Spider
+1 Eyeblight Cullers
+1 Debtors' Transport
+1 Autarch Mammoth
+1 It of the Horrid Swarm
+1 Rank Officer
+1 Highspire Artisan
+1 Wurmcoil Larva
+1 Elturgard Ranger
+1 Deathbloom Thallid
+1 Tangled Colony
+1 Doomed Dissenter
 
 // Sacrifice Outlets
+1 Chthonian Nightmare
+1 Blood Funnel
+1 Crypt Lurker
+1 Agency Coroner
 1 Village Rites
-1 Bone Splinters
-1 Worthy Cost
-1 Spark Harvest
-1 Portcullis Vine
 
 // Death Triggers / Drain
-1 Feign Death
-1 Supernatural Stamina
-1 Workshop Assistant
-1 Putrid Goblin
-1 Death's Presence
 1 Filigree Familiar
-1 Iron Apprentice
-1 Young Wolf
+1 Su-Chi Cave Guard
+1 Lumberknot
 1 Quirion Beastcaller
-1 Packsong Pup
+1 Exquisite Huntmaster
+1 Spore Crawler
+1 Silverback Shaman
+1 Filigree Crawler
+1 Gravpack Monoist
+1 Infernal Scarring
 
 // Ramp
-1 Mox Jasper
-1 Elvish Mystic
-1 Delighted Halfling
 1 Insidious Fungus
-1 Thirsting Roots
-1 Arboreal Grazer
-1 Traveler's Amulet
 1 Fountainport Bell
+1 Delighted Halfling
+1 Arboreal Grazer
+1 Thirsting Roots
+1 Unstable Obelisk
+1 Prophetic Prism
+1 Magnifying Glass
 
 // Card Draw
-1 Peregrin Took
-1 Call of the Ring
+1 Migrating Ketradon
+1 Persuasive Interrogators
 1 Cultivator Colossus
-1 Abundance
-1 Elvish Visionary
-1 Wear Down
-1 Abundant Growth
+1 Krosan Tusker
+1 Scale the Heights
+1 Oblivion's Hunger
+1 Excavating Anurid
 
 // Removal
-1 Assassin's Trophy
-1 Return to Nature
 1 Meteor Golem
-1 Murder
-1 Casualties of War
-1 Royal Assassin
+1 Ravenous Sailback
+1 Conclave Naturalists
+1 Wear Down
+1 Thornado
+1 Root Out
 
 // Big Wincons
-1 Gray Merchant of Asphodel
-1 Twilight Prophet
-1 Steel Hellkite
+1 Gloomfang Mauler
+1 Moldgraf Millipede
+1 Blade Juggler
 
 // Tierras No-Básicas
 1 Exotic Orchard

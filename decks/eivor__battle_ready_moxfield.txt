@@ -5,69 +5,69 @@
 1 Blackblade Reforged
 
 // Equipment
-1 Cliffhaven Kitesail
-1 Boots of Speed
-1 Hidden Footblade
-1 Simian Sling
-1 Hedgewitch's Mask
-1 Kor Halberd
-1 Neglected Heirloom // Ashmouth Blade
+1 Citizen's Crowbar
+1 Harvest Hand // Scrounged Scythe
+1 Auxiliary Boosters
+1 Armory of Iroas
+1 Glimmerlight
+1 Monk's Fist
+1 Headsplitter
+1 Ancestral Blade
+1 Dragonwing Glider
+1 Brotherhood Regalia
+1 Haunted Cloak
+1 Cloudsteel Kirin
 1 Short Sword
 1 Ninja's Kunai
-1 Vanquisher's Axe
-1 Thinking Cap
-1 Blazing Torch
-1 Brotherhood Regalia
 1 Bloodthirsty Blade
-1 Prowler's Helm
+1 Pirate's Cutlass
+1 Cliffhaven Kitesail
 1 Hero's Heirloom
-1 Hidden Blade
-1 Psychic Paper
 
 // Equipment Synergy
 1 Blacksmith's Talent
 1 Benevolent Blessing
-1 Battlefield Improvisation
-1 Slash of Light
-1 Dan Lewis
 1 Resolute Strike
+1 Militant Inquisitor
+1 Dan Lewis
+1 Battlefield Improvisation
 
 // Cheap Creatures (cuerpos para equipar)
-1 Voice of Victory
-1 Mentor of the Meek
-1 Ornithopter
+1 Charming Scoundrel
+1 Filigree Familiar
+1 Hangar Scrounger
+1 Cloudspire Coordinator
 1 Spirited Companion
-1 Skyclave Apparition
-1 Rosie Cotton of South Lane
-1 Kessig Flamebreather
-1 Cathar Commando
+1 Impulsive Pilferer
+1 Skyscanner
+1 Ticket Tortoise
 
 // Ramp
-1 Mox Jasper
-1 Impulsive Pilferer
-1 Sticky Fingers
-1 Traveler's Amulet
-1 Fountainport Bell
-1 Charming Scoundrel
-1 Bureau Headmaster
+1 Kav Landseeker
+1 Unstable Obelisk
 1 Prophetic Prism
+1 Sticky Fingers
+1 Magnifying Glass
+1 Letter of Acceptance
+1 Fountainport Bell
+1 Piggy Bank
 
 // Card Draw
-1 Faithless Looting
-1 Thrill of Possibility
-1 Demand Answers
-1 Cathartic Reunion
-1 Secret Rendezvous
-1 Tormenting Voice
+1 Escarpment Fortress
+1 Macetail Hystrodon
+1 Falkenrath Celebrants
+1 Lacerate Flesh
+1 Detention Chariot
+1 Starfall Invocation
 
 // Removal
-1 Abrade
-1 Austere Command
-1 Wrath of God
 1 Meteor Golem
-1 Starfall Invocation
-1 Banishing Light
-1 Valorous Stance
+1 Tyrant of Kher Ridges
+1 Fear of Abduction
+1 Driftgloom Coyote
+1 Origin of the Hidden Ones
+1 Rambunctious Mutt
+1 Slayer of the Wicked
 
 // Tierras No-Básicas
 1 Exotic Orchard

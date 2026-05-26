@@ -2,60 +2,60 @@
 1 The Twelfth Doctor
 
 // Spellslinger Payoffs
-1 Kessig Flamebreather
-1 Zada, Hedron Grinder
-1 Kindlespark Duo
-1 Surtr, Fiery Jötun
+1 Firemind's Research
 1 Saruman the White
-1 Voracious Bibliophile
+1 Storm Skreelix
 1 Kraum, Violent Cacophony
+1 Silburlind Snapper
+1 Djinn of the Fountain
+1 Academy Wall
+1 Battlefield Thaumaturge
 1 Trail of Evidence
-1 Lightshell Duo
-1 Runescale Stormbrood // Chilling Screech
-1 Akroan Crusader
-1 Leyline of Lightning
+1 Spellgorger Weird
+1 Goblin Wizardry
+1 Whispering Wizard
 
 // Counterspells
+1 Saruman's Trickery
+1 Mirrorshell Crab
+1 Overcharged Amalgam
+1 Spell Snuff
+1 Thought Collapse
+1 Countermand
 1 Syncopate
-1 Disdainful Stroke
 1 Dazzling Denial
-1 Lofty Denial
-1 Don't Make a Sound
-1 Disruption Protocol
-1 Mindswipe
-1 Thassa's Rebuff
 
 // Burn / Removal Spells
 1 Essence Flux
-1 Retraction Helix
-1 Alchemist's Retrieval
-1 Raze the Effigy
-1 Silent Departure
-1 Trial of Agony
-1 Deface
+1 Planar Incision
 1 Clutch of Currents
+1 Lacerate Flesh
+1 Betrayer's Bargain
+1 Soul Sear
+1 Arrester's Admonition
+1 Fiery Conclusion
 
 // Card Draw / Cantrips
-1 Faithless Looting
-1 Opt
-1 Enter the Enigma
+1 Inspired Sphinx
+1 Charming Scoundrel
+1 Hotshot Investigators
+1 Sphinx of Enlightenment
 1 Sticky Fingers
-1 Crash Through
-1 Combat Research
-1 Ingenious Prodigy
-1 Renegade Tactics
-1 Voldaren Epicure
 1 Fountainport Bell
-1 Ancestral Anger
-1 Marauding Mako
+1 Falkenrath Celebrants
+1 Wretched Gryff
+1 Macetail Hystrodon
+1 Combat Courier
+1 Prophetic Prism
+1 Aether Channeler
 
 // Ramp (artifact only)
-1 Mox Jasper
-1 Traveler's Amulet
-1 Prophetic Prism
-1 Flywheel Racer
+1 Unstable Obelisk
+1 Magnifying Glass
+1 Letter of Acceptance
+1 Ticket Tortoise
 1 Piggy Bank
-1 Guidelight Optimizer
+1 Mox Jasper
 
 // Tierras No-Básicas
 1 Exotic Orchard

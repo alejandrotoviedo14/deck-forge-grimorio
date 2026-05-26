@@ -2,19 +2,15 @@
 
 Constructor local de mazos Commander a partir de tu colección de ManaBox.
 
-**Cero llamadas a APIs externas. Cero tokens de Claude consumidos.** Todo se ejecuta en tu máquina con tu `collection_enriched.json` ya generado.
+**Cero tokens de Claude consumidos en tiempo de ejecución.** Todo se ejecuta en tu máquina con tu `collection_enriched.json` ya generado.
 
 ---
 
 ## Instalación
 
-Solo necesitas Python 3.10+ y pandas.
-
 ```powershell
-pip install pandas
+pip install requests pandas browser-cookie3
 ```
-
-(Ya tienes pandas instalado de cuando ejecutaste `enrich_collection.py`.)
 
 ---
 
@@ -22,137 +18,284 @@ pip install pandas
 
 ```
 deck_forge/
-├── deck_forge.py           # CLI entry point
+├── deck_forge.py           # CLI completo (acciones + flags)
+├── forge.py                # CLI en lenguaje natural (wrapper)
+├── ingest.py               # genera collection_enriched.json (Scryfall bulk)
+├── enrich_collection.py    # generador alternativo legacy (deprecated)
 ├── core/
+│   ├── __init__.py
 │   ├── pool.py             # carga collection_enriched.json + filtra fakes
 │   ├── classifier.py       # detecta roles (ramp, draw, removal...)
-│   ├── archetypes.py       # plantillas de arquetipo
+│   ├── archetypes.py       # 9 arquetipos
 │   ├── builder.py          # ensambla el mazo de 100 cartas
 │   ├── bracket.py          # estima bracket WotC
-│   └── exporters.py        # ManaBox CSV, Moxfield txt, HTML
+│   ├── exporters.py        # ManaBox CSV, Moxfield txt, HTML multi-mazo
+│   ├── commander_score.py  # scoring compuesto de comandantes
+│   ├── deck_index.py       # índice persistente de mazos construidos
+│   └── upgrader.py         # análisis de gaps + swaps + compras Scryfall
 ├── data/
 │   └── game_changers.json  # lista oficial WotC
 └── templates/
-    └── deck.html           # template HTML
+    └── deck.html           # template HTML (legacy)
+```
+
+---
+
+## Paso 0: Generar la colección enriquecida
+
+`ingest.py` usa el bulk data de Scryfall (descarga única de ~300MB) en lugar de llamadas individuales a la API. **Resultado: segundos en lugar de 5-10 minutos. Sin cookies. Sin configuración.**
+
+```powershell
+python ingest.py --real real.csv --fake fake.csv --output collection_enriched.json
+```
+
+La primera ejecución descarga el bulk (~100-300MB). Las siguientes son instantáneas — el bulk se reutiliza durante 7 días.
+
+**Formatos de entrada soportados:**
+
+| Formato | Comando |
+|---------|---------|
+| CSV de ManaBox (real + fake) | `python ingest.py --real real.csv --fake fake.csv` |
+| Solo real | `python ingest.py --real real.csv` |
+| Lista de texto (Moxfield/Archidekt) | `python ingest.py --list mi_coleccion.txt` |
+| Forzar re-descarga del bulk | Añadir `--refresh-bulk` |
+
+**Formato de lista de texto:**
+```
+1 Sol Ring
+4 Lightning Bolt (M21)
+Counterspell
+// Las líneas con // se ignoran
 ```
 
 ---
 
 ## Uso
 
-### Modo 1: Análisis del pool
+Hay dos formas de ejecutar Deck Forge:
 
-Antes de gastar tiempo construyendo, ¿qué bracket soporta tu colección?
+- **`forge.py`** — lenguaje natural, comandos cortos. Recomendado para uso diario.
+- **`deck_forge.py`** — CLI completo con flags explícitos. Recomendado para automatización o casos avanzados.
+
+---
+
+## Comandos rápidos con `forge.py`
+
+```powershell
+# Analizar el pool
+python forge.py analizar
+
+# Listar mazos guardados
+python forge.py mazos
+
+# Construir un mazo (por colores)
+python forge.py construir mazo rojo
+python forge.py construir mazo simic
+python forge.py construir mazo grixis
+
+# Construir un mazo (por arquetipo)
+python forge.py construir goblins
+python forge.py construir reanimator
+python forge.py construir lifegain
+
+# Combinar colores + arquetipo
+python forge.py construir simic counters
+python forge.py construir mazo negro verde reanimator
+
+# Mejorar un mazo
+python forge.py upgrade vorel
+python forge.py mejorar teneb hasta bracket 2
+```
+
+**Vocabulario reconocido:**
+
+| Tipo | Palabras |
+|------|----------|
+| **Acciones** | `analizar`, `construir`, `mejorar`/`upgrade`, `mazos`/`listar` |
+| **Colores** | `blanco`, `azul`, `negro`, `rojo`, `verde` |
+| **Guilds (2 colores)** | `azorius`, `dimir`, `rakdos`, `gruul`, `selesnya`, `orzhov`, `izzet`, `golgari`, `boros`, `simic` |
+| **Shards (3 colores)** | `esper`, `grixis`, `jund`, `naya`, `bant`, `abzan`, `jeskai`, `sultai`, `mardu`, `temur` |
+| **Arquetipos** | `counters`, `equipment`/`voltron`, `aristocrats`/`tokens`/`sacrifice`, `spellslinger`/`spells`, `tribal`/`kindred`/`goblins`/`elves`, `blink`/`flicker`, `landfall`/`lands`, `lifegain`/`life`, `reanimator`/`graveyard` |
+| **Bracket** | `bracket 2`, `hasta 3` |
+
+Si la frase es ambigua, `forge.py` te muestra cómo refinarla.
+
+---
+
+## Comandos completos con `deck_forge.py`
+
+### Analizar el pool
 
 ```powershell
 python deck_forge.py analyze --collection collection_enriched.json
 ```
 
-Output:
-- Bracket máximo estimado SIN compras
-- Profundidad por identidad de color
-- Top 15 comandantes legales más populares
+Flags opcionales: `--min-colors N` (default 2), `--top N` (default 20), `--require-legal`.
 
-### Modo 2: Construir 1 mazo
-
-**Opción A: Eliges comandante**
+### Construir 1 mazo
 
 ```powershell
 python deck_forge.py build `
   --collection collection_enriched.json `
   --real-csv real.csv `
-  --commander "Vorel of the Hull Clade" `
+  --commander "Teneb, the Harvester" `
   --output-dir .\decks
 ```
 
-**Opción B: El script elige por colores + arquetipo**
-
+O por colores + arquetipo:
 ```powershell
 python deck_forge.py build `
   --collection collection_enriched.json `
   --real-csv real.csv `
-  --colors GU --archetype counters `
+  --colors BGW --archetype reanimator `
   --output-dir .\decks
 ```
 
-### Modo 3: Construir varios mazos a la vez
+### Construir varios mazos
 
 ```powershell
 python deck_forge.py multi `
   --collection collection_enriched.json `
   --real-csv real.csv `
-  --commanders "Vorel of the Hull Clade" "Eivor, Battle-Ready" "Izoni, Thousand-Eyed" "The Twelfth Doctor" `
+  --commanders "Vorel of the Hull Clade" "Eivor, Battle-Ready" "Izoni, Thousand-Eyed" `
   --output-dir .\decks
 ```
 
-Genera un `decks.html` con tabs entre los 4 mazos + CSV ManaBox + Moxfield txt para cada uno.
+### Ver mazos guardados
+
+```powershell
+python deck_forge.py decks --output-dir .\decks
+```
+
+### Proponer mejoras (upgrade)
+
+```powershell
+# Sube 1 bracket por defecto
+python deck_forge.py upgrade --deck teneb --collection collection_enriched.json --output-dir .\decks
+
+# Bracket objetivo concreto
+python deck_forge.py upgrade --deck teneb --target-bracket 2 --collection collection_enriched.json --output-dir .\decks
+
+# Con presupuesto de compra diferente (default: €10)
+python deck_forge.py upgrade --deck teneb --max-price 5 --collection collection_enriched.json --output-dir .\decks
+
+# Solo pool, sin consultar Scryfall
+python deck_forge.py upgrade --deck teneb --no-purchases --collection collection_enriched.json --output-dir .\decks
+```
+
+---
+
+## El grimorio HTML
+
+Cada `build` genera/actualiza un `decks/decks.html` rico con:
+
+- **Sidebar** con todos los mazos guardados
+- **Hero** por mazo con imagen del comandante en blur + retrato grande
+- **Stats**: cartas, CMC medio, manabase, bracket
+- **Estrategia + wincons** del arquetipo
+- **Bracket detail** con game changers, fast mana, tutores detectados
+- **Gaps** para subir bracket
+- **Grid de cartas con imágenes Scryfall** + tooltip al hover
+- **Modal zoom** al hacer click en cualquier carta (X o Escape para cerrar)
+- **Toggle vista Cartas / Lista**
+- **Ordenación** por defecto, alfabético, CMC (asc/desc), tipo, popularidad EDHREC
+
+### Grimorio online
+
+Si tienes el proyecto en GitHub Pages, el grimorio se sirve en:
+```
+https://TU_USUARIO.github.io/deck-forge-grimorio/
+```
+
+Para actualizar después de un build:
+```powershell
+Copy-Item "decks\decks.html" -Destination "index.html" -Force
+git add index.html
+git commit -m "update grimorio"
+git push
+```
+
+---
+
+## Arquetipos disponibles
+
+| Key | Nombre | Se detecta cuando el comandante... |
+|-----|--------|------------------------------------|
+| `counters` | +1/+1 Counters / Proliferate | Tiene "+1/+1 counter", "proliferate" |
+| `equipment` | Equipment Voltron | Es criatura con "equipment", "equipped creature" |
+| `aristocrats` | Tokens / Sacrifice / Drain | Tiene "creature dies", "create token", "sacrifice" |
+| `spellslinger` | Cantrips / Magecraft | Tiene "whenever you cast", "magecraft" |
+| `tribal` | Tribal / Kindred | Tiene "you control get +", "of that creature type" |
+| `blink` | Blink / ETB Abuse | Tiene "exile...then return", "whenever a creature enters" |
+| `landfall` | Landfall / Land Matters | Tiene "landfall", "whenever a land enters" |
+| `lifegain` | Lifegain / Life Matters | Tiene "whenever you gain life" |
+| `reanimator` | Reanimator / Graveyard | Tiene "from your graveyard to the battlefield" |
 
 ---
 
 ## Outputs por mazo
 
-- **`{commander}_manabox.csv`** — Importa directo en ManaBox (Settings → Import)
-- **`{commander}_moxfield.txt`** — Pega en Moxfield/Archidekt al crear deck
-- **`decks.html`** — Vista interactiva con justificación carta por carta + bracket estimado
+| Archivo | Para qué sirve |
+|---------|----------------|
+| `{commander}_manabox.csv` | Importa directo en ManaBox (Settings → Import) |
+| `{commander}_moxfield.txt` | Pega en Moxfield/Archidekt al crear deck |
+| `decks/decks.html` | Grimorio local con todos los mazos |
+| `decks/decks_index.json` | Índice interno — no tocar manualmente |
+| `index.html` | Copia del grimorio para GitHub Pages |
 
 ---
 
-## Garantías del script
+## Cómo funciona la clasificación
 
-✓ **Nunca usa cartas que estén en `fake.csv`** (incluso si también aparecen en `real.csv`)
-✓ Singleton estricto (1 copia por carta)
-✓ Solo cartas legales en formato Commander según Scryfall
-✓ Siempre 100 cartas exactas (rellena con básicas)
-✓ Todas las cartas tienen Scryfall ID exacto = importación sin fricciones
+`classifier.py` opera en dos capas:
+
+**Capa 1 — Oracle text (principal):** lee el texto de reglas de cada carta y detecta patrones. `"search your library for basic land"` → ramp. `"draw a card"` → draw. `"destroy target"` → removal. Funciona porque WotC usa lenguaje de reglas estandarizado y consistente.
+
+**Capa 2 — Scryfall Tagger tags (opcional, legacy):** disponible solo si el JSON fue generado con `enrich_collection.py --tagger`. Mejora marginalmente la precisión. No requerido para uso normal.
 
 ---
 
-## Criterio de selección de comandantes
-
-El score de comandantes (en `analyze` y cuando no especificas `--commander`) se basa en:
+## Scoring de comandantes
 
 | Componente | Peso | Qué mide |
 |---|---|---|
-| **Densidad de sinergia** | 50% | % de cartas en la identidad del comandante que sirven al arquetipo natural detectado. Un pool 5-color tiene MUCHAS cartas pero pocas pueden ser relevantes para un arquetipo concreto — la densidad lo penaliza correctamente. |
-| **Techo de bracket** | 30% | Bracket score máximo alcanzable construyendo desde tu pool (game changers + fast mana + tutors disponibles). |
-| **Popularidad EDHREC** | 20% | Solo como desempate suave: comandantes populares tienen más guías/contenido online. |
+| **Densidad de sinergia** | 50% | % de cartas en la identidad que sirven al arquetipo detectado |
+| **Techo de bracket** | 30% | Bracket máximo alcanzable desde tu pool |
+| **Popularidad EDHREC** | 20% | Desempate suave |
 
-**Filtros aplicados por defecto:**
-- Mínimo bicolor (`--min-colors 2`). Cambiable.
-- Banlist de Commander **ignorada** (cartas baneadas son válidas como comandante si quieres). Activable con `--require-legal`.
+---
 
-**Ejemplos del output real con tu colección:**
-- Equipment Voltron en RW: densidad ~36% — **muy fuerte** en tu pool (Eivor, Arbaaz, Kassandra)
-- Counters GU: densidad ~25% — sólido (Vorel, Doctor 13)
-- Tokens/Aristocrats BG: densidad ~24% — sólido (Izoni)
-- Spellslinger UR: densidad ~15% — fino, mejor evitar
+## Garantías
 
-## Arquetipos soportados (v1)
-
-| Key | Nombre | Cuándo se detecta |
-|-----|--------|-------------------|
-| `counters` | +1/+1 Counters / Proliferate | Comandante con "+1/+1 counter", "proliferate", "double counters" |
-| `equipment` | Equipment Voltron | Comandante creature con "equipment" o "historic" |
-| `aristocrats` | Tokens / Sacrifice / Drain | Comandante con "creature dies", "create token", "sacrifice" |
-| `spellslinger` | Cantrips / Magecraft | Comandante con "whenever you cast", "magecraft", "copy spell", "demonstrate" |
-
-Sesión 3: añadiremos más arquetipos (lifegain, reanimator, tribal, blink, voltron-creature) y modo `--upgrade`.
+- ✓ Nunca usa cartas de `fake.csv` (incluso si también aparecen en `real.csv`)
+- ✓ Singleton estricto (1 copia por carta)
+- ✓ Siempre 100 cartas exactas (rellena con básicas proporcionales a los colores)
+- ✓ Todas las cartas tienen Scryfall ID exacto → importación sin fricciones en ManaBox
 
 ---
 
 ## Limitaciones conocidas
 
-- **Heurística de bracket no es paridad exacta con ManaBox.** Mi score se basa en señales públicas (game changers WotC, fast mana, tutores, manabase score, CMC). ManaBox usa un algoritmo propietario. Si difieren, el de ManaBox manda.
+**Heurística de bracket ≠ ManaBox exacto.** El score se basa en señales públicas. Si difieren, el de ManaBox manda.
 
-- **Justificaciones genéricas.** En v1 las justificaciones por slot son plantillas ("Ramp: acelera el plan"). v2 puede generar texto más específico por carta.
+**Detección de arquetipo simplificada.** Si tu comandante es híbrido, el script elige uno por orden de prioridad. Fuerza con `--archetype X` (o el alias correspondiente en `forge.py`).
 
-- **Detección de arquetipo simple.** Si tu comandante es híbrido (ej. counters + tokens), el script elige uno. Puedes forzar con `--archetype X`.
+**Pool real sin compras soporta bracket 1.** Para bracket 2: Sol Ring + Arcane Signet + Command Tower (~€5).
 
-- **Pool real verdadero solo soporta bracket 1-2 sin compras.** Esto NO es bug del script — es realidad de la colección. Si quieres bracket 3, compra Sol Ring + Arcane Signet + Command Tower (~€5).
+**Sugerencias de compra requieren conexión.** El comando `upgrade` consulta Scryfall en tiempo real. Usa `--no-purchases` sin internet.
 
 ---
 
-## Próximas sesiones
+## Changelog
 
-- **Sesión 3:** Modo `--upgrade decklist.txt --target-bracket N` que analiza un mazo existente, identifica gaps y propone swaps desde tu pool.
-- **Sesión 4 (opcional):** Más arquetipos. Generación de "qué comprar" automática.
+| Versión | Cambios |
+|---------|---------|
+| v1 | `analyze`, `build`, `multi`. 4 arquetipos. Pool real sin fakes. |
+| v2 | Power Score percentil 1-10. Score compuesto de comandantes. |
+| v3 | Bracket estimado real. Exporters ManaBox CSV + Moxfield txt + HTML. |
+| v4 | Scryfall Tagger opcional. Classifier v2. 5 arquetipos nuevos (9 total). |
+| v5 | `decks` + `upgrade`. Auto-detección de cookie Tagger. |
+| v6 | `upgrade` con sugerencias de compra reales desde Scryfall. `--max-price`, `--no-purchases`. |
+| v7 | HTML multi-mazo con imágenes Scryfall, roles, wincons, bracket detail. GitHub Pages. |
+| v8 | `ingest.py`: Scryfall bulk data. Segundos en lugar de minutos. Soporte para listas de texto. |
+| v9 | `forge.py`: CLI en lenguaje natural (`construir mazo rojo`, `upgrade vorel`...). HTML: modal zoom al click en cartas, toggle vista Cartas/Lista, ordenación por nombre/CMC/tipo/rank. |

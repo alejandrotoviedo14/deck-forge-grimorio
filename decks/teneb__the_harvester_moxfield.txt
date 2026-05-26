@@ -2,66 +2,66 @@
 1 Teneb, the Harvester
 
 // Reanimation Spells
-1 Gryff's Boon
-1 Blood Beckoning
-1 Aftermath Analyst
-1 Oversold Cemetery
 1 Chthonian Nightmare
-1 Grafted Butcher
+1 Simian Simulacrum
 1 Builder's Talent
-1 Broodheart Engine
-1 Can't Stay Away
-1 Fleshless Gladiator
+1 Scrapwork Cohort
+1 Aftermath Analyst
+1 Grafted Butcher
+1 Tocasia's Onulet
+1 Consumed by Greed
+1 What Must Be Done
+1 Primevals' Glorious Rebirth
 
 // Enablers (discard / mill)
-1 Duress
-1 Snarling Gorehound
-1 Molt Tender
-1 Blood Fountain
-1 Patchwork Beastie
-1 Vessel of Nascency
-1 Divest
-1 Rubblebelt Maverick
+1 Migrating Ketradon
+1 Moldgraf Millipede
+1 Eyeblight Cullers
+1 Gloomfang Mauler
+1 Lasyd Prowler
+1 Krosan Tusker
+1 Thornado
+1 Airship Crash
 
 // Reanimator Targets (criaturas 6+)
 1 Meteor Golem
-1 Steel Hellkite
-1 Archon of Cruelty
-1 Hedge Shredder
+1 Izoni, Thousand-Eyed
+1 Aatchik, Emerald Radian
+1 Fear of Abduction
+1 Persuasive Interrogators
+1 Debtors' Transport
+1 Watchful Giant
 1 Cultivator Colossus
-1 Zetalpa, Primal Dawn
-1 Grapple with the Past
-1 Primevals' Glorious Rebirth
-1 Zombie Apocalypse
 1 Nykthos Paragon
+1 Evangel of Heliod
 
 // Ramp
-1 Mox Jasper
-1 Elvish Mystic
-1 Delighted Halfling
 1 Insidious Fungus
-1 Thirsting Roots
-1 Arboreal Grazer
-1 Traveler's Amulet
 1 Fountainport Bell
+1 Delighted Halfling
+1 Unstable Obelisk
+1 Prophetic Prism
+1 Arboreal Grazer
+1 Thirsting Roots
+1 Blood Funnel
 
 // Card Draw
-1 Village Rites
-1 Mentor of the Meek
-1 Peregrin Took
-1 Spirited Companion
-1 Secret Rendezvous
-1 Call of the Ring
-1 Abundance
+1 Escarpment Fortress
+1 Sister Repentia
+1 Excavating Anurid
+1 Filigree Familiar
+1 Blade Juggler
+1 Crypt Lurker
+1 Scale the Heights
 
 // Removal & Interaction
-1 Assassin's Trophy
-1 Austere Command
-1 Wrath of God
-1 Return to Nature
-1 Murder
-1 Fracture
-1 Cathar Commando
+1 Ethereal Absolution
+1 Driftgloom Coyote
+1 Ravenous Sailback
+1 Chain Assassination
+1 Conclave Naturalists
+1 Wear Down
+1 Citizen's Crowbar
 
 // Tierras No-Básicas
 1 Exotic Orchard

@@ -2,69 +2,69 @@
 1 Neriv, Crackling Vanguard
 
 // Token Generators
-1 Voice of Victory
-1 Martial Coup
-1 Horn of Gondor
-1 Dragon Fodder
-1 Hordeling Outburst
-1 Pashalik Mons
-1 Goro-Goro, Disciple of Ryusei
-1 Mavren Fein, Dusk Apostle
-1 Sazacap's Brew
-1 Entrapment Maneuver
-1 Within Range
-1 Irregular Cohort
+1 Eyeblight Cullers
+1 Embalmed Ascendant
+1 Builder's Talent
+1 Debtors' Transport
+1 Watchful Giant
+1 Scrapwork Cohort
+1 Evangel of Heliod
+1 Redcap Gutter-Dweller
+1 Ethereal Absolution
+1 Citizen's Crowbar
+1 Cloudspire Coordinator
+1 Soul of Migration
 
 // Sacrifice Outlets
+1 Chthonian Nightmare
+1 Blood Funnel
+1 Crypt Lurker
+1 Agency Coroner
 1 Village Rites
-1 Bone Splinters
-1 Worthy Cost
-1 Spark Harvest
-1 Ecstatic Awakener // Awoken Demon
 
 // Death Triggers / Drain
-1 Feign Death
-1 Impulsive Pilferer
-1 Supernatural Stamina
-1 Workshop Assistant
-1 Putrid Goblin
-1 Tangled Colony
 1 Filigree Familiar
-1 Iron Apprentice
-1 Doomed Dissenter
-1 Perilous Myr
+1 Su-Chi Cave Guard
+1 Sister Repentia
+1 Warhost's Frenzy
+1 Knight of Sorrows
+1 Wurmcoil Larva
+1 Impulsive Pilferer
+1 Deathbloom Thallid
+1 Exquisite Huntmaster
+1 Dragon Egg
 
 // Ramp
-1 Mox Jasper
-1 Sticky Fingers
-1 Traveler's Amulet
-1 Fountainport Bell
-1 Heartless Summoning
 1 Charming Scoundrel
-1 Bureau Headmaster
+1 Sticky Fingers
+1 Fountainport Bell
+1 Unstable Obelisk
 1 Prophetic Prism
+1 Rakdos Locket
+1 Orzhov Locket
+1 Magnifying Glass
 
 // Card Draw
-1 Faithless Looting
-1 Thrill of Possibility
-1 Demand Answers
-1 Mentor of the Meek
-1 Spirited Companion
-1 Cathartic Reunion
-1 Secret Rendezvous
+1 Persuasive Interrogators
+1 Macetail Hystrodon
+1 Hangar Scrounger
+1 Oblivion's Hunger
+1 Escarpment Fortress
+1 Falkenrath Celebrants
+1 Doom Foretold
 
 // Removal
-1 Abrade
-1 Austere Command
-1 Terminate
-1 Bedevil
-1 Wrath of God
 1 Meteor Golem
+1 Tyrant of Kher Ridges
+1 Fear of Abduction
+1 Driftgloom Coyote
+1 Rambunctious Mutt
+1 Origin of the Hidden Ones
 
 // Big Wincons
-1 Gray Merchant of Asphodel
-1 Twilight Prophet
-1 Steel Hellkite
+1 Riders of the Mark
+1 Gloomfang Mauler
+1 Ornitharch
 
 // Tierras No-Básicas
 1 Exotic Orchard

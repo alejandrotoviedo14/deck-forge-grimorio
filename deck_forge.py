@@ -29,7 +29,7 @@ REQUISITOS:
     pip install pandas
 
 INPUTS:
-    collection_enriched.json — generado por enrich_collection.py
+    collection_enriched.json — generado por ingest.py
     real.csv  — el CSV original de ManaBox (necesario para export ManaBox CSV)
 
 OUTPUTS por mazo:
@@ -154,6 +154,7 @@ def cmd_build(args):
         commander_name=args.commander,
         colors=args.colors,
         archetype_key=args.archetype,
+        use_edhrec=not getattr(args, 'no_edhrec', False),
     )
 
     full_list = deck.all_cards_with_basics(basics)
@@ -226,7 +227,8 @@ def cmd_multi(args):
     brackets = []
     for cname in args.commanders:
         try:
-            d = build_deck(pool, commander_name=cname)
+            d = build_deck(pool, commander_name=cname,
+                           use_edhrec=not getattr(args, 'no_edhrec', False))
             full = d.all_cards_with_basics(basics)
             b = estimate_bracket(full)
             decks.append(d)
@@ -339,7 +341,7 @@ def main():
 
     # analyze
     pa = sub.add_parser("analyze", help="Analiza el pool y reporta bracket máximo")
-    pa.add_argument("--collection", required=True, help="Path a collection_enriched.json")
+    pa.add_argument("--collection", required=True, help="Path a collection_enriched.json (generado por ingest.py)")
     pa.add_argument("--min-colors", type=int, default=2,
                     help="Mínimo de colores en color identity (default: 2 = bicolor)")
     pa.add_argument("--top", type=int, default=20,
@@ -356,6 +358,8 @@ def main():
     pb.add_argument("--archetype", choices=list(ARCHETYPES.keys()),
                     help="counters | equipment | aristocrats | spellslinger")
     pb.add_argument("--output-dir", default="./decks_output")
+    pb.add_argument("--no-edhrec", action="store_true",
+                    help="Desactiva la integración con EDHREC (más rápido, scoring local)")
 
     # multi
     pm = sub.add_parser("multi", help="Construye varios mazos en un único HTML")
@@ -364,6 +368,8 @@ def main():
     pm.add_argument("--commanders", nargs="+", required=True,
                     help="Lista de comandantes separados por espacio")
     pm.add_argument("--output-dir", default="./decks_output")
+    pm.add_argument("--no-edhrec", action="store_true",
+                    help="Desactiva la integración con EDHREC")
 
     # decks
     pd = sub.add_parser("decks", help="Lista los mazos guardados")
@@ -375,7 +381,7 @@ def main():
     pu.add_argument("--deck", required=True,
                     help="Key o nombre parcial del comandante (ej. 'teneb', 'vorel')")
     pu.add_argument("--collection", required=True,
-                    help="Path a collection_enriched.json")
+                    help="Path a collection_enriched.json (generado por ingest.py)")
     pu.add_argument("--target-bracket", type=int, choices=[2, 3, 4],
                     help="Bracket objetivo (default: bracket actual + 1)")
     pu.add_argument("--max-price", type=float, default=10.0,

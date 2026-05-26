@@ -10,61 +10,61 @@
 
 // Counter Doublers & Payoffs
 1 Essence Flux
-1 Experimental Augury
-1 Thirsting Roots
-1 Planar Incision
-1 Fertilid
-1 Leyline of Abundance
-1 Ingenious Prodigy
-1 Honored Dreyleader
-1 Canopy Gargantuan
-1 Stocking the Pantry
-1 Pridemalkin
-1 Altered Ego
+1 Scale the Heights
+1 Aven Surveyor
+1 Saruman the White
+1 Moldgraf Millipede
+1 Simian Simulacrum
+1 Lasyd Prowler
+1 Saruman's Trickery
 1 Quandrix Command
-1 Lilysplash Mentor
-1 The Thirteenth Doctor
-1 Ancient Animus
+1 Stocking the Pantry
+1 Ingenious Prodigy
+1 Thirsting Roots
+1 Implement of Ferocity
+1 Saiba Cryptomancer
+1 Primal Empathy
+1 Clutch of Currents
 
 // Ramp
-1 Mox Jasper
-1 Elvish Mystic
-1 Delighted Halfling
+1 Prophetic Prism
 1 Insidious Fungus
-1 Arboreal Grazer
-1 Traveler's Amulet
-1 Fountainport Bell
-1 Reclaim the Wastes
-1 Point the Way
+1 Deranged Assistant
+1 Emrakul's Messenger
+1 Unstable Obelisk
+1 Ticket Tortoise
+1 Pelargir Survivor
+1 Tunnel Tipster
+1 Dance of the Tumbleweeds
 
 // Card Draw
-1 Opt
-1 Peregrin Took
-1 Enduring Curiosity
-1 Lórien Revealed
-1 Enter the Enigma
-1 Coastal Piracy
-1 Aether Channeler
+1 Inspired Sphinx
+1 Hotshot Investigators
+1 Sphinx of Enlightenment
+1 Migrating Ketradon
+1 Wretched Gryff
 1 Cultivator Colossus
-1 Abundance
-1 Combat Research
+1 Expedition Diviner
+1 Undercover Crocodelf
+1 Krosan Tusker
+1 Excavating Anurid
 
 // Removal & Interaction
-1 Return to Nature
 1 Meteor Golem
-1 Rewind
-1 Cancel
+1 Ravenous Sailback
+1 Conclave Naturalists
+1 Dispersal Technician
+1 Spikeshell Harrier
 1 Wear Down
-1 Disdainful Stroke
-1 Thrashing Brontodon
-1 Broken Wings
+1 Thornado
+1 Arrester's Admonition
 
 // Wincons & Big Threats
-1 Steel Hellkite
-1 Keiga, the Tide Star
-1 Whirlwing Stormbrood // Dynamic Soar
-1 Temur War Shaman
-1 Ancient Imperiosaur
+1 Su-Chi Cave Guard
+1 It of the Horrid Swarm
+1 Tolarian Kraken
+1 Owlbear
+1 Silverback Shaman
 
 // Tierras No-Básicas
 1 Exotic Orchard

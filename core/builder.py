@@ -235,18 +235,32 @@ def composite_score(
     """
     Score compuesto [0, 1] usado para ordenar candidatos dentro de un slot.
     Mayor = mejor.
+
+    Si la carta tiene edhrec_score (inyectado por EDHRecAdvisor), se usa
+    como componente principal del score. Si no, se usa solo el scoring local.
     """
     synergy = _synergy_score(card, card_roles, archetype)
     mana    = _mana_friendliness(card, deck_colors)
     curve   = _curve_fit(card, current_cmc_distribution)
     rank    = _normalize_rank(card.get("edhrec_rank"))
 
-    score = (W_SYNERGY * synergy +
-             W_MANA    * mana    +
-             W_CURVE   * curve   +
-             W_RANK    * rank)
+    # Si tenemos datos de EDHREC, reemplazamos rank con edhrec_score
+    # y ajustamos pesos: EDHREC es más fiable que EDHREC rank genérico
+    edhrec_score = card.get("edhrec_score")
+    if edhrec_score is not None:
+        # Con EDHREC: sinergia local + validación comunitaria + mana + curva
+        score = (0.25 * synergy +
+                 0.40 * edhrec_score +
+                 0.20 * mana +
+                 0.15 * curve)
+    else:
+        # Sin EDHREC: scoring local completo
+        score = (W_SYNERGY * synergy +
+                 W_MANA    * mana    +
+                 W_CURVE   * curve   +
+                 W_RANK    * rank)
 
-    # Multi-rol bonus: si la carta cumple varios roles útiles
+    # Multi-rol bonus
     useful_roles = card_roles & {
         "ramp", "draw", "removal", "tutor", "protection", "counter",
         "sweeper", "recursion", "threat",
@@ -307,10 +321,14 @@ def build_deck(
     colors: str | None = None,
     archetype_key: str | None = None,
     target_basics_split: bool = True,
+    use_edhrec: bool = True,
 ) -> BuiltDeck:
     """
     Construye un mazo de 100 cartas siguiendo el plan del arquetipo.
-    V3: scoring compuesto + multi-rol.
+    V3: scoring compuesto + multi-rol + EDHREC integration.
+
+    use_edhrec: si True (default), consulta EDHREC para enriquecer el scoring.
+                Si False o si EDHREC falla, usa solo el scoring local.
     """
     # 1. Comandante
     archetype = ARCHETYPES.get(archetype_key) if archetype_key else None
@@ -341,7 +359,18 @@ def build_deck(
                    and c["name"] != commander["name"]
                    and not c.get("is_land")]
 
-    # 4. Pre-clasificar TODAS las cartas: card_name → set(roles)
+    # 4. EDHREC enrichment — añade edhrec_score a cada carta del pool
+    if use_edhrec:
+        try:
+            from .edhrec_advisor import EDHRecAdvisor
+            advisor = EDHRecAdvisor(verbose=True)
+            in_identity = advisor.rank_pool_for_commander(
+                commander["name"], in_identity
+            )
+        except Exception as e:
+            print(f"  [EDHREC] No disponible ({e}). Usando scoring local.")
+
+    # 5. Pre-clasificar TODAS las cartas: card_name → set(roles)
     roles_by_card: dict[str, set[str]] = {}
     for c in in_identity:
         roles_by_card[c["name"]] = cls.classify(c)
