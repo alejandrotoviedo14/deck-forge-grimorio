@@ -473,7 +473,29 @@ def build_deck(
         ))
         selected_names.add(land["name"])
 
-    # 8. Básicas para llegar a 100
+    # 8. LLM Critic — revisa y mejora el mazo si hay API key
+    if use_edhrec:  # mismo flag que EDHREC — solo cuando hay conectividad
+        try:
+            from .llm_critic import LLMCritic
+            api_key = __import__("os").environ.get("ANTHROPIC_API_KEY")
+            if api_key:
+                # Recoger recomendaciones EDHREC si están disponibles
+                edhrec_recs: list[str] = []
+                try:
+                    from .edhrec_advisor import EDHRecAdvisor
+                    adv = EDHRecAdvisor(verbose=False)
+                    cached_data = adv.fetch_commander_data(commander["name"])
+                    hs = cached_data.get("high_synergy", {})
+                    edhrec_recs = sorted(hs, key=lambda n: -hs[n].get("synergy", 0))[:15]
+                except Exception:
+                    pass
+
+                critic = LLMCritic(api_key=api_key, verbose=True)
+                deck = critic.review_and_improve(deck, in_identity, edhrec_recs)
+        except Exception as e:
+            print(f"  [CRITIC] Saltando revisión: {e}")
+
+    # 9. Básicas para llegar a 100
     deck.needed_basics = max(0, 99 - len(deck.cards))
 
     return deck
