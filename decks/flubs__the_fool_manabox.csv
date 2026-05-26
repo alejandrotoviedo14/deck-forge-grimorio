@@ -1,45 +1,45 @@
 Name,Set code,Set name,Collector number,Foil,Rarity,Quantity,ManaBox ID,Scryfall ID,Purchase price,Misprint,Altered,Condition,Language,Purchase price currency
 "Flubs, the Fool",BLC,Bloomburrow Commander,356,normal,mythic,1,95773,41e58eb8-e5b9-4ef6-be1f-00e28cebb998,,false,false,near_mint,en,EUR
-Scale the Heights,ZNR,Zendikar Rising,202,normal,common,1,54795,e781d6ad-950e-49bf-9645-e2354086ae49,,false,false,near_mint,es,EUR
-Spitfire Lagac,FDN,Foundations,208,normal,common,1,101496,30f600cd-b696-4f49-9cbc-5a33aa43d04c,,false,false,near_mint,es,EUR
-Dúnedain Rangers,LTR,The Lord of the Rings: Tales of Middle-earth,159,normal,uncommon,1,83133,630e1e36-2f5d-44d4-9ff2-19ae75295016,,false,false,near_mint,en,EUR
-Canopy Baloth,ZNR,Zendikar Rising,182,normal,common,1,54592,6b04160c-89a7-4dcd-b05d-5dc846824d64,,false,false,near_mint,es,EUR
-Akoum Hellhound,ZNR,Zendikar Rising,133,normal,common,1,54520,3a5ad1c8-3d70-43ed-9539-2aa6289c5c4a,,false,false,near_mint,es,EUR
-Kazandu Nectarpot,ZNR,Zendikar Rising,190,normal,common,1,54624,7c9d3f4a-ef83-454e-b8a1-1fc5d5f44be8,,false,false,near_mint,es,EUR
-Skyclave Squid,ZNR,Zendikar Rising,82,normal,common,1,54555,581ed049-7b5b-47d9-96af-f737631a221f,,false,false,near_mint,en,EUR
 Charming Scoundrel,WOE,Wilds of Eldraine,124,normal,rare,1,85717,c8090bcf-e17a-4110-a518-77ccd045b18f,,false,false,near_mint,es,EUR
+Delighted Halfling,LTR,The Lord of the Rings: Tales of Middle-earth,158,normal,rare,1,83185,71384418-173a-4f77-adab-56e52fa23692,,false,false,near_mint,en,EUR
 Insidious Fungus,DSK,Duskmourn: House of Horror,186,normal,uncommon,1,98922,d60d2e62-06da-410a-81ed-6cebb2632fb6,,false,false,near_mint,en,EUR
 Storm Skreelix,MID,Innistrad: Midnight Hunt,243,normal,uncommon,1,63292,6c49618f-2e9e-4674-9953-153ccc76cce2,,false,false,near_mint,en,EUR
-Unstable Obelisk,CMM,Commander Masters,416,normal,common,1,84634,94eba26e-7c9e-46f3-ad13-aa684f3365cb,,false,false,near_mint,en,EUR
-Prophetic Prism,DMC,Dominaria United Commander,189,normal,common,1,71652,a0dcb495-9562-4961-b095-8b844dfdb601,,false,false,near_mint,en,EUR
-Sticky Fingers,SNC,Streets of New Capenna,124,normal,common,1,67696,3678fa3d-d41f-4b7a-b25e-6fc5f78876c7,,false,false,near_mint,en,EUR
 Gruul Locket,RNA,Ravnica Allegiance,234,normal,common,1,43631,1ec78880-a8ec-4c87-bc3f-e2a79d154884,,false,false,near_mint,en,EUR
 Simic Locket,RNA,Ravnica Allegiance,240,normal,common,1,43625,29c65978-e5b0-428e-aace-f99768ca6106,,false,false,near_mint,en,EUR
+Unstable Obelisk,CMM,Commander Masters,416,normal,common,1,84634,94eba26e-7c9e-46f3-ad13-aa684f3365cb,,false,false,near_mint,en,EUR
+Prophetic Prism,DMC,Dominaria United Commander,189,normal,common,1,71652,a0dcb495-9562-4961-b095-8b844dfdb601,,false,false,near_mint,en,EUR
 Magnifying Glass,MKM,Murders at Karlov Manor,255,normal,common,1,91192,c606a71f-8fb0-486b-955f-727ebf436946,,false,false,near_mint,en,EUR
 Letter of Acceptance,CMM,Commander Masters,397,normal,common,1,84744,ae094ace-1760-4bdd-a513-04616fb0deeb,,false,false,near_mint,en,EUR
 Fountainport Bell,BLB,Bloomburrow,245,normal,common,1,96094,a5c94bc0-a49d-451b-8e8d-64d46b8b8603,,false,false,near_mint,en,EUR
-Delighted Halfling,LTR,The Lord of the Rings: Tales of Middle-earth,158,normal,rare,1,83185,71384418-173a-4f77-adab-56e52fa23692,,false,false,near_mint,en,EUR
+They Went This Way,MKM,Murders at Karlov Manor,178,normal,common,1,91307,f4a31d4a-34bc-46b4-b20f-a5460191b35d,,false,false,near_mint,en,EUR
+Sticky Fingers,SNC,Streets of New Capenna,124,normal,common,1,67696,3678fa3d-d41f-4b7a-b25e-6fc5f78876c7,,false,false,near_mint,en,EUR
+Ticket Tortoise,DFT,Aetherdrift,245,normal,common,1,103674,fa178ed7-8f3a-45f0-817d-5fbc7993b04a,,false,false,near_mint,en,EUR
 Inspired Sphinx,KHC,Kaldheim Commander,40,normal,mythic,1,56954,7f58d798-9b99-45a9-9015-f689145018a8,,false,false,near_mint,en,EUR
 The Swarmlord,40K,"Warhammer 40,000 Commander",4,foil,mythic,1,72538,d5c4077c-604e-4e8a-b448-0807849040ca,,false,false,near_mint,es,EUR
 Hotshot Investigators,MKM,Murders at Karlov Manor,60,normal,common,1,91046,8dc3b23b-04d6-4ac0-b698-596ea90b7781,,false,false,near_mint,en,EUR
 Sphinx of Enlightenment,BLC,Bloomburrow Commander,175,normal,mythic,1,96242,3307e9c8-c4c1-480c-94a1-78332eaaac14,,false,false,near_mint,en,EUR
 Migrating Ketradon,DFT,Aetherdrift,170,normal,common,1,103597,a9ba2219-8184-4141-8708-845cb0957299,,false,false,near_mint,en,EUR
+Expedition Diviner,ZNR,Zendikar Rising,57,normal,common,1,54429,090f6e94-fb5f-4861-a465-f11766303676,,false,false,near_mint,es,EUR
 "Kraum, Violent Cacophony",OTJ,Outlaws of Thunder Junction,214,normal,uncommon,1,93270,958a3e6b-7e20-40ea-8b2c-7c728934b5e5,,false,false,near_mint,en,EUR
-Wretched Gryff,INR,Innistrad Remastered,7,normal,common,1,102602,722b519a-715d-4393-9d3c-97f329896ef4,,false,false,near_mint,en,EUR
-Cultivator Colossus,INR,Innistrad Remastered,190,normal,mythic,1,102518,426ed66e-41b3-4e44-90a2-697aafaa8c5c,,false,false,near_mint,en,EUR
 Meteor Golem,FDN,Foundations,256,normal,uncommon,1,101167,d291ea1e-36bc-46b3-b3ae-084fa0ba69eb,,false,false,near_mint,en,EUR
 Aven Surveyor,CMR,Commander Legends,57,normal,common,1,56243,f4981d99-c33d-4451-8f6a-28fffb3dcd1c,,false,false,near_mint,en,EUR
+Firemind's Research,PGRN,Guilds of Ravnica Promos,171,foil,rare,1,171,cd318e8f-418a-4e17-bf0e-a4bfc0fb8ebf,,false,false,near_mint,es,EUR
 Ravenous Sailback,MOM,March of the Machine,202,normal,uncommon,1,81179,a225cb30-9f3e-4cfa-bdd6-a7c73c95ea2b,,false,false,near_mint,en,EUR
-Tyrant of Kher Ridges,BRO,The Brothers' War,154,normal,rare,1,75546,72a271b1-b757-4373-8e6d-e9698ae96bed,,false,false,near_mint,es,EUR
 Conclave Naturalists,2XM,Double Masters,160,normal,common,1,52091,082a5372-b25a-4559-96b8-2d8d54199a38,,false,false,near_mint,en,EUR
 Dispersal Technician,AER,Aether Revolt,32,normal,common,1,6382,5d93a915-ffea-4f50-88ac-2b3253f7dfdf,,false,false,near_mint,es,EUR
 Spikeshell Harrier,DFT,Aetherdrift,65,normal,uncommon,1,103572,8f1ece22-ca32-45bb-b5f4-480f9b366cb5,,false,false,near_mint,en,EUR
-Essence Flux,INR,Innistrad Remastered,64,normal,common,1,102778,c94b37df-aaa5-4981-be3b-c934a7971123,,false,false,near_mint,en,EUR
+Scale the Heights,ZNR,Zendikar Rising,202,normal,common,1,54795,e781d6ad-950e-49bf-9645-e2354086ae49,,false,false,near_mint,es,EUR
+Spitfire Lagac,FDN,Foundations,208,normal,common,1,101496,30f600cd-b696-4f49-9cbc-5a33aa43d04c,,false,false,near_mint,es,EUR
+Dúnedain Rangers,LTR,The Lord of the Rings: Tales of Middle-earth,159,normal,uncommon,1,83133,630e1e36-2f5d-44d4-9ff2-19ae75295016,,false,false,near_mint,en,EUR
+Canopy Baloth,ZNR,Zendikar Rising,182,normal,common,1,54592,6b04160c-89a7-4dcd-b05d-5dc846824d64,,false,false,near_mint,es,EUR
+Skyclave Squid,ZNR,Zendikar Rising,82,normal,common,1,54555,581ed049-7b5b-47d9-96af-f737631a221f,,false,false,near_mint,en,EUR
+Akoum Hellhound,ZNR,Zendikar Rising,133,normal,common,1,54520,3a5ad1c8-3d70-43ed-9539-2aa6289c5c4a,,false,false,near_mint,es,EUR
+Kazandu Nectarpot,ZNR,Zendikar Rising,190,normal,common,1,54624,7c9d3f4a-ef83-454e-b8a1-1fc5d5f44be8,,false,false,near_mint,es,EUR
+Wretched Gryff,INR,Innistrad Remastered,7,normal,common,1,102602,722b519a-715d-4393-9d3c-97f329896ef4,,false,false,near_mint,en,EUR
 Macetail Hystrodon,DMR,Dominaria Remastered,130,normal,common,1,78118,c750f7d7-25b8-433f-b3a8-0d842b99276f,,false,false,near_mint,en,EUR
-Excavating Anurid,MH1,Modern Horizons,163,normal,common,1,44771,d353d315-5790-417d-adf5-270df1ff34b0,,false,false,near_mint,es,EUR
-Falkenrath Celebrants,VOW,Innistrad: Crimson Vow,156,normal,common,1,64200,4c3c5778-4760-4a8c-8d8d-693e29a0a74b,,false,false,near_mint,en,EUR
+Tyrant of Kher Ridges,BRO,The Brothers' War,154,normal,rare,1,75546,72a271b1-b757-4373-8e6d-e9698ae96bed,,false,false,near_mint,es,EUR
+Undercover Crocodelf,MKM,Murders at Karlov Manor,239,normal,common,1,90902,5bc669c8-6f39-4d52-82d3-a4005d41c8a5,,false,false,near_mint,en,EUR
 Krosan Tusker,CMM,Commander Masters,302,normal,common,1,84023,0a368f72-cc88-4f32-aad4-22d92c4d032d,,false,false,near_mint,en,EUR
-Saruman the White,LTR,The Lord of the Rings: Tales of Middle-earth,67,normal,uncommon,1,82903,1bfccbab-29fa-4e92-8919-6cd4815fb655,,false,false,near_mint,en,EUR
 Exotic Orchard,40K,"Warhammer 40,000 Commander",278,normal,rare,1,72563,ec9c7011-694b-4705-b85c-bf4edf26e437,,false,false,near_mint,es,EUR
 Path of Ancestry,DRC,Aetherdrift Commander,166,normal,common,1,103021,4898fba1-d692-4440-bfff-ae535bdc1ba8,,false,false,near_mint,en,EUR
 Opal Palace,M3C,Modern Horizons 3 Commander,361,normal,common,1,94972,76219ec4-65dc-4137-9b3b-070e02524397,,false,false,near_mint,en,EUR

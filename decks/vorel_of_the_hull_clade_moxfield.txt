@@ -8,34 +8,16 @@
 1 Ivy Lane Denizen
 1 Death's Presence
 
-// Counter Doublers & Payoffs
-1 Essence Flux
-1 Scale the Heights
-1 Aven Surveyor
-1 Saruman the White
-1 Moldgraf Millipede
-1 Simian Simulacrum
-1 Lasyd Prowler
-1 Saruman's Trickery
-1 Quandrix Command
-1 Stocking the Pantry
-1 Ingenious Prodigy
-1 Thirsting Roots
-1 Implement of Ferocity
-1 Saiba Cryptomancer
-1 Primal Empathy
-1 Clutch of Currents
-
 // Ramp
-1 Prophetic Prism
 1 Insidious Fungus
-1 Deranged Assistant
-1 Emrakul's Messenger
+1 Simic Locket
 1 Unstable Obelisk
-1 Ticket Tortoise
-1 Pelargir Survivor
-1 Tunnel Tipster
-1 Dance of the Tumbleweeds
+1 Magnifying Glass
+1 Letter of Acceptance
+1 Fountainport Bell
+1 Thirsting Roots
+1 They Went This Way
+1 Prophetic Prism
 
 // Card Draw
 1 Inspired Sphinx
@@ -43,28 +25,43 @@
 1 Sphinx of Enlightenment
 1 Migrating Ketradon
 1 Wretched Gryff
-1 Cultivator Colossus
 1 Expedition Diviner
 1 Undercover Crocodelf
-1 Krosan Tusker
 1 Excavating Anurid
+1 Krosan Tusker
 
 // Removal & Interaction
 1 Meteor Golem
+1 Aven Surveyor
+1 Essence Flux
 1 Ravenous Sailback
 1 Conclave Naturalists
 1 Dispersal Technician
 1 Spikeshell Harrier
 1 Wear Down
-1 Thornado
-1 Arrester's Admonition
+
+// Counter Doublers & Payoffs
+1 Zegana, Utopian Speaker
+1 Lasyd Prowler
+1 Scale the Heights
+1 Saruman the White
+1 Moldgraf Millipede
+1 Saiba Cryptomancer
+1 Jade Guardian
+1 Quirion Beastcaller
+1 Ooze Patrol
+1 Ainok Wayfarer
+1 Simian Simulacrum
+1 Arwen Undómiel
+1 Thought Shucker
+1 Elvish Archivist
 
 // Wincons & Big Threats
 1 Su-Chi Cave Guard
 1 It of the Horrid Swarm
+1 Cultivator Colossus
+1 Autarch Mammoth
 1 Tolarian Kraken
-1 Owlbear
-1 Silverback Shaman
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -81,5 +78,5 @@
 1 Branch of Vitu-Ghazi
 
 // Basic Lands
-17 Forest
-17 Island
+19 Forest
+18 Island

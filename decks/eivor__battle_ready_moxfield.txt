@@ -4,70 +4,66 @@
 // Core / Auto-includes
 1 Blackblade Reforged
 
-// Equipment
-1 Citizen's Crowbar
-1 Harvest Hand // Scrounged Scythe
-1 Auxiliary Boosters
-1 Armory of Iroas
-1 Glimmerlight
-1 Monk's Fist
-1 Headsplitter
-1 Ancestral Blade
-1 Dragonwing Glider
-1 Brotherhood Regalia
-1 Haunted Cloak
-1 Cloudsteel Kirin
-1 Short Sword
-1 Ninja's Kunai
-1 Bloodthirsty Blade
-1 Pirate's Cutlass
-1 Cliffhaven Kitesail
-1 Hero's Heirloom
-
-// Equipment Synergy
-1 Blacksmith's Talent
-1 Benevolent Blessing
-1 Resolute Strike
-1 Militant Inquisitor
-1 Dan Lewis
-1 Battlefield Improvisation
-
-// Cheap Creatures (cuerpos para equipar)
-1 Charming Scoundrel
-1 Filigree Familiar
-1 Hangar Scrounger
-1 Cloudspire Coordinator
-1 Spirited Companion
-1 Impulsive Pilferer
-1 Skyscanner
-1 Ticket Tortoise
-
 // Ramp
-1 Kav Landseeker
+1 Charming Scoundrel
 1 Unstable Obelisk
-1 Prophetic Prism
-1 Sticky Fingers
 1 Magnifying Glass
 1 Letter of Acceptance
 1 Fountainport Bell
-1 Piggy Bank
+1 Bureau Headmaster
+1 Sticky Fingers
+1 Prophetic Prism
+1 Impulsive Pilferer
 
-// Card Draw
-1 Escarpment Fortress
-1 Macetail Hystrodon
-1 Falkenrath Celebrants
-1 Lacerate Flesh
-1 Detention Chariot
-1 Starfall Invocation
-
-// Removal
+// Removal & Interaction
 1 Meteor Golem
+1 Driftgloom Coyote
 1 Tyrant of Kher Ridges
 1 Fear of Abduction
-1 Driftgloom Coyote
-1 Origin of the Hidden Ones
 1 Rambunctious Mutt
-1 Slayer of the Wicked
+1 Wild Celebrants
+1 Lacerate Flesh
+1 Citizen's Crowbar
+
+// Card Draw
+1 Filigree Familiar
+1 Escarpment Fortress
+1 Hangar Scrounger
+1 Macetail Hystrodon
+1 Settlement Blacksmith
+1 Falkenrath Celebrants
+1 Cloudspire Coordinator
+
+// Equipment
+1 Headsplitter
+1 Hidden Footblade
+1 Brotherhood Regalia
+1 Raven Clan War-Axe
+1 Armory of Iroas
+1 Glimmerlight
+1 Harvest Hand // Scrounged Scythe
+1 Monk's Fist
+1 Hookblade
+1 Hidden Blade
+1 Demonmail Hauberk
+1 Conductive Machete
+
+// Equipment Synergy
+1 Kassandra, Eagle Bearer
+1 Ambitious Assault
+1 Battlefield Improvisation
+1 Feat of Resistance
+1 Blacksmith's Talent
+1 Turn to Slag
+
+// Soporte & Cuerpos
+1 Skyscanner
+1 Ticket Tortoise
+1 Farsight Adept
+1 Fissure Wizard
+1 Burning-Tree Vandal
+1 Errand-Rider of Gondor
+1 Dawnbringer Cleric
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -84,5 +80,5 @@
 1 Public Thoroughfare
 
 // Basic Lands
-17 Mountain
-16 Plains
+19 Mountain
+18 Plains

@@ -1,56 +1,53 @@
 Name,Set code,Set name,Collector number,Foil,Rarity,Quantity,ManaBox ID,Scryfall ID,Purchase price,Misprint,Altered,Condition,Language,Purchase price currency
 "Izoni, Thousand-Eyed",M3C,Modern Horizons 3 Commander,267,normal,rare,1,95130,95a3dfe3-88ab-4820-ae5e-2f5edd4d6f2f,,false,false,near_mint,en,EUR
-"Aatchik, Emerald Radian",DFT,Aetherdrift,187,normal,rare,1,103383,fbdaa29b-85ff-4a06-b27e-fcdbdfd4a3fe,,false,false,near_mint,en,EUR
-Eyeblight Cullers,KHC,Kaldheim Commander,48,normal,common,1,57242,89b47813-9b6c-4e8f-9212-fe37fb50e405,,false,false,near_mint,en,EUR
-Debtors' Transport,RVR,Ravnica Remastered,72,normal,common,1,89911,d001eb1f-491b-4b1d-9f1d-e1cf158fd55a,,false,false,near_mint,en,EUR
-Autarch Mammoth,DFT,Aetherdrift,153,normal,uncommon,1,103033,4d313ea7-2456-48f3-8b12-97d8e8c2a5b3,,false,false,near_mint,en,EUR
-It of the Horrid Swarm,INR,Innistrad Remastered,6,normal,common,1,101885,ba983caf-72b4-419e-84dc-1ad0215a865c,,false,false,near_mint,en,EUR
-Rank Officer,MH1,Modern Horizons,102,normal,common,1,44832,7a05edf6-ade4-4052-924d-6057faa51693,,false,false,near_mint,en,EUR
-Highspire Artisan,KLD,Kaladesh,157,normal,common,1,7486,72a26cb0-655f-4bf8-899a-952d5bfe2b42,,false,false,near_mint,es,EUR
-Wurmcoil Larva,MH3,Modern Horizons 3,112,normal,uncommon,1,94618,cc9b30e0-3934-4e4c-bdd9-5b7696b45948,,false,false,near_mint,en,EUR
-Elturgard Ranger,AFR,Adventures in the Forgotten Realms,182,normal,common,1,60509,f6898737-957f-44a6-bef7-fb196658176f,,false,false,near_mint,en,EUR
-Deathbloom Thallid,M21,Core Set 2021,94,normal,common,1,51033,dc4513e1-9978-44ce-b7a5-4e2b5b63ad9e,,false,false,near_mint,en,EUR
-Tangled Colony,WOE,Wilds of Eldraine,113,normal,rare,1,85499,77111ce8-6469-4bf7-882a-4ded1e5d7cad,,false,false,near_mint,es,EUR
-Doomed Dissenter,M19,Core Set 2019,93,normal,common,1,1219,a1f70ee8-7e59-43d6-a7b2-29cb5cd1d8b3,,false,false,near_mint,en,EUR
-Chthonian Nightmare,MH3,Modern Horizons 3,83,normal,rare,1,94259,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,,false,false,near_mint,en,EUR
-Blood Funnel,RAV,Ravnica: City of Guilds,77,normal,rare,1,27933,5f4e8084-4b9e-48e0-bf59-d45543e176f8,,false,false,near_mint,es,EUR
-Crypt Lurker,M21,Core Set 2021,93,normal,common,1,50977,c0bba170-5176-4fab-a10d-e23d70128875,,false,false,near_mint,en,EUR
-Agency Coroner,MKM,Murders at Karlov Manor,75,normal,common,1,91223,d63f2c23-e877-42e3-9362-5d003a173c6d,,false,false,near_mint,en,EUR
-Village Rites,M21,Core Set 2021,126,normal,common,1,50910,9c0f60a6-b5c8-4704-8b61-94e8fc463e5d,,false,false,near_mint,en,EUR
-Filigree Familiar,CMR,Commander Legends,308,normal,common,1,55767,875df3ef-fab4-455f-bfdb-8f6361b27bf6,,false,false,near_mint,en,EUR
-Su-Chi Cave Guard,BRO,The Brothers' War,249,normal,uncommon,1,75733,bb04dad2-4561-4cef-9cee-80d6f1a44bee,,false,false,near_mint,en,EUR
-Lumberknot,INR,Innistrad Remastered,206,normal,uncommon,1,102408,07eae396-ee57-485e-8360-962a1310ca31,,false,false,near_mint,en,EUR
-Quirion Beastcaller,DMU,Dominaria United,175,normal,rare,1,71336,2a501319-59a7-45d4-a6ca-666276095f87,,false,false,near_mint,es,EUR
-Exquisite Huntmaster,CMR,Commander Legends,122,normal,common,1,55647,444b75d9-f7c7-4a13-9318-02d7bbd80c9c,,false,false,near_mint,en,EUR
-Spore Crawler,INR,Innistrad Remastered,218,normal,common,1,102702,a2a37c40-6d33-4e32-ab7b-4a7c2d10b757,,false,false,near_mint,en,EUR
-Silverback Shaman,CMR,Commander Legends,255,normal,common,1,56119,8048bab7-8fd1-446c-80e9-cc2ffb154295,,false,false,near_mint,en,EUR
-Filigree Crawler,AER,Aether Revolt,150,normal,common,1,6264,8d8e817c-079e-4e7c-a8ca-54634f30bf36,,false,false,near_mint,es,EUR
-Gravpack Monoist,EOE,Edge of Eternities,104,normal,common,1,107701,2a968f01-36ef-4cf6-b1db-630c9cde2064,,false,false,near_mint,en,EUR
-Infernal Scarring,M21,Core Set 2021,105,normal,common,1,50904,975e4b8e-add9-439c-9463-e2facee96c10,,false,false,near_mint,en,EUR
 Insidious Fungus,DSK,Duskmourn: House of Horror,186,normal,uncommon,1,98922,d60d2e62-06da-410a-81ed-6cebb2632fb6,,false,false,near_mint,en,EUR
-Fountainport Bell,BLB,Bloomburrow,245,normal,common,1,96094,a5c94bc0-a49d-451b-8e8d-64d46b8b8603,,false,false,near_mint,en,EUR
-Delighted Halfling,LTR,The Lord of the Rings: Tales of Middle-earth,158,normal,rare,1,83185,71384418-173a-4f77-adab-56e52fa23692,,false,false,near_mint,en,EUR
-Arboreal Grazer,RVR,Ravnica Remastered,131,normal,common,1,89737,6d00ced6-7ba3-4d78-a680-9d3211704ca2,,false,false,near_mint,en,EUR
-Thirsting Roots,ONE,Phyrexia: All Will Be One,185,normal,common,1,78633,75a4a340-453b-471a-82ba-48ebf20b271a,,false,false,near_mint,en,EUR
+Blood Funnel,RAV,Ravnica: City of Guilds,77,normal,rare,1,27933,5f4e8084-4b9e-48e0-bf59-d45543e176f8,,false,false,near_mint,es,EUR
 Unstable Obelisk,CMM,Commander Masters,416,normal,common,1,84634,94eba26e-7c9e-46f3-ad13-aa684f3365cb,,false,false,near_mint,en,EUR
 Prophetic Prism,DMC,Dominaria United Commander,189,normal,common,1,71652,a0dcb495-9562-4961-b095-8b844dfdb601,,false,false,near_mint,en,EUR
 Magnifying Glass,MKM,Murders at Karlov Manor,255,normal,common,1,91192,c606a71f-8fb0-486b-955f-727ebf436946,,false,false,near_mint,en,EUR
+Letter of Acceptance,CMM,Commander Masters,397,normal,common,1,84744,ae094ace-1760-4bdd-a513-04616fb0deeb,,false,false,near_mint,en,EUR
+Fountainport Bell,BLB,Bloomburrow,245,normal,common,1,96094,a5c94bc0-a49d-451b-8e8d-64d46b8b8603,,false,false,near_mint,en,EUR
+Gorbag of Minas Morgul,LTR,The Lord of the Rings: Tales of Middle-earth,86,normal,uncommon,1,83097,58aafdb6-1c8c-4fc4-a52e-3e601be7fb0c,,false,false,near_mint,en,EUR
 Migrating Ketradon,DFT,Aetherdrift,170,normal,common,1,103597,a9ba2219-8184-4141-8708-845cb0957299,,false,false,near_mint,en,EUR
 Persuasive Interrogators,MKM,Murders at Karlov Manor,345,normal,uncommon,1,90941,6c134956-ba18-415e-b101-c1254415ea04,,false,false,near_mint,en,EUR
-Cultivator Colossus,INR,Innistrad Remastered,190,normal,mythic,1,102518,426ed66e-41b3-4e44-90a2-697aafaa8c5c,,false,false,near_mint,en,EUR
-Krosan Tusker,CMM,Commander Masters,302,normal,common,1,84023,0a368f72-cc88-4f32-aad4-22d92c4d032d,,false,false,near_mint,en,EUR
+Blade Juggler,CLU,Ravnica: Clue Edition,106,normal,common,1,90824,42665f2d-0815-44d9-a5a9-c7ec4226bcf0,,false,false,near_mint,en,EUR
+Excavating Anurid,MH1,Modern Horizons,163,normal,common,1,44771,d353d315-5790-417d-adf5-270df1ff34b0,,false,false,near_mint,es,EUR
+Filigree Familiar,CMR,Commander Legends,308,normal,common,1,55767,875df3ef-fab4-455f-bfdb-8f6361b27bf6,,false,false,near_mint,en,EUR
 Scale the Heights,ZNR,Zendikar Rising,202,normal,common,1,54795,e781d6ad-950e-49bf-9645-e2354086ae49,,false,false,near_mint,es,EUR
 Oblivion's Hunger,ZNR,Zendikar Rising,119,normal,common,1,54832,faf65512-8228-48f4-ba7b-d861b66d28c9,,false,false,near_mint,es,EUR
-Excavating Anurid,MH1,Modern Horizons,163,normal,common,1,44771,d353d315-5790-417d-adf5-270df1ff34b0,,false,false,near_mint,es,EUR
 Meteor Golem,FDN,Foundations,256,normal,uncommon,1,101167,d291ea1e-36bc-46b3-b3ae-084fa0ba69eb,,false,false,near_mint,en,EUR
 Ravenous Sailback,MOM,March of the Machine,202,normal,uncommon,1,81179,a225cb30-9f3e-4cfa-bdd6-a7c73c95ea2b,,false,false,near_mint,en,EUR
 Conclave Naturalists,2XM,Double Masters,160,normal,common,1,52091,082a5372-b25a-4559-96b8-2d8d54199a38,,false,false,near_mint,en,EUR
-Wear Down,BLB,Bloomburrow,203,normal,uncommon,1,95863,fded2b83-3b7d-4c8c-83c4-0624a1069628,,false,false,near_mint,en,EUR
-Thornado,MH1,Modern Horizons,184,normal,common,1,44750,eadffd6b-d707-4fc5-a600-44eb9124b195,,false,false,near_mint,en,EUR
-Root Out,MOC,March of the Machine Commander,311,normal,common,1,81557,228a08f0-6664-407a-a74c-2c32badc0d37,,false,false,near_mint,en,EUR
+Chthonian Nightmare,MH3,Modern Horizons 3,83,normal,rare,1,94259,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,,false,false,near_mint,en,EUR
+Carrion Imp,RNA,Ravnica Allegiance,66,normal,common,1,43798,958caf1d-b159-4c27-8248-00c345f880be,,false,false,near_mint,en,EUR
+Chain Assassination,ACR,Assassin's Creed,23,normal,uncommon,1,95505,d4bcd9c9-5957-48ee-9c12-f659c5fd07d0,,false,false,near_mint,en,EUR
+"Aatchik, Emerald Radian",DFT,Aetherdrift,187,normal,rare,1,103383,fbdaa29b-85ff-4a06-b27e-fcdbdfd4a3fe,,false,false,near_mint,en,EUR
+Debtors' Transport,RVR,Ravnica Remastered,72,normal,common,1,89911,d001eb1f-491b-4b1d-9f1d-e1cf158fd55a,,false,false,near_mint,en,EUR
+Eyeblight Cullers,KHC,Kaldheim Commander,48,normal,common,1,57242,89b47813-9b6c-4e8f-9212-fe37fb50e405,,false,false,near_mint,en,EUR
+Autarch Mammoth,DFT,Aetherdrift,153,normal,uncommon,1,103033,4d313ea7-2456-48f3-8b12-97d8e8c2a5b3,,false,false,near_mint,en,EUR
+It of the Horrid Swarm,INR,Innistrad Remastered,6,normal,common,1,101885,ba983caf-72b4-419e-84dc-1ad0215a865c,,false,false,near_mint,en,EUR
+Rank Officer,MH1,Modern Horizons,102,normal,common,1,44832,7a05edf6-ade4-4052-924d-6057faa51693,,false,false,near_mint,en,EUR
+Elturgard Ranger,AFR,Adventures in the Forgotten Realms,182,normal,common,1,60509,f6898737-957f-44a6-bef7-fb196658176f,,false,false,near_mint,en,EUR
+Peema Outrider,KLD,Kaladesh,166,normal,common,1,7477,2ab38bd5-64bb-41aa-851b-c6bc6b44bcf0,,false,false,near_mint,es,EUR
+Filigree Crawler,AER,Aether Revolt,150,normal,common,1,6264,8d8e817c-079e-4e7c-a8ca-54634f30bf36,,false,false,near_mint,es,EUR
+Exquisite Huntmaster,CMR,Commander Legends,122,normal,common,1,55647,444b75d9-f7c7-4a13-9318-02d7bbd80c9c,,false,false,near_mint,en,EUR
+Crypt Lurker,M21,Core Set 2021,93,normal,common,1,50977,c0bba170-5176-4fab-a10d-e23d70128875,,false,false,near_mint,en,EUR
+Village Rites,M21,Core Set 2021,126,normal,common,1,50910,9c0f60a6-b5c8-4704-8b61-94e8fc463e5d,,false,false,near_mint,en,EUR
+Agency Coroner,MKM,Murders at Karlov Manor,75,normal,common,1,91223,d63f2c23-e877-42e3-9362-5d003a173c6d,,false,false,near_mint,en,EUR
+Portcullis Vine,M21,Core Set 2021,195,normal,common,1,51005,d1abd95a-4ecc-479c-b200-5aaf7c993ef8,,false,false,near_mint,en,EUR
+Bone Splinters,GNT,Game Night,27,normal,common,1,43262,58618b80-0c7e-421a-9f9f-d51a9a7784a4,,false,false,near_mint,en,EUR
+Su-Chi Cave Guard,BRO,The Brothers' War,249,normal,uncommon,1,75733,bb04dad2-4561-4cef-9cee-80d6f1a44bee,,false,false,near_mint,en,EUR
+Quirion Beastcaller,DMU,Dominaria United,175,normal,rare,1,71336,2a501319-59a7-45d4-a6ca-666276095f87,,false,false,near_mint,es,EUR
+Silverback Shaman,CMR,Commander Legends,255,normal,common,1,56119,8048bab7-8fd1-446c-80e9-cc2ffb154295,,false,false,near_mint,en,EUR
+Lumberknot,INR,Innistrad Remastered,206,normal,uncommon,1,102408,07eae396-ee57-485e-8360-962a1310ca31,,false,false,near_mint,en,EUR
+Wurmcoil Larva,MH3,Modern Horizons 3,112,normal,uncommon,1,94618,cc9b30e0-3934-4e4c-bdd9-5b7696b45948,,false,false,near_mint,en,EUR
+Deathbloom Thallid,M21,Core Set 2021,94,normal,common,1,51033,dc4513e1-9978-44ce-b7a5-4e2b5b63ad9e,,false,false,near_mint,en,EUR
+Infernal Scarring,M21,Core Set 2021,105,normal,common,1,50904,975e4b8e-add9-439c-9463-e2facee96c10,,false,false,near_mint,en,EUR
+Thijarian Witness,WHO,Doctor Who,111,normal,uncommon,1,87942,da05e23b-419f-4023-9ad4-1227bb1b53be,,false,false,near_mint,en,EUR
+Brindle Shoat,2X2,Double Masters 2022,139,normal,common,1,70043,0a005933-e206-4b14-9a0f-755fae6c5a2a,,false,false,near_mint,en,EUR
 Gloomfang Mauler,MOM,March of the Machine,108,normal,common,1,81294,025a5338-133f-486d-9f73-0896226685c0,,false,false,near_mint,en,EUR
-Moldgraf Millipede,INR,Innistrad Remastered,208,normal,common,1,102499,3a163ec7-4c9a-4d45-965c-e5ddeb07a3e0,,false,false,near_mint,en,EUR
-Blade Juggler,CLU,Ravnica: Clue Edition,106,normal,common,1,90824,42665f2d-0815-44d9-a5a9-c7ec4226bcf0,,false,false,near_mint,en,EUR
+Krosan Tusker,CMM,Commander Masters,302,normal,common,1,84023,0a368f72-cc88-4f32-aad4-22d92c4d032d,,false,false,near_mint,en,EUR
+Cultivator Colossus,INR,Innistrad Remastered,190,normal,mythic,1,102518,426ed66e-41b3-4e44-90a2-697aafaa8c5c,,false,false,near_mint,en,EUR
 Exotic Orchard,40K,"Warhammer 40,000 Commander",278,normal,rare,1,72563,ec9c7011-694b-4705-b85c-bf4edf26e437,,false,false,near_mint,es,EUR
 Path of Ancestry,DRC,Aetherdrift Commander,166,normal,common,1,103021,4898fba1-d692-4440-bfff-ae535bdc1ba8,,false,false,near_mint,en,EUR
 Opal Palace,M3C,Modern Horizons 3 Commander,361,normal,common,1,94972,76219ec4-65dc-4137-9b3b-070e02524397,,false,false,near_mint,en,EUR
@@ -63,5 +60,5 @@ Study Hall,C21,Commander 2021,80,normal,common,1,58649,a3de9859-98b6-4efe-847a-4
 Rupture Spire,CMR,Commander Legends,355,normal,common,1,56188,c7ef4b15-efab-4255-ac2d-7794f253aa52,,false,false,near_mint,en,EUR
 Night Market,DFT,Aetherdrift,258,normal,common,1,103214,a8c1dce3-6136-4294-9d2b-5ef8527d733b,,false,false,near_mint,en,EUR
 Branch of Vitu-Ghazi,MKM,Murders at Karlov Manor,258,normal,uncommon,1,90969,73a8169f-b858-47a5-9c76-2e7c50ad4ecd,,false,false,near_mint,en,EUR
-Swamp,INR,Innistrad Remastered,293,normal,common,18,102530,4bc918af-527c-46d7-861d-32e9150ed3df,,false,false,near_mint,en,EUR
-Forest,ACR,Assassin's Creed,109,normal,common,18,95472,b8a081ef-a2d4-4989-8b06-721f8b2c9798,,false,false,near_mint,en,EUR
+Swamp,INR,Innistrad Remastered,293,normal,common,20,102530,4bc918af-527c-46d7-861d-32e9150ed3df,,false,false,near_mint,en,EUR
+Forest,ACR,Assassin's Creed,109,normal,common,19,95472,b8a081ef-a2d4-4989-8b06-721f8b2c9798,,false,false,near_mint,en,EUR

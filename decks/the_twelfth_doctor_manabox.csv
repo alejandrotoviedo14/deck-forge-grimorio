@@ -1,7 +1,7 @@
 Name,Set code,Set name,Collector number,Foil,Rarity,Quantity,ManaBox ID,Scryfall ID,Purchase price,Misprint,Altered,Condition,Language,Purchase price currency
 The Twelfth Doctor,WHO,Doctor Who,164,normal,rare,1,87142,2400d681-05ef-43b1-b720-c15ca4226c27,,false,false,near_mint,en,EUR
-Firemind's Research,PGRN,Guilds of Ravnica Promos,171,foil,rare,1,171,cd318e8f-418a-4e17-bf0e-a4bfc0fb8ebf,,false,false,near_mint,es,EUR
 Saruman the White,LTR,The Lord of the Rings: Tales of Middle-earth,67,normal,uncommon,1,82903,1bfccbab-29fa-4e92-8919-6cd4815fb655,,false,false,near_mint,en,EUR
+Firemind's Research,PGRN,Guilds of Ravnica Promos,171,foil,rare,1,171,cd318e8f-418a-4e17-bf0e-a4bfc0fb8ebf,,false,false,near_mint,es,EUR
 Storm Skreelix,MID,Innistrad: Midnight Hunt,243,normal,uncommon,1,63292,6c49618f-2e9e-4674-9953-153ccc76cce2,,false,false,near_mint,en,EUR
 "Kraum, Violent Cacophony",OTJ,Outlaws of Thunder Junction,214,normal,uncommon,1,93270,958a3e6b-7e20-40ea-8b2c-7c728934b5e5,,false,false,near_mint,en,EUR
 Silburlind Snapper,SOI,Shadows over Innistrad,85,normal,common,1,8911,d7347f4c-a4b3-4c71-91e5-699475e5926e,,false,false,near_mint,en,EUR
@@ -11,41 +11,41 @@ Battlefield Thaumaturge,JOU,Journey into Nyx,31,normal,rare,1,14618,467ffc93-b10
 Trail of Evidence,SOI,Shadows over Innistrad,93,normal,uncommon,1,8903,4b150797-ee8d-42f8-adcb-2f4b1783c074,,false,false,near_mint,en,EUR
 Spellgorger Weird,CLU,Ravnica: Clue Edition,148,normal,common,1,91071,9ba52955-2ab9-48a4-bb12-6127bdef1909,,false,false,near_mint,en,EUR
 Goblin Wizardry,CLU,Ravnica: Clue Edition,136,normal,common,1,90626,04d250d6-7ab1-4b30-85a4-acb0b620629c,,false,false,near_mint,en,EUR
-Whispering Wizard,VOW,Innistrad: Crimson Vow,88,normal,uncommon,1,64221,54fb422d-71f2-44ed-9589-32630ab87050,,false,false,near_mint,en,EUR
-Saruman's Trickery,LTR,The Lord of the Rings: Tales of Middle-earth,68,normal,uncommon,1,83284,8eb6c23b-e52e-4533-9625-884eb0a4d866,,false,false,near_mint,en,EUR
+Arena Trickster,THB,Theros Beyond Death,126,normal,common,1,46936,e096049d-9f02-4abb-bb5a-97b14fd17099,,false,false,near_mint,en,EUR
 Mirrorshell Crab,NEO,Kamigawa: Neon Dynasty,63,normal,common,1,66630,0394c8df-2e8a-4477-93b7-569934d7b936,,false,false,near_mint,en,EUR
+Saruman's Trickery,LTR,The Lord of the Rings: Tales of Middle-earth,68,normal,uncommon,1,83284,8eb6c23b-e52e-4533-9625-884eb0a4d866,,false,false,near_mint,en,EUR
 Overcharged Amalgam,INR,Innistrad Remastered,80,normal,rare,1,102477,2fae9b40-a1ee-425d-bbf6-fa4b0861cdc4,,false,false,near_mint,en,EUR
 Spell Snuff,MH1,Modern Horizons,70,normal,common,1,44864,efadce19-07f4-47af-abc0-a436bafcdd65,,false,false,near_mint,en,EUR
 Thought Collapse,RNA,Ravnica Allegiance,57,normal,common,1,43807,948b569b-6341-418b-99b5-f79dfb3fe8dd,,false,false,near_mint,en,EUR
 Countermand,JOU,Journey into Nyx,33,normal,common,1,14616,07815e32-0b64-4c2b-84e6-a72336c45cf5,,false,false,near_mint,en,EUR
 Syncopate,INR,Innistrad Remastered,89,normal,common,1,102690,9aebd769-7ae3-4dac-81ea-458061762cce,,false,false,near_mint,en,EUR
-Dazzling Denial,BLB,Bloomburrow,45,normal,common,1,96369,8739f1ac-2e57-4b52-a7ff-cc8df5936aad,,false,false,near_mint,en,EUR
+Lofty Denial,M21,Core Set 2021,56,normal,common,1,50836,64832674-beb1-446e-b2f7-8a5e271139a5,,false,false,near_mint,en,EUR
 Essence Flux,INR,Innistrad Remastered,64,normal,common,1,102778,c94b37df-aaa5-4981-be3b-c934a7971123,,false,false,near_mint,en,EUR
-Planar Incision,NEO,Kamigawa: Neon Dynasty,72,normal,common,1,66752,9163cb04-ee28-4127-b53a-89c546996d7d,,false,false,near_mint,en,EUR
-Clutch of Currents,BFZ,Battle for Zendikar,72,normal,common,1,10279,3d20f482-e0b2-4e4a-be32-347ab112912c,,false,false,near_mint,en,EUR
 Lacerate Flesh,VOW,Innistrad: Crimson Vow,166,normal,common,1,64410,c7e0c0dc-2d35-4e5a-81da-dd5f35b8e579,,false,false,near_mint,en,EUR
+Clutch of Currents,BFZ,Battle for Zendikar,72,normal,common,1,10279,3d20f482-e0b2-4e4a-be32-347ab112912c,,false,false,near_mint,en,EUR
+Planar Incision,NEO,Kamigawa: Neon Dynasty,72,normal,common,1,66752,9163cb04-ee28-4127-b53a-89c546996d7d,,false,false,near_mint,en,EUR
 Betrayer's Bargain,DSK,Duskmourn: House of Horror,126,normal,uncommon,1,98850,7956ae00-8f0c-48f0-8110-19ff53863876,,false,false,near_mint,en,EUR
+Fiery Conclusion,PCA,Planechase Anthology,42,normal,common,1,6684,97cb8431-f741-4b1b-bfa7-87d828fe99fb,,false,false,near_mint,en,EUR
 Soul Sear,M21,Core Set 2021,160,normal,uncommon,1,50833,62584e4f-dac1-4d99-ac0a-6a2451603889,,false,false,near_mint,en,EUR
 Arrester's Admonition,RNA,Ravnica Allegiance,31,normal,common,1,43833,637c2d6a-e6b8-4dc5-81aa-da1b7384e006,,false,false,near_mint,en,EUR
-Fiery Conclusion,PCA,Planechase Anthology,42,normal,common,1,6684,97cb8431-f741-4b1b-bfa7-87d828fe99fb,,false,false,near_mint,en,EUR
 Inspired Sphinx,KHC,Kaldheim Commander,40,normal,mythic,1,56954,7f58d798-9b99-45a9-9015-f689145018a8,,false,false,near_mint,en,EUR
-Charming Scoundrel,WOE,Wilds of Eldraine,124,normal,rare,1,85717,c8090bcf-e17a-4110-a518-77ccd045b18f,,false,false,near_mint,es,EUR
 Hotshot Investigators,MKM,Murders at Karlov Manor,60,normal,common,1,91046,8dc3b23b-04d6-4ac0-b698-596ea90b7781,,false,false,near_mint,en,EUR
+Charming Scoundrel,WOE,Wilds of Eldraine,124,normal,rare,1,85717,c8090bcf-e17a-4110-a518-77ccd045b18f,,false,false,near_mint,es,EUR
 Sphinx of Enlightenment,BLC,Bloomburrow Commander,175,normal,mythic,1,96242,3307e9c8-c4c1-480c-94a1-78332eaaac14,,false,false,near_mint,en,EUR
-Sticky Fingers,SNC,Streets of New Capenna,124,normal,common,1,67696,3678fa3d-d41f-4b7a-b25e-6fc5f78876c7,,false,false,near_mint,en,EUR
-Fountainport Bell,BLB,Bloomburrow,245,normal,common,1,96094,a5c94bc0-a49d-451b-8e8d-64d46b8b8603,,false,false,near_mint,en,EUR
-Falkenrath Celebrants,VOW,Innistrad: Crimson Vow,156,normal,common,1,64200,4c3c5778-4760-4a8c-8d8d-693e29a0a74b,,false,false,near_mint,en,EUR
 Wretched Gryff,INR,Innistrad Remastered,7,normal,common,1,102602,722b519a-715d-4393-9d3c-97f329896ef4,,false,false,near_mint,en,EUR
 Macetail Hystrodon,DMR,Dominaria Remastered,130,normal,common,1,78118,c750f7d7-25b8-433f-b3a8-0d842b99276f,,false,false,near_mint,en,EUR
+Falkenrath Celebrants,VOW,Innistrad: Crimson Vow,156,normal,common,1,64200,4c3c5778-4760-4a8c-8d8d-693e29a0a74b,,false,false,near_mint,en,EUR
+Fountainport Bell,BLB,Bloomburrow,245,normal,common,1,96094,a5c94bc0-a49d-451b-8e8d-64d46b8b8603,,false,false,near_mint,en,EUR
+Sticky Fingers,SNC,Streets of New Capenna,124,normal,common,1,67696,3678fa3d-d41f-4b7a-b25e-6fc5f78876c7,,false,false,near_mint,en,EUR
 Combat Courier,BRO,The Brothers' War,77,normal,common,1,75307,171edf80-ffc1-4894-9be5-c3e93a96f734,,false,false,near_mint,en,EUR
-Prophetic Prism,DMC,Dominaria United Commander,189,normal,common,1,71652,a0dcb495-9562-4961-b095-8b844dfdb601,,false,false,near_mint,en,EUR
-Aether Channeler,BLC,Bloomburrow Commander,160,normal,rare,1,96201,213df60e-5ada-41ff-98e6-0ba094a6bed2,,false,false,near_mint,es,EUR
+Tolarian Kraken,M21,Core Set 2021,80,normal,uncommon,1,50979,c2776694-6183-498d-9a38-e4c5c9e78179,,false,false,near_mint,en,EUR
+Skywarp Skaab,VOW,Innistrad: Crimson Vow,78,normal,common,1,64269,73168804-3c22-4fcb-907a-2f08999c0cea,,false,false,near_mint,en,EUR
 Unstable Obelisk,CMM,Commander Masters,416,normal,common,1,84634,94eba26e-7c9e-46f3-ad13-aa684f3365cb,,false,false,near_mint,en,EUR
+Prophetic Prism,DMC,Dominaria United Commander,189,normal,common,1,71652,a0dcb495-9562-4961-b095-8b844dfdb601,,false,false,near_mint,en,EUR
 Magnifying Glass,MKM,Murders at Karlov Manor,255,normal,common,1,91192,c606a71f-8fb0-486b-955f-727ebf436946,,false,false,near_mint,en,EUR
 Letter of Acceptance,CMM,Commander Masters,397,normal,common,1,84744,ae094ace-1760-4bdd-a513-04616fb0deeb,,false,false,near_mint,en,EUR
 Ticket Tortoise,DFT,Aetherdrift,245,normal,common,1,103674,fa178ed7-8f3a-45f0-817d-5fbc7993b04a,,false,false,near_mint,en,EUR
 Piggy Bank,DSK,Duskmourn: House of Horror,148,normal,uncommon,1,98827,55d35442-5ca0-4fd7-8ff1-b7347b3e6690,,false,false,near_mint,en,EUR
-Mox Jasper,TDM,Tarkir: Dragonstorm,246,normal,mythic,1,103999,a851d2d3-7e93-4887-bee5-4d6c9aaf9419,,false,false,near_mint,en,EUR
 Exotic Orchard,40K,"Warhammer 40,000 Commander",278,normal,rare,1,72563,ec9c7011-694b-4705-b85c-bf4edf26e437,,false,false,near_mint,es,EUR
 Path of Ancestry,DRC,Aetherdrift Commander,166,normal,common,1,103021,4898fba1-d692-4440-bfff-ae535bdc1ba8,,false,false,near_mint,en,EUR
 Opal Palace,M3C,Modern Horizons 3 Commander,361,normal,common,1,94972,76219ec4-65dc-4137-9b3b-070e02524397,,false,false,near_mint,en,EUR

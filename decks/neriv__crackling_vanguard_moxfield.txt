@@ -1,65 +1,62 @@
 // Commander
 1 Neriv, Crackling Vanguard
 
-// Token Generators
-1 Eyeblight Cullers
-1 Embalmed Ascendant
-1 Builder's Talent
-1 Debtors' Transport
-1 Watchful Giant
-1 Scrapwork Cohort
-1 Evangel of Heliod
-1 Redcap Gutter-Dweller
-1 Ethereal Absolution
-1 Citizen's Crowbar
-1 Cloudspire Coordinator
-1 Soul of Migration
-
-// Sacrifice Outlets
-1 Chthonian Nightmare
-1 Blood Funnel
-1 Crypt Lurker
-1 Agency Coroner
-1 Village Rites
-
-// Death Triggers / Drain
-1 Filigree Familiar
-1 Su-Chi Cave Guard
-1 Sister Repentia
-1 Warhost's Frenzy
-1 Knight of Sorrows
-1 Wurmcoil Larva
-1 Impulsive Pilferer
-1 Deathbloom Thallid
-1 Exquisite Huntmaster
-1 Dragon Egg
-
 // Ramp
 1 Charming Scoundrel
-1 Sticky Fingers
-1 Fountainport Bell
-1 Unstable Obelisk
-1 Prophetic Prism
+1 Blood Funnel
 1 Rakdos Locket
 1 Orzhov Locket
+1 Unstable Obelisk
+1 Prophetic Prism
 1 Magnifying Glass
+1 Letter of Acceptance
 
 // Card Draw
 1 Persuasive Interrogators
-1 Macetail Hystrodon
-1 Hangar Scrounger
-1 Oblivion's Hunger
+1 Sister Repentia
+1 Blade Juggler
 1 Escarpment Fortress
+1 Macetail Hystrodon
 1 Falkenrath Celebrants
-1 Doom Foretold
+1 Oblivion's Hunger
 
 // Removal
 1 Meteor Golem
 1 Tyrant of Kher Ridges
 1 Fear of Abduction
+1 Ethereal Absolution
 1 Driftgloom Coyote
-1 Rambunctious Mutt
-1 Origin of the Hidden Ones
+1 Chthonian Nightmare
+
+// Token Generators
+1 Scrapwork Cohort
+1 Debtors' Transport
+1 Watchful Giant
+1 Redcap Gutter-Dweller
+1 Within Range
+1 Soul of Migration
+1 Rank Officer
+1 Eyeblight Cullers
+1 Embalmed Ascendant
+1 Evangel of Heliod
+
+// Sacrifice Outlets
+1 Crypt Lurker
+1 Agency Coroner
+1 Village Rites
+1 Bone Splinters
+1 Spark Harvest
+
+// Death Triggers / Drain
+1 Su-Chi Cave Guard
+1 Filigree Familiar
+1 Impulsive Pilferer
+1 Knight of Sorrows
+1 Warhost's Frenzy
+1 Iron Apprentice
+1 Feign Death
+1 Wurmcoil Larva
+1 Filigree Crawler
 
 // Big Wincons
 1 Riders of the Mark
@@ -81,6 +78,6 @@
 1 Branch of Vitu-Ghazi
 
 // Basic Lands
-12 Swamp
-12 Mountain
-12 Plains
+13 Swamp
+13 Mountain
+13 Plains

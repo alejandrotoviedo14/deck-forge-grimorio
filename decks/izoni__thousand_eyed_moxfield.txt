@@ -1,70 +1,67 @@
 // Commander
 1 Izoni, Thousand-Eyed
 
-// Token Generators
-1 Aatchik, Emerald Radian
-1 Eyeblight Cullers
-1 Debtors' Transport
-1 Autarch Mammoth
-1 It of the Horrid Swarm
-1 Rank Officer
-1 Highspire Artisan
-1 Wurmcoil Larva
-1 Elturgard Ranger
-1 Deathbloom Thallid
-1 Tangled Colony
-1 Doomed Dissenter
-
-// Sacrifice Outlets
-1 Chthonian Nightmare
-1 Blood Funnel
-1 Crypt Lurker
-1 Agency Coroner
-1 Village Rites
-
-// Death Triggers / Drain
-1 Filigree Familiar
-1 Su-Chi Cave Guard
-1 Lumberknot
-1 Quirion Beastcaller
-1 Exquisite Huntmaster
-1 Spore Crawler
-1 Silverback Shaman
-1 Filigree Crawler
-1 Gravpack Monoist
-1 Infernal Scarring
-
 // Ramp
 1 Insidious Fungus
-1 Fountainport Bell
-1 Delighted Halfling
-1 Arboreal Grazer
-1 Thirsting Roots
+1 Blood Funnel
 1 Unstable Obelisk
 1 Prophetic Prism
 1 Magnifying Glass
+1 Letter of Acceptance
+1 Fountainport Bell
+1 Gorbag of Minas Morgul
 
 // Card Draw
 1 Migrating Ketradon
 1 Persuasive Interrogators
-1 Cultivator Colossus
-1 Krosan Tusker
+1 Blade Juggler
+1 Excavating Anurid
+1 Filigree Familiar
 1 Scale the Heights
 1 Oblivion's Hunger
-1 Excavating Anurid
 
 // Removal
 1 Meteor Golem
 1 Ravenous Sailback
 1 Conclave Naturalists
-1 Wear Down
-1 Thornado
-1 Root Out
+1 Chthonian Nightmare
+1 Carrion Imp
+1 Chain Assassination
+
+// Token Generators
+1 Aatchik, Emerald Radian
+1 Debtors' Transport
+1 Eyeblight Cullers
+1 Autarch Mammoth
+1 It of the Horrid Swarm
+1 Rank Officer
+1 Elturgard Ranger
+1 Peema Outrider
+1 Filigree Crawler
+1 Exquisite Huntmaster
+
+// Sacrifice Outlets
+1 Crypt Lurker
+1 Village Rites
+1 Agency Coroner
+1 Portcullis Vine
+1 Bone Splinters
+
+// Death Triggers / Drain
+1 Su-Chi Cave Guard
+1 Quirion Beastcaller
+1 Silverback Shaman
+1 Lumberknot
+1 Wurmcoil Larva
+1 Deathbloom Thallid
+1 Infernal Scarring
+1 Thijarian Witness
+1 Brindle Shoat
 
 // Big Wincons
 1 Gloomfang Mauler
-1 Moldgraf Millipede
-1 Blade Juggler
+1 Krosan Tusker
+1 Cultivator Colossus
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -81,5 +78,5 @@
 1 Branch of Vitu-Ghazi
 
 // Basic Lands
-18 Swamp
-18 Forest
+20 Swamp
+19 Forest

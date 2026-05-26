@@ -2,8 +2,8 @@
 1 The Twelfth Doctor
 
 // Spellslinger Payoffs
-1 Firemind's Research
 1 Saruman the White
+1 Firemind's Research
 1 Storm Skreelix
 1 Kraum, Violent Cacophony
 1 Silburlind Snapper
@@ -13,49 +13,49 @@
 1 Trail of Evidence
 1 Spellgorger Weird
 1 Goblin Wizardry
-1 Whispering Wizard
+1 Arena Trickster
 
 // Counterspells
-1 Saruman's Trickery
 1 Mirrorshell Crab
+1 Saruman's Trickery
 1 Overcharged Amalgam
 1 Spell Snuff
 1 Thought Collapse
 1 Countermand
 1 Syncopate
-1 Dazzling Denial
+1 Lofty Denial
 
 // Burn / Removal Spells
 1 Essence Flux
-1 Planar Incision
-1 Clutch of Currents
 1 Lacerate Flesh
+1 Clutch of Currents
+1 Planar Incision
 1 Betrayer's Bargain
+1 Fiery Conclusion
 1 Soul Sear
 1 Arrester's Admonition
-1 Fiery Conclusion
 
 // Card Draw / Cantrips
 1 Inspired Sphinx
-1 Charming Scoundrel
 1 Hotshot Investigators
+1 Charming Scoundrel
 1 Sphinx of Enlightenment
-1 Sticky Fingers
-1 Fountainport Bell
-1 Falkenrath Celebrants
 1 Wretched Gryff
 1 Macetail Hystrodon
+1 Falkenrath Celebrants
+1 Fountainport Bell
+1 Sticky Fingers
 1 Combat Courier
-1 Prophetic Prism
-1 Aether Channeler
+1 Tolarian Kraken
+1 Skywarp Skaab
 
 // Ramp (artifact only)
 1 Unstable Obelisk
+1 Prophetic Prism
 1 Magnifying Glass
 1 Letter of Acceptance
 1 Ticket Tortoise
 1 Piggy Bank
-1 Mox Jasper
 
 // Tierras No-Básicas
 1 Exotic Orchard

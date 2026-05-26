@@ -1,28 +1,21 @@
 // Commander
 1 Flubs, the Fool
 
-// Landfall Payoffs
-1 Scale the Heights
-1 Spitfire Lagac
-1 Dúnedain Rangers
-1 Canopy Baloth
-1 Akoum Hellhound
-1 Kazandu Nectarpot
-1 Skyclave Squid
-
 // Land Ramp (fetch extra lands)
 1 Charming Scoundrel
+1 Delighted Halfling
 1 Insidious Fungus
 1 Storm Skreelix
-1 Unstable Obelisk
-1 Prophetic Prism
-1 Sticky Fingers
 1 Gruul Locket
 1 Simic Locket
+1 Unstable Obelisk
+1 Prophetic Prism
 1 Magnifying Glass
 1 Letter of Acceptance
 1 Fountainport Bell
-1 Delighted Halfling
+1 They Went This Way
+1 Sticky Fingers
+1 Ticket Tortoise
 
 // Card Draw
 1 Inspired Sphinx
@@ -30,26 +23,33 @@
 1 Hotshot Investigators
 1 Sphinx of Enlightenment
 1 Migrating Ketradon
+1 Expedition Diviner
 1 Kraum, Violent Cacophony
-1 Wretched Gryff
-1 Cultivator Colossus
 
 // Removal & Interaction
 1 Meteor Golem
 1 Aven Surveyor
+1 Firemind's Research
 1 Ravenous Sailback
-1 Tyrant of Kher Ridges
 1 Conclave Naturalists
 1 Dispersal Technician
 1 Spikeshell Harrier
-1 Essence Flux
+
+// Landfall Payoffs
+1 Scale the Heights
+1 Spitfire Lagac
+1 Dúnedain Rangers
+1 Canopy Baloth
+1 Skyclave Squid
+1 Akoum Hellhound
+1 Kazandu Nectarpot
 
 // Wincon Threats
+1 Wretched Gryff
 1 Macetail Hystrodon
-1 Excavating Anurid
-1 Falkenrath Celebrants
+1 Tyrant of Kher Ridges
+1 Undercover Crocodelf
 1 Krosan Tusker
-1 Saruman the White
 
 // Tierras No-Básicas
 1 Exotic Orchard

@@ -1,67 +1,62 @@
 // Commander
 1 Teneb, the Harvester
 
-// Reanimation Spells
+// Ramp
+1 Insidious Fungus
+1 Blood Funnel
+1 Orzhov Locket
+1 Unstable Obelisk
+1 Prophetic Prism
+1 Magnifying Glass
+1 Letter of Acceptance
+1 Fountainport Bell
+
+// Card Draw
+1 Izoni, Thousand-Eyed
+1 Migrating Ketradon
+1 Persuasive Interrogators
+1 Blade Juggler
+1 Escarpment Fortress
+1 Sister Repentia
+
+// Removal & Interaction
+1 Meteor Golem
+1 Driftgloom Coyote
+1 Fear of Abduction
 1 Chthonian Nightmare
-1 Simian Simulacrum
-1 Builder's Talent
+1 Ethereal Absolution
+1 Ravenous Sailback
+
+// Reanimation Spells
 1 Scrapwork Cohort
+1 Builder's Talent
+1 Simian Simulacrum
 1 Aftermath Analyst
 1 Grafted Butcher
+1 Late to Dinner
 1 Tocasia's Onulet
 1 Consumed by Greed
-1 What Must Be Done
 1 Primevals' Glorious Rebirth
 
 // Enablers (discard / mill)
-1 Migrating Ketradon
-1 Moldgraf Millipede
-1 Eyeblight Cullers
 1 Gloomfang Mauler
 1 Lasyd Prowler
+1 Crypt Lurker
 1 Krosan Tusker
-1 Thornado
-1 Airship Crash
+1 Moldgraf Millipede
+1 Eyeblight Cullers
+1 Rank Officer
 
 // Reanimator Targets (criaturas 6+)
-1 Meteor Golem
-1 Izoni, Thousand-Eyed
 1 Aatchik, Emerald Radian
-1 Fear of Abduction
-1 Persuasive Interrogators
+1 Su-Chi Cave Guard
+1 It of the Horrid Swarm
 1 Debtors' Transport
 1 Watchful Giant
+1 Soul of Migration
 1 Cultivator Colossus
-1 Nykthos Paragon
 1 Evangel of Heliod
-
-// Ramp
-1 Insidious Fungus
-1 Fountainport Bell
-1 Delighted Halfling
-1 Unstable Obelisk
-1 Prophetic Prism
-1 Arboreal Grazer
-1 Thirsting Roots
-1 Blood Funnel
-
-// Card Draw
-1 Escarpment Fortress
-1 Sister Repentia
-1 Excavating Anurid
-1 Filigree Familiar
-1 Blade Juggler
-1 Crypt Lurker
-1 Scale the Heights
-
-// Removal & Interaction
-1 Ethereal Absolution
-1 Driftgloom Coyote
-1 Ravenous Sailback
-1 Chain Assassination
-1 Conclave Naturalists
-1 Wear Down
-1 Citizen's Crowbar
+1 Autarch Mammoth
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -78,6 +73,6 @@
 1 Branch of Vitu-Ghazi
 
 // Basic Lands
-13 Swamp
-12 Forest
-12 Plains
+14 Swamp
+14 Forest
+14 Plains
