@@ -44,6 +44,13 @@ import json
 import sys
 from pathlib import Path
 
+# Cargar variables de entorno desde .env si existe
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent / ".env")
+except ImportError:
+    pass  # python-dotenv no instalado, usar variables del sistema
+
 # Hack para permitir import relativo desde cualquier ubicación
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -360,6 +367,8 @@ def main():
     pb.add_argument("--output-dir", default="./decks_output")
     pb.add_argument("--no-edhrec", action="store_true",
                     help="Desactiva la integración con EDHREC (más rápido, scoring local)")
+    pb.add_argument("--no-critic", action="store_true",
+                    help="Desactiva la revisión LLM del mazo")
 
     # multi
     pm = sub.add_parser("multi", help="Construye varios mazos en un único HTML")
@@ -370,6 +379,8 @@ def main():
     pm.add_argument("--output-dir", default="./decks_output")
     pm.add_argument("--no-edhrec", action="store_true",
                     help="Desactiva la integración con EDHREC")
+    pm.add_argument("--no-critic", action="store_true",
+                    help="Desactiva la revisión LLM del mazo")
 
     # decks
     pd = sub.add_parser("decks", help="Lista los mazos guardados")
