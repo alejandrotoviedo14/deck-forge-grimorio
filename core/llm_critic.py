@@ -59,7 +59,67 @@ def _save_cache(key: str, data: dict) -> None:
     (CACHE_DIR / f"{key}.json").write_text(json.dumps(data, indent=2))
 
 
-class LLMCritic:
+    def generate_gameplay_guide(self, deck: "BuiltDeck") -> str:
+        """
+        Genera una guía de juego para el mazo usando Claude Haiku.
+        Devuelve HTML listo para insertar en el grimorio.
+        """
+        commander_name = deck.commander["name"]
+        cache_key = "guide_" + _cache_key(commander_name, [deck.archetype.key])
+        cached = _load_cache(cache_key)
+        if cached:
+            if self.verbose:
+                print(f"  [GUIDE] Cache hit para '{commander_name}'")
+            return cached.get("html", "")
+
+        if self.verbose:
+            print(f"  [GUIDE] Generando guía para '{commander_name}'...")
+
+        # Construir lista de cartas relevantes
+        cards_by_cat = deck.categorized()
+        key_cards = []
+        for cat, cards in cards_by_cat.items():
+            if cat in ("Tierras No-Básicas",):
+                continue
+            for dc in cards[:3]:
+                key_cards.append(f"{dc.card['name']} ({cat})")
+
+        prompt = f"""You are an expert Magic: The Gathering Commander player writing a deck guide.
+
+COMMANDER: {commander_name}
+ARCHETYPE: {deck.archetype.name}
+COLORS: {deck.colors}
+PLAN: {deck.archetype.description}
+WIN CONDITIONS: {', '.join(deck.archetype.auto_includes[:5]) if deck.archetype.auto_includes else 'See key cards'}
+
+KEY CARDS IN THIS DECK:
+{chr(10).join(key_cards[:20])}
+
+Write a concise gameplay guide in SPANISH with these sections:
+1. **Plan del mazo** (2-3 sentences: what does this deck want to do?)
+2. **Cómo ganar** (2-3 sentences: main win conditions)
+3. **Mulligan** (1-2 sentences: what to keep in opening hand)
+4. **Curva de juego** (turns 1-4 ideal sequence, 2-3 sentences)
+5. **Sinergias clave** (2-3 specific card interactions from this deck)
+
+Keep it practical and specific to THIS deck. Use simple Spanish. No markdown headers, use HTML <h4> and <p> tags.
+Respond ONLY with HTML, no other text."""
+
+        response = self._call_claude(prompt)
+        if not response:
+            return ""
+
+        # Clean potential markdown
+        html = response.strip()
+        if html.startswith("```"):
+            parts = html.split("```")
+            html = parts[1] if len(parts) > 1 else html
+            if html.startswith("html"):
+                html = html[4:]
+        html = html.strip()
+
+        _save_cache(cache_key, {"html": html})
+        return html
     """
     Usa Claude Haiku para revisar un mazo y proponer mejoras concretas.
     

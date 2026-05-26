@@ -74,6 +74,7 @@ class BuiltDeck:
     colors: str
     cards: list[DeckCard] = field(default_factory=list)
     needed_basics: int = 0
+    gameplay_guide: str = ""  # HTML generado por LLM Critic
 
     @property
     def card_count(self) -> int:
@@ -492,6 +493,11 @@ def build_deck(
 
                 critic = LLMCritic(api_key=api_key, verbose=True)
                 deck = critic.review_and_improve(deck, in_identity, edhrec_recs)
+
+                # Generar guía de juego
+                guide_html = critic.generate_gameplay_guide(deck)
+                if guide_html:
+                    deck.gameplay_guide = guide_html
         except Exception as e:
             print(f"  [CRITIC] Saltando revisión: {e}")
 

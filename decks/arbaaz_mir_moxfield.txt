@@ -9,11 +9,11 @@
 1 Impulsive Pilferer
 1 Sticky Fingers
 1 Mox Jasper
-1 Fists of Flame
-1 Ornithopter
-1 Shock
-1 Rising of the Day
-1 Universal Automaton
+1 Glittering Stockpile
+1 Voyager Quickwelder
+1 Fountainport Bell
+1 Breeches, Eager Pillager
+1 Traveler's Amulet
 
 // Removal & Interaction
 1 Abrade
@@ -66,9 +66,9 @@
 // Wincons & Amenazas
 1 Alexios, Deimos of Kosmos
 1 Layla Hassan
-1 Flowering of the White Tree
-1 Unleash Fury
-1 Blacksmith's Skill
+1 Steel Hellkite
+1 Meteor Golem
+1 Surtr, Fiery Jötun
 
 // Tierras No-Básicas
 1 Exotic Orchard

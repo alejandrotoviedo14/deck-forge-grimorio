@@ -196,6 +196,7 @@ def _build_deck_data_json(deck: BuiltDeck, bracket: BracketReport) -> dict:
         "card_count": deck.card_count + deck.needed_basics,
         "needed_basics": deck.needed_basics,
         "categories": categories,
+        "gameplay_guide": getattr(deck, "gameplay_guide", ""),
     }
 
 
@@ -627,9 +628,10 @@ body {{
 .view-controls {{
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -639,6 +641,7 @@ body {{
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }}
 .view-toggle {{
   display: flex;
@@ -646,23 +649,28 @@ body {{
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid var(--border);
+  flex-shrink: 0;
 }}
 .view-toggle button {{
   background: transparent;
   color: var(--text2);
   border: none;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
   cursor: pointer;
   font-family: inherit;
   transition: background 0.2s, color 0.2s;
+  min-width: 60px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }}
 .view-toggle button.active {{
   background: var(--accent2);
   color: var(--bg);
   font-weight: 600;
 }}
-.view-toggle button:hover:not(.active) {{
+.view-toggle button:hover:not(.active),
+.view-toggle button:active:not(.active) {{
   background: var(--border);
   color: var(--text);
 }}
@@ -671,12 +679,25 @@ body {{
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 8px 10px;
+  font-size: 13px;
   font-family: inherit;
   cursor: pointer;
+  flex: 1;
+  min-width: 120px;
+  -webkit-appearance: none;
+  appearance: none;
 }}
 .sort-select:focus {{ outline: none; border-color: var(--accent2); }}
+@media (max-width: 768px) {{
+  .view-controls {{
+    gap: 6px;
+    padding: 8px 10px;
+  }}
+  .view-controls-label {{ display: none; }}
+  .view-toggle button {{ padding: 10px 16px; font-size: 14px; }}
+  .sort-select {{ font-size: 14px; padding: 10px 8px; }}
+}}
 
 /* LIST VIEW */
 .card-list {{
@@ -740,6 +761,36 @@ body {{
   .card-list-row {{ grid-template-columns: 30px 1fr 40px; gap: 8px; padding: 6px 10px; }}
   .card-list-type, .card-list-roles {{ display: none; }}
 }}
+
+/* GAMEPLAY GUIDE */
+.gameplay-guide {{
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  line-height: 1.7;
+}}
+.gameplay-guide h4 {{
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent2);
+  margin: 16px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}}
+.gameplay-guide h4:first-child {{ margin-top: 0; }}
+.gameplay-guide p {{
+  font-size: 13px;
+  color: var(--text2);
+  margin: 0 0 8px;
+}}
+@media (max-width: 768px) {{
+  .gameplay-guide {{ padding: 14px 16px; }}
+  .gameplay-guide p {{ font-size: 14px; }}
+}}
+
 .card-name {{
   font-size: 11px;
   color: var(--text2);
@@ -1095,8 +1146,9 @@ function sortCards(cards, mode) {{
 
 function setView(btn, view) {{
   currentView = view;
-  // Update toggle buttons
-  btn.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+  // Update toggle buttons in this panel
+  const toggle = btn.closest('.view-toggle') || btn.parentElement;
+  toggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
   // Apply list-mode class to all category sections in the active panel
   const panel = btn.closest('.deck-panel');
   if (panel) {{
@@ -1106,8 +1158,10 @@ function setView(btn, view) {{
   }}
 }}
 
-function setSort(mode) {{
+function setSort(selectEl) {{
+  const mode = selectEl.value;
   currentSort = mode;
+  currentView = 'grid'; // reset view on sort change
   // Re-render all panels to apply new sort
   const activePanel = document.querySelector('.deck-panel.active');
   const activeKey = activePanel ? activePanel.id.replace('panel-', '') : null;
@@ -1244,6 +1298,14 @@ function renderDeckPanel(key, deck) {{
         </div>
       </div>
 
+      ${{deck.gameplay_guide ? `
+      <div class="section">
+        <div class="section-title">Cómo jugar este mazo</div>
+        <div class="gameplay-guide">
+          ${{deck.gameplay_guide}}
+        </div>
+      </div>` : ''}}
+
       <div class="section">
         <div class="section-title">Bracket estimado · ${{deck.bracket}} (${{deck.bracket_label}})</div>
         <div class="bracket-detail">
@@ -1282,13 +1344,13 @@ function renderDeckPanel(key, deck) {{
             <button data-view="list" onclick="setView(this, 'list')">Lista</button>
           </div>
           <span class="view-controls-label" style="margin-left:auto">Ordenar por:</span>
-          <select class="sort-select" onchange="setSort(this.value)">
+          <select class="sort-select" onchange="setSort(this)">
             <option value="default">Por defecto</option>
-            <option value="name">Alfabético</option>
-            <option value="cmc">CMC (asc)</option>
-            <option value="cmc_desc">CMC (desc)</option>
+            <option value="name">Nombre A-Z</option>
+            <option value="cmc">CMC (menor)</option>
+            <option value="cmc_desc">CMC (mayor)</option>
             <option value="type">Tipo</option>
-            <option value="rank">Popularidad EDHREC</option>
+            <option value="rank">Popularidad</option>
           </select>
         </div>
         ${{categoriesHtml}}
