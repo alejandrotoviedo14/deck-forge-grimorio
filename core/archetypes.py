@@ -159,10 +159,21 @@ EQUIPMENT = Archetype(
                           "vigilance", "haste", "lifelink", "deathtouch")
              ),
              score_rank, "Beater", "Cuerpo con sinergia para equipar."),
-        Slot("Wincons & Amenazas", 4,
-             lambda c: (cls.is_threat(c) or
-                        (c.get("is_creature") and (c.get("edhrec_rank") or 999999) <= 3000 and cmc(c) >= 4))
-             and c.get("edhrec_rank") is not None,
+        Slot("Wincons & Amenazas", 5,
+             lambda c: c.get("is_creature")
+             and c.get("edhrec_rank") is not None
+             and cmc(c) >= 4
+             and (
+                 # Alta sinergia EDHREC con este comandante específico
+                 c.get("edhrec_score", 0) >= 0.4
+                 # O criatura con evasión o sinergia combat relevante
+                 or has_text(c, "flying", "trample", "menace", "double strike",
+                             "first strike", "unblockable", "can't be blocked",
+                             "deals combat damage", "whenever this creature attacks",
+                             "whenever equipped", "equipment", "artifact")
+                 # O rank muy alto (top 1500 = jugada en muchos mazos RW)
+                 or (c.get("edhrec_rank") or 999999) <= 1500
+             ),
              score_rank, "Wincon", "Amenaza que cierra partidas."),
     ],
 )

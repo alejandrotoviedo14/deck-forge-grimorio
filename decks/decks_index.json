@@ -6,7 +6,7 @@
       "colors": "RW",
       "bracket": 1,
       "bracket_score": 1.2,
-      "built_at": "2026-05-26 17:19:30",
+      "built_at": "2026-05-26 17:31:32",
       "commander_card": {
         "name": "Arbaaz Mir",
         "scryfall_id": "c7187506-4af3-47e9-bad0-4ce8c78ccc10",
@@ -2144,51 +2144,13 @@
           "edhrec_score": 0.3
         },
         {
-          "name": "Lupine Prototype",
-          "scryfall_id": "ae02ff5c-c667-4cb6-8bf4-8532d82c4fbf",
-          "oracle_id": "303f91ae-1acb-4250-a4a5-71207c228dcc",
-          "mana_cost": "{2}",
-          "cmc": 2.0,
-          "type_line": "Artifact Creature — Wolf Construct",
-          "oracle_text": "This creature can't attack or block unless a player has no cards in hand.",
-          "power": "5",
-          "toughness": "5",
-          "loyalty": null,
-          "colors": [],
-          "color_identity": [],
-          "keywords": [],
-          "produced_mana": [],
-          "rarity": "uncommon",
-          "set": "inr",
-          "set_name": "Innistrad Remastered",
-          "legalities": {
-            "commander": "legal",
-            "vintage": "legal"
-          },
-          "edhrec_rank": 8878,
-          "prices": {
-            "eur": "0.09",
-            "usd": "0.21"
-          },
-          "is_legendary": false,
-          "is_creature": true,
-          "is_land": false,
-          "can_be_commander": false,
-          "quantity": 3,
-          "source": "real",
-          "foil": "normal",
-          "condition": "near_mint",
-          "language": "en",
-          "edhrec_score": 0.3
-        },
-        {
-          "name": "Temple Altisaur",
-          "scryfall_id": "83c1ba83-c394-4ff1-b2ba-56907403162a",
-          "oracle_id": "1f499d39-b963-45c0-9604-d3cab98c9e05",
-          "mana_cost": "{4}{W}",
-          "cmc": 5.0,
-          "type_line": "Creature — Dinosaur",
-          "oracle_text": "If a source would deal damage to another Dinosaur you control, prevent all but 1 of that damage.",
+          "name": "Layla Hassan",
+          "scryfall_id": "2278d97e-791a-4843-a385-65bac79bde7a",
+          "oracle_id": "e27feb69-3120-4e8d-8ee6-0f87b58e2ae3",
+          "mana_cost": "{3}{W}",
+          "cmc": 4.0,
+          "type_line": "Legendary Creature — Human Assassin",
+          "oracle_text": "First strike\nWhen Layla Hassan enters and whenever one or more Assassins you control deal combat damage to a player, return target historic card from your graveyard to your hand.",
           "power": "3",
           "toughness": "4",
           "loyalty": null,
@@ -2198,24 +2160,26 @@
           "color_identity": [
             "W"
           ],
-          "keywords": [],
+          "keywords": [
+            "First strike"
+          ],
           "produced_mana": [],
           "rarity": "rare",
-          "set": "lcc",
-          "set_name": "The Lost Caverns of Ixalan Commander",
+          "set": "acr",
+          "set_name": "Assassin's Creed",
           "legalities": {
             "commander": "legal",
             "vintage": "legal"
           },
-          "edhrec_rank": 2959,
+          "edhrec_rank": 5921,
           "prices": {
-            "eur": "0.65",
-            "usd": "0.36"
+            "eur": "0.30",
+            "usd": "0.33"
           },
-          "is_legendary": false,
+          "is_legendary": true,
           "is_creature": true,
           "is_land": false,
-          "can_be_commander": false,
+          "can_be_commander": true,
           "quantity": 1,
           "source": "real",
           "foil": "normal",
@@ -2256,6 +2220,88 @@
           "is_creature": true,
           "is_land": false,
           "can_be_commander": false,
+          "quantity": 1,
+          "source": "real",
+          "foil": "normal",
+          "condition": "near_mint",
+          "language": "en",
+          "edhrec_score": 0.3
+        },
+        {
+          "name": "Meteor Golem",
+          "scryfall_id": "d291ea1e-36bc-46b3-b3ae-084fa0ba69eb",
+          "oracle_id": "d9f11aa1-9219-42a8-85a9-a8f204160706",
+          "mana_cost": "{7}",
+          "cmc": 7.0,
+          "type_line": "Artifact Creature — Golem",
+          "oracle_text": "When this creature enters, destroy target nonland permanent an opponent controls.",
+          "power": "3",
+          "toughness": "3",
+          "loyalty": null,
+          "colors": [],
+          "color_identity": [],
+          "keywords": [],
+          "produced_mana": [],
+          "rarity": "uncommon",
+          "set": "fdn",
+          "set_name": "Foundations",
+          "legalities": {
+            "commander": "legal",
+            "vintage": "legal"
+          },
+          "edhrec_rank": 755,
+          "prices": {
+            "eur": "0.10",
+            "usd": "0.36"
+          },
+          "is_legendary": false,
+          "is_creature": true,
+          "is_land": false,
+          "can_be_commander": false,
+          "quantity": 1,
+          "source": "real",
+          "foil": "normal",
+          "condition": "near_mint",
+          "language": "en",
+          "edhrec_score": 0.3
+        },
+        {
+          "name": "Surtr, Fiery Jötun",
+          "scryfall_id": "be38985c-f7a9-4885-9035-09390b4b754a",
+          "oracle_id": "424084cf-418f-47b4-915f-b254c8adb3bd",
+          "mana_cost": "{3}{R}{R}",
+          "cmc": 5.0,
+          "type_line": "Legendary Creature — Giant God Warrior",
+          "oracle_text": "Trample (This creature can deal excess combat damage to the player it's attacking.)\nWhenever you cast a historic spell, Surtr deals 3 damage to any target. (Artifacts, legendaries, and Sagas are historic.)",
+          "power": "5",
+          "toughness": "5",
+          "loyalty": null,
+          "colors": [
+            "R"
+          ],
+          "color_identity": [
+            "R"
+          ],
+          "keywords": [
+            "Trample"
+          ],
+          "produced_mana": [],
+          "rarity": "rare",
+          "set": "acr",
+          "set_name": "Assassin's Creed",
+          "legalities": {
+            "commander": "legal",
+            "vintage": "legal"
+          },
+          "edhrec_rank": 7138,
+          "prices": {
+            "eur": "4.61",
+            "usd": "11.99"
+          },
+          "is_legendary": true,
+          "is_creature": true,
+          "is_land": false,
+          "can_be_commander": true,
           "quantity": 1,
           "source": "real",
           "foil": "normal",
@@ -2798,7 +2844,7 @@
           "language": "en"
         }
       ],
-      "needed_basics": 35
+      "needed_basics": 34
     },
     "eivor__battle_ready": {
       "commander": "Eivor, Battle-Ready",
@@ -2806,7 +2852,7 @@
       "colors": "RW",
       "bracket": 1,
       "bracket_score": 1.2,
-      "built_at": "2026-05-26 17:19:31",
+      "built_at": "2026-05-26 17:31:32",
       "commander_card": {
         "name": "Eivor, Battle-Ready",
         "scryfall_id": "4242961d-87e8-4dd2-bdea-5d765a5cf136",
@@ -4955,51 +5001,13 @@
           "edhrec_score": 0.3
         },
         {
-          "name": "Lupine Prototype",
-          "scryfall_id": "ae02ff5c-c667-4cb6-8bf4-8532d82c4fbf",
-          "oracle_id": "303f91ae-1acb-4250-a4a5-71207c228dcc",
-          "mana_cost": "{2}",
-          "cmc": 2.0,
-          "type_line": "Artifact Creature — Wolf Construct",
-          "oracle_text": "This creature can't attack or block unless a player has no cards in hand.",
-          "power": "5",
-          "toughness": "5",
-          "loyalty": null,
-          "colors": [],
-          "color_identity": [],
-          "keywords": [],
-          "produced_mana": [],
-          "rarity": "uncommon",
-          "set": "inr",
-          "set_name": "Innistrad Remastered",
-          "legalities": {
-            "commander": "legal",
-            "vintage": "legal"
-          },
-          "edhrec_rank": 8878,
-          "prices": {
-            "eur": "0.09",
-            "usd": "0.21"
-          },
-          "is_legendary": false,
-          "is_creature": true,
-          "is_land": false,
-          "can_be_commander": false,
-          "quantity": 3,
-          "source": "real",
-          "foil": "normal",
-          "condition": "near_mint",
-          "language": "en",
-          "edhrec_score": 0.3
-        },
-        {
-          "name": "Temple Altisaur",
-          "scryfall_id": "83c1ba83-c394-4ff1-b2ba-56907403162a",
-          "oracle_id": "1f499d39-b963-45c0-9604-d3cab98c9e05",
-          "mana_cost": "{4}{W}",
-          "cmc": 5.0,
-          "type_line": "Creature — Dinosaur",
-          "oracle_text": "If a source would deal damage to another Dinosaur you control, prevent all but 1 of that damage.",
+          "name": "Layla Hassan",
+          "scryfall_id": "2278d97e-791a-4843-a385-65bac79bde7a",
+          "oracle_id": "e27feb69-3120-4e8d-8ee6-0f87b58e2ae3",
+          "mana_cost": "{3}{W}",
+          "cmc": 4.0,
+          "type_line": "Legendary Creature — Human Assassin",
+          "oracle_text": "First strike\nWhen Layla Hassan enters and whenever one or more Assassins you control deal combat damage to a player, return target historic card from your graveyard to your hand.",
           "power": "3",
           "toughness": "4",
           "loyalty": null,
@@ -5009,24 +5017,26 @@
           "color_identity": [
             "W"
           ],
-          "keywords": [],
+          "keywords": [
+            "First strike"
+          ],
           "produced_mana": [],
           "rarity": "rare",
-          "set": "lcc",
-          "set_name": "The Lost Caverns of Ixalan Commander",
+          "set": "acr",
+          "set_name": "Assassin's Creed",
           "legalities": {
             "commander": "legal",
             "vintage": "legal"
           },
-          "edhrec_rank": 2959,
+          "edhrec_rank": 5921,
           "prices": {
-            "eur": "0.65",
-            "usd": "0.36"
+            "eur": "0.30",
+            "usd": "0.33"
           },
-          "is_legendary": false,
+          "is_legendary": true,
           "is_creature": true,
           "is_land": false,
-          "can_be_commander": false,
+          "can_be_commander": true,
           "quantity": 1,
           "source": "real",
           "foil": "normal",
@@ -5067,6 +5077,88 @@
           "is_creature": true,
           "is_land": false,
           "can_be_commander": false,
+          "quantity": 1,
+          "source": "real",
+          "foil": "normal",
+          "condition": "near_mint",
+          "language": "en",
+          "edhrec_score": 0.3
+        },
+        {
+          "name": "Meteor Golem",
+          "scryfall_id": "d291ea1e-36bc-46b3-b3ae-084fa0ba69eb",
+          "oracle_id": "d9f11aa1-9219-42a8-85a9-a8f204160706",
+          "mana_cost": "{7}",
+          "cmc": 7.0,
+          "type_line": "Artifact Creature — Golem",
+          "oracle_text": "When this creature enters, destroy target nonland permanent an opponent controls.",
+          "power": "3",
+          "toughness": "3",
+          "loyalty": null,
+          "colors": [],
+          "color_identity": [],
+          "keywords": [],
+          "produced_mana": [],
+          "rarity": "uncommon",
+          "set": "fdn",
+          "set_name": "Foundations",
+          "legalities": {
+            "commander": "legal",
+            "vintage": "legal"
+          },
+          "edhrec_rank": 755,
+          "prices": {
+            "eur": "0.10",
+            "usd": "0.36"
+          },
+          "is_legendary": false,
+          "is_creature": true,
+          "is_land": false,
+          "can_be_commander": false,
+          "quantity": 1,
+          "source": "real",
+          "foil": "normal",
+          "condition": "near_mint",
+          "language": "en",
+          "edhrec_score": 0.3
+        },
+        {
+          "name": "Surtr, Fiery Jötun",
+          "scryfall_id": "be38985c-f7a9-4885-9035-09390b4b754a",
+          "oracle_id": "424084cf-418f-47b4-915f-b254c8adb3bd",
+          "mana_cost": "{3}{R}{R}",
+          "cmc": 5.0,
+          "type_line": "Legendary Creature — Giant God Warrior",
+          "oracle_text": "Trample (This creature can deal excess combat damage to the player it's attacking.)\nWhenever you cast a historic spell, Surtr deals 3 damage to any target. (Artifacts, legendaries, and Sagas are historic.)",
+          "power": "5",
+          "toughness": "5",
+          "loyalty": null,
+          "colors": [
+            "R"
+          ],
+          "color_identity": [
+            "R"
+          ],
+          "keywords": [
+            "Trample"
+          ],
+          "produced_mana": [],
+          "rarity": "rare",
+          "set": "acr",
+          "set_name": "Assassin's Creed",
+          "legalities": {
+            "commander": "legal",
+            "vintage": "legal"
+          },
+          "edhrec_rank": 7138,
+          "prices": {
+            "eur": "4.61",
+            "usd": "11.99"
+          },
+          "is_legendary": true,
+          "is_creature": true,
+          "is_land": false,
+          "can_be_commander": true,
           "quantity": 1,
           "source": "real",
           "foil": "normal",
@@ -5609,7 +5701,7 @@
           "language": "en"
         }
       ],
-      "needed_basics": 35
+      "needed_basics": 34
     },
     "emmara__soul_of_the_accord": {
       "commander": "Emmara, Soul of the Accord",
@@ -5617,7 +5709,7 @@
       "colors": "GW",
       "bracket": 1,
       "bracket_score": 1.2,
-      "built_at": "2026-05-26 17:19:31",
+      "built_at": "2026-05-26 17:31:32",
       "commander_card": {
         "name": "Emmara, Soul of the Accord",
         "scryfall_id": "e8510a1e-62ca-462c-b036-d1312729f27d",
@@ -8103,7 +8195,7 @@
       "colors": "GRU",
       "bracket": 1,
       "bracket_score": 1.0,
-      "built_at": "2026-05-26 17:19:31",
+      "built_at": "2026-05-26 17:31:32",
       "commander_card": {
         "name": "Flubs, the Fool",
         "scryfall_id": "41e58eb8-e5b9-4ef6-be1f-00e28cebb998",
@@ -10448,7 +10540,7 @@
       "colors": "BG",
       "bracket": 1,
       "bracket_score": 1.2,
-      "built_at": "2026-05-26 17:19:31",
+      "built_at": "2026-05-26 17:31:32",
       "commander_card": {
         "name": "Izoni, Thousand-Eyed",
         "scryfall_id": "95a3dfe3-88ab-4820-ae5e-2f5edd4d6f2f",
@@ -13093,7 +13185,7 @@
       "colors": "BRW",
       "bracket": 1,
       "bracket_score": 1.2,
-      "built_at": "2026-05-26 17:19:31",
+      "built_at": "2026-05-26 17:31:32",
       "commander_card": {
         "name": "Neriv, Crackling Vanguard",
         "scryfall_id": "ac552ea3-f521-4c42-a846-21a73364e0ca",
@@ -15733,7 +15825,7 @@
       "colors": "BGW",
       "bracket": 1,
       "bracket_score": 1.2,
-      "built_at": "2026-05-26 17:19:31",
+      "built_at": "2026-05-26 17:31:32",
       "commander_card": {
         "name": "Teneb, the Harvester",
         "scryfall_id": "f3c1b26c-97f0-4e7e-8744-8497a83a11ab",
@@ -18276,7 +18368,7 @@
       "colors": "RU",
       "bracket": 1,
       "bracket_score": 1.2,
-      "built_at": "2026-05-26 17:19:31",
+      "built_at": "2026-05-26 17:31:32",
       "commander_card": {
         "name": "The Twelfth Doctor",
         "scryfall_id": "2400d681-05ef-43b1-b720-c15ca4226c27",
@@ -20846,7 +20938,7 @@
       "colors": "GU",
       "bracket": 1,
       "bracket_score": 1.0,
-      "built_at": "2026-05-26 17:19:31",
+      "built_at": "2026-05-26 17:31:32",
       "commander_card": {
         "name": "Vorel of the Hull Clade",
         "scryfall_id": "82c8cac8-29ce-43cc-bdb4-428c614d8545",

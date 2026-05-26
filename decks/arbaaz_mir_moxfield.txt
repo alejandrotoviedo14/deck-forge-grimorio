@@ -65,9 +65,10 @@
 
 // Wincons & Amenazas
 1 Alexios, Deimos of Kosmos
-1 Lupine Prototype
-1 Temple Altisaur
+1 Layla Hassan
 1 Steel Hellkite
+1 Meteor Golem
+1 Surtr, Fiery Jötun
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -84,5 +85,5 @@
 1 Public Thoroughfare
 
 // Basic Lands
-18 Mountain
+17 Mountain
 17 Plains
