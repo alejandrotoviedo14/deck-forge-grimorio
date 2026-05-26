@@ -146,14 +146,24 @@ EQUIPMENT = Archetype(
                                 "for each equipment", "attaches to",
                                 "whenever equipped creature", "equip") and not cls.is_equipment(c),
              score_rank, "Equip Care", "Premia tener muchos equipment en juego."),
-        # Criaturas con sinergia real: utilidad + bajo coste
-        Slot("Soporte & Cuerpos", 7,
-             lambda c: c.get("is_creature") and cmc(c) <= 3 and (
+        # Criaturas con sinergia real: utilidad + bajo coste + rank conocido
+        Slot("Soporte & Cuerpos", 5,
+             lambda c: c.get("is_creature") and cmc(c) <= 3
+             and c.get("edhrec_rank") is not None
+             and c.get("edhrec_rank") <= 15000
+             and (
                  cls.is_draw(c) or cls.is_ramp(c) or cls.is_removal(c) or
-                 has_text(c, "equipment", "equipped", "artifact", "warrior", "soldier",
-                          "attack", "combat", "whenever", "enters")
+                 has_text(c, "equipment", "equipped", "artifact",
+                          "whenever this creature attacks", "whenever equipped",
+                          "when this creature enters", "first strike", "double strike",
+                          "vigilance", "haste", "lifelink", "deathtouch")
              ),
              score_rank, "Beater", "Cuerpo con sinergia para equipar."),
+        Slot("Wincons & Amenazas", 4,
+             lambda c: (cls.is_threat(c) or
+                        (c.get("is_creature") and (c.get("edhrec_rank") or 999999) <= 3000 and cmc(c) >= 4))
+             and c.get("edhrec_rank") is not None,
+             score_rank, "Wincon", "Amenaza que cierra partidas."),
     ],
 )
 

@@ -5,65 +5,69 @@
 1 Blackblade Reforged
 
 // Ramp
-1 Charming Scoundrel
-1 Fountainport Bell
-1 Prophetic Prism
-1 Unstable Obelisk
-1 Magnifying Glass
-1 Letter of Acceptance
-1 Sticky Fingers
+1 Patchwork Banner
 1 Impulsive Pilferer
-1 Kav Landseeker
+1 Sticky Fingers
+1 Mox Jasper
+1 Glittering Stockpile
+1 Voyager Quickwelder
+1 Fountainport Bell
+1 Breeches, Eager Pillager
+1 Traveler's Amulet
 
 // Removal & Interaction
-1 Meteor Golem
-1 Driftgloom Coyote
-1 Tyrant of Kher Ridges
-1 Fear of Abduction
-1 Rambunctious Mutt
-1 Wild Celebrants
-1 Citizen's Crowbar
-1 Lacerate Flesh
+1 Abrade
+1 Austere Command
+1 Wrath of God
+1 Cathar Commando
+1 Valorous Stance
+1 Starstorm
+1 Seal of Cleansing
+1 Banishing Light
 
 // Card Draw
-1 Filigree Familiar
-1 Hangar Scrounger
-1 Macetail Hystrodon
-1 Cloudspire Coordinator
-1 Escarpment Fortress
-1 Falkenrath Celebrants
-1 Survive the Night
+1 Faithless Looting
+1 Thrill of Possibility
+1 Demand Answers
+1 Spirited Companion
+1 Mentor of the Meek
+1 Cathartic Reunion
+1 Crash Through
 
 // Equipment
-1 Hidden Footblade
+1 Brotherhood Regalia
+1 Bloodthirsty Blade
+1 Prowler's Helm
+1 Haunted Cloak
+1 Hero's Heirloom
+1 Hidden Blade
+1 Cliffhaven Kitesail
+1 Psychic Paper
 1 Armory of Iroas
-1 Glimmerlight
-1 Harvest Hand // Scrounged Scythe
-1 Monk's Fist
-1 Headsplitter
-1 Ancestral Blade
-1 Auxiliary Boosters
-1 Short Sword
-1 Ninja's Kunai
-1 Vanquisher's Axe
-1 Thinking Cap
+1 Cloudsteel Kirin
+1 Hookblade
+1 Hidden Footblade
 
 // Equipment Synergy
-1 Ambitious Assault
-1 Settlement Blacksmith
-1 Kassandra, Eagle Bearer
-1 Feat of Resistance
+1 Goro-Goro, Disciple of Ryusei
 1 Bureau Headmaster
-1 Turn to Slag
+1 Blacksmith's Talent
+1 Benevolent Blessing
+1 Battlefield Improvisation
+1 Kassandra, Eagle Bearer
 
 // Soporte & Cuerpos
-1 Skyscanner
-1 Ticket Tortoise
-1 Farsight Adept
-1 Fissure Wizard
-1 Burning-Tree Vandal
-1 Errand-Rider of Gondor
-1 Dawnbringer Cleric
+1 Voice of Victory
+1 Humble Defector
+1 Skyclave Apparition
+1 Rosie Cotton of South Lane
+1 Goblin Matron
+
+// Wincons & Amenazas
+1 Alexios, Deimos of Kosmos
+1 Lupine Prototype
+1 Temple Altisaur
+1 Steel Hellkite
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -80,5 +84,5 @@
 1 Public Thoroughfare
 
 // Basic Lands
-19 Mountain
-18 Plains
+18 Mountain
+17 Plains

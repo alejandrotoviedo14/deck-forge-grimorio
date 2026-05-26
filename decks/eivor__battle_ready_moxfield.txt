@@ -5,65 +5,69 @@
 1 Blackblade Reforged
 
 // Ramp
-1 Charming Scoundrel
-1 Unstable Obelisk
-1 Magnifying Glass
-1 Letter of Acceptance
-1 Fountainport Bell
+1 Patchwork Banner
 1 Bureau Headmaster
-1 Sticky Fingers
-1 Prophetic Prism
 1 Impulsive Pilferer
+1 Sticky Fingers
+1 Mox Jasper
+1 Glittering Stockpile
+1 Breeches, Eager Pillager
+1 Traveler's Amulet
+1 Voyager Quickwelder
 
 // Removal & Interaction
-1 Meteor Golem
-1 Driftgloom Coyote
-1 Tyrant of Kher Ridges
-1 Fear of Abduction
-1 Rambunctious Mutt
-1 Wild Celebrants
-1 Lacerate Flesh
-1 Citizen's Crowbar
+1 Abrade
+1 Wrath of God
+1 Cathar Commando
+1 Austere Command
+1 Valorous Stance
+1 Starstorm
+1 Seal of Cleansing
+1 Banishing Light
 
 // Card Draw
-1 Filigree Familiar
-1 Escarpment Fortress
-1 Hangar Scrounger
-1 Macetail Hystrodon
-1 Settlement Blacksmith
-1 Falkenrath Celebrants
-1 Cloudspire Coordinator
+1 Faithless Looting
+1 Thrill of Possibility
+1 Demand Answers
+1 Cathartic Reunion
+1 Spirited Companion
+1 Mentor of the Meek
+1 Crash Through
 
 // Equipment
-1 Headsplitter
-1 Hidden Footblade
 1 Brotherhood Regalia
-1 Raven Clan War-Axe
-1 Armory of Iroas
-1 Glimmerlight
-1 Harvest Hand // Scrounged Scythe
-1 Monk's Fist
-1 Hookblade
+1 Bloodthirsty Blade
 1 Hidden Blade
-1 Demonmail Hauberk
-1 Conductive Machete
+1 Prowler's Helm
+1 Haunted Cloak
+1 Hero's Heirloom
+1 Cloudsteel Kirin
+1 Cliffhaven Kitesail
+1 Hookblade
+1 Psychic Paper
+1 Armory of Iroas
+1 Hidden Footblade
 
 // Equipment Synergy
-1 Kassandra, Eagle Bearer
-1 Ambitious Assault
-1 Battlefield Improvisation
-1 Feat of Resistance
 1 Blacksmith's Talent
-1 Turn to Slag
+1 Goro-Goro, Disciple of Ryusei
+1 Battlefield Improvisation
+1 Benevolent Blessing
+1 Kassandra, Eagle Bearer
+1 Champion of the Flame
 
 // Soporte & Cuerpos
-1 Skyscanner
-1 Ticket Tortoise
-1 Farsight Adept
-1 Fissure Wizard
-1 Burning-Tree Vandal
-1 Errand-Rider of Gondor
-1 Dawnbringer Cleric
+1 Voice of Victory
+1 Arbaaz Mir
+1 Humble Defector
+1 Skyclave Apparition
+1 Rosie Cotton of South Lane
+
+// Wincons & Amenazas
+1 Alexios, Deimos of Kosmos
+1 Lupine Prototype
+1 Temple Altisaur
+1 Steel Hellkite
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -80,5 +84,5 @@
 1 Public Thoroughfare
 
 // Basic Lands
-19 Mountain
-18 Plains
+18 Mountain
+17 Plains

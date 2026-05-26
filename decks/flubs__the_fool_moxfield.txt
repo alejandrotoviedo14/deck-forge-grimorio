@@ -2,54 +2,54 @@
 1 Flubs, the Fool
 
 // Land Ramp (fetch extra lands)
-1 Charming Scoundrel
 1 Delighted Halfling
-1 Insidious Fungus
-1 Storm Skreelix
-1 Gruul Locket
-1 Simic Locket
-1 Unstable Obelisk
-1 Prophetic Prism
-1 Magnifying Glass
-1 Letter of Acceptance
-1 Fountainport Bell
-1 They Went This Way
+1 Elvish Mystic
+1 Patchwork Banner
+1 Goblin Electromancer
+1 Impulsive Pilferer
 1 Sticky Fingers
-1 Ticket Tortoise
+1 Insidious Fungus
+1 Farhaven Elf
+1 Thirsting Roots
+1 Arboreal Grazer
+1 Mox Jasper
+1 Emrakul's Messenger
+1 Glittering Stockpile
+1 Charming Scoundrel
 
 // Card Draw
-1 Inspired Sphinx
-1 The Swarmlord
-1 Hotshot Investigators
-1 Sphinx of Enlightenment
-1 Migrating Ketradon
-1 Expedition Diviner
-1 Kraum, Violent Cacophony
+1 Faithless Looting
+1 Thrill of Possibility
+1 Opt
+1 Demand Answers
+1 Cathartic Reunion
+1 Peregrin Took
+1 Tormenting Voice
 
 // Removal & Interaction
-1 Meteor Golem
-1 Aven Surveyor
-1 Firemind's Research
-1 Ravenous Sailback
-1 Conclave Naturalists
-1 Dispersal Technician
-1 Spikeshell Harrier
+1 Abrade
+1 Return to Nature
+1 Essence Flux
+1 Planar Incision
+1 Wear Down
+1 Starstorm
+1 Thrashing Brontodon
 
 // Landfall Payoffs
-1 Scale the Heights
 1 Spitfire Lagac
+1 Kazandu Nectarpot
+1 Scale the Heights
+1 Akoum Hellhound
+1 Skyclave Squid
 1 Dúnedain Rangers
 1 Canopy Baloth
-1 Skyclave Squid
-1 Akoum Hellhound
-1 Kazandu Nectarpot
 
 // Wincon Threats
-1 Wretched Gryff
-1 Macetail Hystrodon
-1 Tyrant of Kher Ridges
-1 Undercover Crocodelf
-1 Krosan Tusker
+1 Lupine Prototype
+1 Steel Hellkite
+1 Meteor Golem
+1 Zara, Renegade Recruiter
+1 Winged Hive Tyrant
 
 // Tierras No-Básicas
 1 Exotic Orchard

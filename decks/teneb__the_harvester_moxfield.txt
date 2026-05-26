@@ -2,61 +2,61 @@
 1 Teneb, the Harvester
 
 // Ramp
+1 Elvish Mystic
+1 Delighted Halfling
+1 Patchwork Banner
 1 Insidious Fungus
-1 Blood Funnel
-1 Orzhov Locket
-1 Unstable Obelisk
-1 Prophetic Prism
-1 Magnifying Glass
-1 Letter of Acceptance
-1 Fountainport Bell
+1 Farhaven Elf
+1 Thirsting Roots
+1 Arboreal Grazer
+1 Mox Jasper
 
 // Card Draw
-1 Izoni, Thousand-Eyed
-1 Migrating Ketradon
-1 Persuasive Interrogators
-1 Blade Juggler
-1 Escarpment Fortress
-1 Sister Repentia
+1 Village Rites
+1 Spirited Companion
+1 Call of the Ring
+1 Mentor of the Meek
+1 Peregrin Took
+1 Elvish Visionary
 
 // Removal & Interaction
-1 Meteor Golem
-1 Driftgloom Coyote
-1 Fear of Abduction
-1 Chthonian Nightmare
-1 Ethereal Absolution
-1 Ravenous Sailback
+1 Assassin's Trophy
+1 Return to Nature
+1 Murder
+1 Wrath of God
+1 Fracture
+1 Cathar Commando
 
 // Reanimation Spells
-1 Scrapwork Cohort
-1 Builder's Talent
-1 Simian Simulacrum
 1 Aftermath Analyst
+1 Oversold Cemetery
+1 Chthonian Nightmare
+1 Gryff's Boon
 1 Grafted Butcher
-1 Late to Dinner
-1 Tocasia's Onulet
 1 Consumed by Greed
-1 Primevals' Glorious Rebirth
+1 Builder's Talent
+1 Broodheart Engine
+1 Blood Beckoning
 
 // Enablers (discard / mill)
-1 Gloomfang Mauler
-1 Lasyd Prowler
-1 Crypt Lurker
-1 Krosan Tusker
-1 Moldgraf Millipede
-1 Eyeblight Cullers
-1 Rank Officer
+1 Satyr Wayfinder
+1 Grapple with the Past
+1 Hermit Druid
+1 Hedge Shredder
+1 Duress
+1 Snarling Gorehound
+1 Oppression
 
 // Reanimator Targets (criaturas 6+)
-1 Aatchik, Emerald Radian
-1 Su-Chi Cave Guard
-1 It of the Horrid Swarm
-1 Debtors' Transport
-1 Watchful Giant
-1 Soul of Migration
-1 Cultivator Colossus
-1 Evangel of Heliod
-1 Autarch Mammoth
+1 Molt Tender
+1 Corpse Churn
+1 Steel Hellkite
+1 Patchwork Beastie
+1 Ainok Wayfarer
+1 Unseal the Necropolis
+1 Meteor Golem
+1 Redemption Choir
+1 Simian Simulacrum
 
 // Tierras No-Básicas
 1 Exotic Orchard

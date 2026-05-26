@@ -112,52 +112,70 @@ class BuiltDeck:
 
 def _normalize_rank(rank: int | None) -> float:
     """
-    Convierte EDHREC rank en score [0,1]. Rank más bajo = mejor = score más alto.
-    Cartas sin rank (raras/nuevas) tienen score medio (no penalizadas).
+    Convierte EDHREC rank en score [0,1] de forma continua.
+    Rank 1 = 1.0, rank 50000+ = ~0.1
+    Cartas sin rank (nuevas/raras) = 0.45 (neutral-negativo)
     """
     if rank is None:
-        return 0.5  # neutral, no penaliza cartas raras/nuevas
-    if rank <= 100:
+        return 0.45
+    if rank <= 0:
         return 1.0
-    if rank <= 1000:
-        return 0.9
-    if rank <= 5000:
-        return 0.7
-    if rank <= 20000:
-        return 0.5
-    if rank <= 50000:
-        return 0.3
-    return 0.1
+    import math
+    # Función logarítmica inversa: score = 1 - log(rank) / log(max_rank)
+    # Con max_rank=50000: rank 1→0.99, rank 100→0.81, rank 1000→0.67,
+    # rank 5000→0.53, rank 20000→0.42, rank 50000→0.33
+    max_rank = 50000
+    score = 1.0 - math.log(max(rank, 1)) / math.log(max_rank)
+    return max(0.1, min(1.0, score))
 
 
 def _mana_friendliness(card: dict, deck_colors: set[str]) -> float:
     """
-    Cuántos pips de cada color requiere la carta y si encajan en los colores del mazo.
-    Premia cartas con pocos pips (más jugables) y penaliza si requieren un color saturado.
-    Devuelve score [0, 1].
+    Cuánto de fácil es castear esta carta.
+    Combina: pips de color + CMC total.
+    Penaliza fuertemente cartas de CMC alto aunque sean incoloras.
     """
     mana_cost = (card.get("mana_cost") or "").upper()
-    if not mana_cost:
-        return 0.7  # incoloro o sin info = neutro positivo
+    card_cmc = int(cmc(card) or 0)
 
-    pip_count = 0
+    # Penalización base por CMC alto
+    if card_cmc == 0:
+        cmc_factor = 1.0
+    elif card_cmc <= 2:
+        cmc_factor = 0.95
+    elif card_cmc <= 3:
+        cmc_factor = 0.85
+    elif card_cmc <= 4:
+        cmc_factor = 0.70
+    elif card_cmc <= 5:
+        cmc_factor = 0.50
+    elif card_cmc <= 6:
+        cmc_factor = 0.30
+    else:
+        cmc_factor = 0.15  # 7+ mana = muy caro
+
+    if not mana_cost:
+        return cmc_factor
+
+    # Penalización por pips de color
     color_pips: dict[str, int] = {}
     for c in "WUBRG":
         n = mana_cost.count(f"{{{c}}}")
         if n:
             color_pips[c] = n
-            pip_count += n
 
-    if pip_count == 0:
-        return 0.9  # solo genérico = muy jugable
+    if not color_pips:
+        return cmc_factor  # solo genérico
 
-    # Penaliza más de 2 pips del mismo color (difícil de castear)
-    max_same_color = max(color_pips.values()) if color_pips else 0
+    max_same_color = max(color_pips.values())
     if max_same_color >= 3:
-        return 0.2
-    if max_same_color == 2:
-        return 0.6
-    return 0.85
+        pip_factor = 0.5
+    elif max_same_color == 2:
+        pip_factor = 0.75
+    else:
+        pip_factor = 1.0
+
+    return cmc_factor * pip_factor
 
 
 def _curve_fit(card: dict, current_cmc_distribution: dict[int, int]) -> float:
@@ -233,44 +251,47 @@ def composite_score(
     current_cmc_distribution: dict[int, int],
 ) -> float:
     """
-    Score compuesto [0, 1] usado para ordenar candidatos dentro de un slot.
+    Score compuesto para ordenar candidatos dentro de un slot.
     Mayor = mejor.
 
-    Si la carta tiene edhrec_score (inyectado por EDHRecAdvisor), se usa
-    como componente principal del score. Si no, se usa solo el scoring local.
+    Filosofía: EDHREC rank es el mejor proxy de calidad disponible.
+    CMC desempata entre cartas de rank similar.
+    EDHREC por comandante (cuando disponible) se añade como bonus.
     """
-    synergy = _synergy_score(card, card_roles, archetype)
-    mana    = _mana_friendliness(card, deck_colors)
-    curve   = _curve_fit(card, current_cmc_distribution)
     rank    = _normalize_rank(card.get("edhrec_rank"))
+    card_cmc = int(cmc(card) or 0)
 
-    # Si tenemos datos de EDHREC, reemplazamos rank con edhrec_score
-    # y ajustamos pesos: EDHREC es más fiable que EDHREC rank genérico
-    edhrec_score = card.get("edhrec_score")
-    if edhrec_score is not None:
-        # Con EDHREC: sinergia local + validación comunitaria + mana + curva
-        score = (0.25 * synergy +
-                 0.40 * edhrec_score +
-                 0.20 * mana +
-                 0.15 * curve)
+    # CMC factor: penaliza cartas caras linealmente
+    if card_cmc == 0:
+        cmc_factor = 1.0
+    elif card_cmc <= 2:
+        cmc_factor = 0.95
+    elif card_cmc == 3:
+        cmc_factor = 0.85
+    elif card_cmc == 4:
+        cmc_factor = 0.70
+    elif card_cmc == 5:
+        cmc_factor = 0.55
+    elif card_cmc == 6:
+        cmc_factor = 0.35
     else:
-        # Sin EDHREC: scoring local completo
-        score = (W_SYNERGY * synergy +
-                 W_MANA    * mana    +
-                 W_CURVE   * curve   +
-                 W_RANK    * rank)
+        cmc_factor = 0.20  # 7+ muy caro
 
-    # Multi-rol bonus
-    useful_roles = card_roles & {
-        "ramp", "draw", "removal", "tutor", "protection", "counter",
-        "sweeper", "recursion", "threat",
-    }
-    useful_roles |= {r for r in card_roles if r.startswith("payoff_")}
-    if "equipment" in card_roles or "sac_outlet" in card_roles:
-        useful_roles.add("utility")
+    # Score base: rank es el 70%, CMC el 30%
+    score = 0.70 * rank + 0.30 * cmc_factor
 
-    extra_roles = max(0, len(useful_roles) - 1)
-    score *= (1.0 + MULTIROLE_BONUS_PER_ROLE * extra_roles)
+    # Bonus si hay datos EDHREC específicos para este comandante
+    edhrec_score = card.get("edhrec_score")
+    if edhrec_score is not None and edhrec_score > 0.3:
+        # Boost por sinergia específica con el comandante
+        score = score * (1.0 + 0.3 * (edhrec_score - 0.3))
+
+    # Bonus mínimo por curva: premia rellenar huecos de CMC
+    count_at_cmc = current_cmc_distribution.get(card_cmc, 0)
+    if count_at_cmc == 0:
+        score *= 1.05  # +5% si este CMC no está representado
+    elif count_at_cmc >= 5:
+        score *= 0.95  # -5% si este CMC está saturado
 
     return score
 
