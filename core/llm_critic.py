@@ -2,20 +2,16 @@
 llm_critic.py — Revisión inteligente del mazo con Claude Haiku.
 
 Después de que el builder heurístico construye un mazo, este módulo:
-1. Envía el mazo construido + las cartas del pool NO incluidas a Claude Haiku
-2. Claude analiza el plan del mazo y propone swaps específicos
+1. Envía el mazo + cartas disponibles del pool a Claude Haiku
+2. Claude analiza el plan y propone swaps específicos con razonamiento
 3. El builder aplica los swaps y regenera el mazo final
+4. Claude genera una guía de juego detallada para el grimorio
 
-Coste estimado: ~$0.003-0.01 por mazo (Claude Haiku es muy barato)
-Caché: los análisis se guardan en ~/.deck_forge_cache/critic/ durante 24h
-
-USO:
-    from core.llm_critic import LLMCritic
-    critic = LLMCritic()
-    improved_deck = critic.review_and_improve(deck, pool, archetype)
+Coste estimado: ~$0.005-0.015 por mazo (Critic + Guide)
+Caché: 24h en ~/.deck_forge_cache/critic/
 
 REQUISITOS:
-    ANTHROPIC_API_KEY en variables de entorno, o pasar api_key al constructor
+    ANTHROPIC_API_KEY en .env o variables de entorno
 """
 
 import os
@@ -27,12 +23,15 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .builder import BuiltDeck
-    from .archetypes import Archetype
 
 
 CACHE_DIR = Path.home() / ".deck_forge_cache" / "critic"
 CACHE_TTL_HOURS = 24
 
+
+# ---------------------------------------------------------------------------
+# Cache helpers
+# ---------------------------------------------------------------------------
 
 def _cache_key(commander_name: str, pool_names: list[str]) -> str:
     content = commander_name + "|" + ",".join(sorted(pool_names[:50]))
@@ -44,11 +43,9 @@ def _load_cache(key: str) -> dict | None:
     if not path.exists():
         return None
     try:
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         age = (time.time() - data.get("cached_at", 0)) / 3600
-        if age > CACHE_TTL_HOURS:
-            return None
-        return data
+        return data if age <= CACHE_TTL_HOURS else None
     except Exception:
         return None
 
@@ -56,101 +53,45 @@ def _load_cache(key: str) -> dict | None:
 def _save_cache(key: str, data: dict) -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     data["cached_at"] = time.time()
-    (CACHE_DIR / f"{key}.json").write_text(json.dumps(data, indent=2))
+    (CACHE_DIR / f"{key}.json").write_text(
+        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
 
-    def generate_gameplay_guide(self, deck: "BuiltDeck") -> str:
-        """
-        Genera una guía de juego para el mazo usando Claude Haiku.
-        Devuelve HTML listo para insertar en el grimorio.
-        """
-        commander_name = deck.commander["name"]
-        cache_key = "guide_" + _cache_key(commander_name, [deck.archetype.key])
-        cached = _load_cache(cache_key)
-        if cached:
-            if self.verbose:
-                print(f"  [GUIDE] Cache hit para '{commander_name}'")
-            return cached.get("html", "")
+# ---------------------------------------------------------------------------
+# LLMCritic
+# ---------------------------------------------------------------------------
 
-        if self.verbose:
-            print(f"  [GUIDE] Generando guía para '{commander_name}'...")
-
-        # Construir lista de cartas relevantes
-        cards_by_cat = deck.categorized()
-        key_cards = []
-        for cat, cards in cards_by_cat.items():
-            if cat in ("Tierras No-Básicas",):
-                continue
-            for dc in cards[:3]:
-                key_cards.append(f"{dc.card['name']} ({cat})")
-
-        prompt = f"""You are an expert Magic: The Gathering Commander player writing a deck guide.
-
-COMMANDER: {commander_name}
-ARCHETYPE: {deck.archetype.name}
-COLORS: {deck.colors}
-PLAN: {deck.archetype.description}
-WIN CONDITIONS: {', '.join(deck.archetype.auto_includes[:5]) if deck.archetype.auto_includes else 'See key cards'}
-
-KEY CARDS IN THIS DECK:
-{chr(10).join(key_cards[:20])}
-
-Write a concise gameplay guide in SPANISH with these sections:
-1. **Plan del mazo** (2-3 sentences: what does this deck want to do?)
-2. **Cómo ganar** (2-3 sentences: main win conditions)
-3. **Mulligan** (1-2 sentences: what to keep in opening hand)
-4. **Curva de juego** (turns 1-4 ideal sequence, 2-3 sentences)
-5. **Sinergias clave** (2-3 specific card interactions from this deck)
-
-Keep it practical and specific to THIS deck. Use simple Spanish. No markdown headers, use HTML <h4> and <p> tags.
-Respond ONLY with HTML, no other text."""
-
-        response = self._call_claude(prompt)
-        if not response:
-            return ""
-
-        # Clean potential markdown
-        html = response.strip()
-        if html.startswith("```"):
-            parts = html.split("```")
-            html = parts[1] if len(parts) > 1 else html
-            if html.startswith("html"):
-                html = html[4:]
-        html = html.strip()
-
-        _save_cache(cache_key, {"html": html})
-        return html
+class LLMCritic:
     """
-    Usa Claude Haiku para revisar un mazo y proponer mejoras concretas.
-    
-    Flujo:
-    1. Construye prompt con: comandante, arquetipo, mazo actual, candidatos no incluidos
-    2. Claude identifica: cartas malas en el mazo + cartas del pool que deberían entrar
-    3. Aplica swaps respetando identidad de color y restricciones del formato
+    Usa Claude Haiku para:
+    1. Revisar un mazo y proponer swaps inteligentes (review_and_improve)
+    2. Generar una guía de juego detallada en español (generate_gameplay_guide)
     """
 
     def __init__(self, api_key: str | None = None, verbose: bool = True):
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
         self.verbose = verbose
 
-    def _call_claude(self, prompt: str) -> str | None:
-        """Llama a Claude Haiku y devuelve la respuesta como string."""
+    # ------------------------------------------------------------------
+    # Claude API call
+    # ------------------------------------------------------------------
+
+    def _call_claude(self, prompt: str, max_tokens: int = 2000) -> str | None:
         if not self.api_key:
             if self.verbose:
-                print("  [CRITIC] No ANTHROPIC_API_KEY. Saltando revisión LLM.")
-                print("  [CRITIC] Añade tu API key: $env:ANTHROPIC_API_KEY='sk-ant-...'")
+                print("  [CRITIC] Sin ANTHROPIC_API_KEY — saltando revisión LLM.")
+                print("  [CRITIC] Añade tu key en el archivo .env del proyecto.")
             return None
 
         try:
             import urllib.request
-            import urllib.error
 
             payload = {
                 "model": "claude-haiku-4-5",
-                "max_tokens": 1500,
+                "max_tokens": max_tokens,
                 "messages": [{"role": "user", "content": prompt}],
             }
-
             req = urllib.request.Request(
                 "https://api.anthropic.com/v1/messages",
                 data=json.dumps(payload).encode(),
@@ -161,119 +102,216 @@ Respond ONLY with HTML, no other text."""
                 },
                 method="POST",
             )
-
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                data = json.loads(resp.read())
-                return data["content"][0]["text"]
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                return json.loads(resp.read())["content"][0]["text"]
 
         except Exception as e:
             if self.verbose:
-                print(f"  [CRITIC] Error llamando a Claude: {e}")
+                print(f"  [CRITIC] Error API: {e}")
             return None
 
-    def _build_prompt(
+    # ------------------------------------------------------------------
+    # Prompt 1 — Critic (swaps)
+    # ------------------------------------------------------------------
+
+    def _build_critic_prompt(
         self,
         deck: "BuiltDeck",
         pool_not_included: list[dict],
-        edhrec_recommendations: list[str],
+        edhrec_recs: list[str],
     ) -> str:
-        """Construye el prompt para Claude con el contexto del mazo."""
+        """
+        Nuevo approach: Claude devuelve la lista de cartas que QUIERE en el mazo.
+        No hace swaps posicionales — piensa holísticamente sobre el plan completo.
+        El builder valida disponibilidad y reasigna categorías con el classifier.
+        """
+        commander_oracle = (deck.commander.get("oracle_text") or "")[:500].replace("\n", " ")
 
-        # Mazo actual por categoría (sin tierras ni básicas)
-        current_deck_lines = []
-        for category, cards in deck.categorized().items():
-            if category == "Tierras No-Básicas":
+        # Todas las cartas disponibles: en el mazo + pool no incluido
+        # ordenadas por edhrec_score + rank
+        current_deck_cards = []
+        for cat, cards in deck.categorized().items():
+            if cat == "Tierras No-Básicas":
                 continue
-            current_deck_lines.append(f"\n{category}:")
             for dc in cards:
-                rank = dc.card.get("edhrec_rank", "?")
-                cmc_val = dc.card.get("cmc", "?")
-                current_deck_lines.append(
-                    f"  - {dc.card['name']} (CMC {cmc_val}, rank {rank})"
+                oracle = (dc.card.get("oracle_text") or "")[:180].replace("\n", " ")
+                synergy = " ★" if (dc.card.get("edhrec_score") or 0) > 0.4 else ""
+                current_deck_cards.append(
+                    f"  {dc.card['name']}{synergy} "
+                    f"(CMC {dc.card.get('cmc','?')}, "
+                    f"rank {dc.card.get('edhrec_rank','?')}): {oracle}"
                 )
 
-        # Pool no incluido — top candidatos por rank
-        pool_not_included_sorted = sorted(
-            [c for c in pool_not_included if c.get("edhrec_rank")],
-            key=lambda c: c.get("edhrec_rank") or 999999
-        )[:40]
+        pool_sorted = sorted(
+            [c for c in pool_not_included if not c.get("is_land")],
+            key=lambda c: (
+                -(c.get("edhrec_score") or 0.3),
+                c.get("edhrec_rank") or 999999,
+            )
+        )[:80]
 
         pool_lines = []
-        for c in pool_not_included_sorted:
-            oracle_short = (c.get("oracle_text") or "")[:80].replace("\n", " ")
+        for c in pool_sorted:
+            oracle = (c.get("oracle_text") or "")[:180].replace("\n", " ")
+            synergy = " ★" if (c.get("edhrec_score") or 0) > 0.4 else ""
             pool_lines.append(
-                f"  - {c['name']} (CMC {c.get('cmc','?')}, "
-                f"rank {c.get('edhrec_rank','?')}): {oracle_short}"
+                f"  {c['name']}{synergy} "
+                f"(CMC {c.get('cmc','?')}, "
+                f"rank {c.get('edhrec_rank','?')}): {oracle}"
             )
 
-        # EDHREC recommendations
-        edhrec_lines = "\n".join(f"  - {name}" for name in edhrec_recommendations[:15])
+        edhrec_block = (
+            "\n".join(f"  - {n}" for n in edhrec_recs[:20])
+            if edhrec_recs else "  (no data)"
+        )
 
-        prompt = f"""You are an expert Magic: The Gathering Commander deck builder.
+        return f"""You are the world's best Magic: The Gathering Commander deck builder. Build the OPTIMAL 99-card deck for this commander from the available card pool.
 
-COMMANDER: {deck.commander['name']}
-COLOR IDENTITY: {deck.colors}
-ARCHETYPE: {deck.archetype.name}
-ARCHETYPE PLAN: {deck.archetype.description}
+## COMMANDER
+Name: {deck.commander['name']}
+Colors: {deck.colors}
+Ability: {commander_oracle}
 
-CURRENT DECK (non-land cards):
-{''.join(current_deck_lines)}
+## ARCHETYPE: {deck.archetype.name}
+Strategy: {deck.archetype.description}
 
-CARDS IN COLLECTION NOT IN DECK (sorted by EDHREC rank, top 40):
-{''.join(pool_lines)}
+## CARDS CURRENTLY IN DRAFT (you may keep or replace any of these):
+{"".join(current_deck_cards)}
 
-EDHREC HIGH-SYNERGY CARDS FOR THIS COMMANDER (from community data):
-{edhrec_lines if edhrec_lines else "  (no data available)"}
+## ADDITIONAL CARDS AVAILABLE IN COLLECTION (not yet in draft):
+{"".join(pool_lines)}
 
-TASK:
-Analyze this Commander deck critically. Identify:
-1. Cards in the deck that don't fit the archetype plan or are clearly weak
-2. Cards from the collection that should replace them
+## EDHREC HIGH-SYNERGY CARDS FOR THIS COMMANDER (★ = proven synergy):
+{edhrec_block}
 
-Rules:
-- All suggested cards must be from the "CARDS IN COLLECTION NOT IN DECK" list
-- Respect the {deck.colors} color identity
-- Maximum 8 swaps total
-- Focus on improving synergy with the commander's strategy
-- Prefer lower CMC when stats are similar
+## YOUR MISSION
+Think about the commander's game plan holistically. Consider:
+1. What does this commander need on turns 1-4 to function?
+2. What are the 3-4 best win conditions given the available cards?
+3. Which cards have 1:N synergies — one card that enables multiple others?
+4. What is the ideal ratio of ramp/draw/removal/threats/synergy for this strategy?
+5. Which cards are simply too slow, too conditional, or off-theme?
 
-Respond ONLY with a JSON object, no other text:
+Select exactly 50 non-land cards (the deck needs these + commander + 12 utility lands + ~37 basic lands = 100).
+
+STRICT RULES:
+- Every card must exist in either "CARDS CURRENTLY IN DRAFT" or "ADDITIONAL CARDS AVAILABLE"
+- Respect {deck.colors} color identity strictly — no exceptions
+- No duplicate card names
+- Do not include basic lands or the commander itself
+- ★ cards are proven synergies — prioritize them when they fit the strategy
+
+Respond ONLY with valid JSON, no markdown, no other text:
 {{
-  "analysis": "2-3 sentence analysis of the deck's main weaknesses",
-  "swaps": [
-    {{
-      "remove": "exact card name to remove",
-      "add": "exact card name to add from collection",
-      "reason": "one sentence explaining why"
-    }}
+  "analysis": "4-5 sentences: the commander's optimal game plan, key synergy packages you identified, and why you made major changes from the draft",
+  "cards": [
+    "Card Name 1",
+    "Card Name 2",
+    ... exactly 50 card names
   ]
 }}"""
 
-        return prompt
+    # ------------------------------------------------------------------
+    # Prompt 2 — Gameplay Guide
+    # ------------------------------------------------------------------
+
+    def _build_guide_prompt(self, deck: "BuiltDeck") -> str:
+        """
+        Prompt optimizado para la guía de juego.
+        Mejoras vs v1:
+        - Oracle text completo del comandante
+        - Cartas ordenadas por edhrec_score (más sinérgicas primero)
+        - Incluye cartas marcadas como CRITIC para que sepa los swaps aplicados
+        - 6 secciones completas con instrucciones detalladas por sección
+        - Pide mencionar cartas específicas del mazo en cada sección
+        """
+        commander_oracle = (deck.commander.get("oracle_text") or "")[:500].replace("\n", " ")
+
+        # Cartas del mazo ordenadas por edhrec_score desc + rank
+        all_cards = []
+        for cat, cards in deck.categorized().items():
+            if cat == "Tierras No-Básicas":
+                continue
+            for dc in cards:
+                all_cards.append((dc, cat))
+
+        all_cards.sort(
+            key=lambda x: (
+                -(x[0].card.get("edhrec_score") or 0.3),
+                x[0].card.get("edhrec_rank") or 999999,
+            )
+        )
+
+        card_lines = []
+        for dc, cat in all_cards[:35]:
+            oracle_short = (dc.card.get("oracle_text") or "")[:150].replace("\n", " ")
+            synergy_tag = " ★" if (dc.card.get("edhrec_score") or 0) > 0.4 else ""
+            critic_tag = " [CRITIC PICK]" if "[CRITIC]" in (dc.justification or "") else ""
+            card_lines.append(
+                f"  {dc.card['name']}{synergy_tag}{critic_tag} "
+                f"(CMC {dc.card.get('cmc','?')}, {cat}): {oracle_short}"
+            )
+
+        return f"""You are a competitive Magic: The Gathering Commander player writing a detailed deck guide for players.
+
+## DECK: {deck.commander['name']}
+Colors: {deck.colors}
+Archetype: {deck.archetype.name}
+Commander ability: {commander_oracle}
+Strategy: {deck.archetype.description}
+
+## KEY CARDS (★ = high synergy with commander, [CRITIC PICK] = AI-recommended addition):
+{"".join(card_lines)}
+
+## WRITE A DETAILED GAMEPLAY GUIDE IN SPANISH
+
+Write engaging, practical Spanish text. Be specific — always mention actual card names from this deck, not generic advice.
+
+Structure with <h4> and <p> HTML tags. Include ALL 6 sections:
+
+<h4>Plan del mazo</h4>
+[4-5 frases] Explica exactamente qué quiere hacer este mazo y por qué el comandante es central al plan. Menciona las 3-4 cartas más importantes (★) y cómo interactúan con el comandante.
+
+<h4>Cómo ganar</h4>
+[4-5 frases] Describe las 2-3 líneas de victoria concretas. Menciona cartas específicas del mazo y la secuencia de juego para ganar. Incluye condiciones y requisitos para cada línea.
+
+<h4>Mano inicial (Mulligan)</h4>
+[4-5 frases] Qué cartas son imprescindibles en la mano inicial. Qué combinaciones de 2-3 cartas son perfectas para empezar. Cuándo hacer mulligan sin dudar. Da ejemplos concretos con cartas del mazo.
+
+<h4>Curva de juego ideal</h4>
+[5-6 frases] Plan turno a turno detallado: turno 1 (qué jugar), turno 2 (qué desarrollar), turno 3 (cuándo bajar el comandante), turno 4+ (cómo cerrar). Menciona cartas específicas para cada turno.
+
+<h4>Sinergias clave</h4>
+[5-6 frases] Explica 3-4 combos o sinergias específicas entre cartas del mazo. Para cada una: nombra las cartas exactas, explica la interacción y por qué es poderosa en este mazo concreto.
+
+<h4>Amenazas y cómo responder</h4>
+[4-5 frases] Las 3 amenazas más peligrosas para este mazo (removal del comandante, counters, aggro, etc). Para cada una: qué cartas del mazo tienes para responder y cuándo usarlas.
+
+Respond ONLY with the HTML content, no other text, no markdown fences."""
+
+    # ------------------------------------------------------------------
+    # Public: review_and_improve
+    # ------------------------------------------------------------------
 
     def review_and_improve(
         self,
         deck: "BuiltDeck",
         full_pool: list[dict],
-        edhrec_recommendations: list[str] | None = None,
+        edhrec_recs: list[str] | None = None,
     ) -> "BuiltDeck":
         """
-        Revisa el mazo y aplica mejoras sugeridas por Claude.
-        Devuelve el mazo mejorado (o el original si el Critic falla).
+        Claude devuelve la lista óptima de 62 cartas.
+        El builder reconstruye el mazo con esas cartas, reclasificadas por el classifier.
         """
         commander_name = deck.commander["name"]
 
-        # Cartas del pool que NO están en el mazo
-        deck_names = {dc.card["name"] for dc in deck.cards}
-        deck_names.add(commander_name)
+        deck_names = {dc.card["name"] for dc in deck.cards} | {commander_name}
         pool_not_included = [
             c for c in full_pool
             if c["name"] not in deck_names and not c.get("is_land")
         ]
 
-        # Cache check
-        pool_names = [c["name"] for c in pool_not_included]
-        cache_key = _cache_key(commander_name, pool_names)
+        cache_key = _cache_key(commander_name, [c["name"] for c in pool_not_included])
         cached = _load_cache(cache_key)
 
         if cached:
@@ -282,90 +320,194 @@ Respond ONLY with a JSON object, no other text:
             result = cached
         else:
             if self.verbose:
-                print(f"  [CRITIC] Analizando '{commander_name}' con Claude Haiku...")
+                print(f"  [CRITIC] Reconstruyendo '{commander_name}' con Claude Haiku...")
 
-            prompt = self._build_prompt(
-                deck,
-                pool_not_included,
-                edhrec_recommendations or [],
-            )
-
-            response = self._call_claude(prompt)
+            prompt = self._build_critic_prompt(deck, pool_not_included, edhrec_recs or [])
+            response = self._call_claude(prompt, max_tokens=4000)
             if not response:
                 return deck
 
-            # Parse JSON response
             try:
-                # Clean potential markdown fences
                 clean = response.strip()
-                if clean.startswith("```"):
-                    clean = clean.split("```")[1]
-                    if clean.startswith("json"):
-                        clean = clean[4:]
-                result = json.loads(clean.strip())
+                if "```" in clean:
+                    for part in clean.split("```"):
+                        p = part.strip()
+                        if p.startswith("json"):
+                            p = p[4:].strip()
+                        if p.startswith("{"):
+                            clean = p
+                            break
+
+                # Try full parse
+                try:
+                    result = json.loads(clean.strip())
+                except json.JSONDecodeError:
+                    # Extract partial JSON — get cards array
+                    import re
+                    analysis_match = re.search(r'"analysis"\s*:\s*"([^"]+)"', clean)
+                    # Extract card names from partial array
+                    card_matches = re.findall(r'"([^"]{3,60})"', clean)
+                    # Filter out JSON keys
+                    json_keys = {"analysis", "cards", "swaps", "remove", "add", "reason"}
+                    card_names = [c for c in card_matches
+                                  if c not in json_keys and len(c) > 3]
+                    result = {
+                        "analysis": analysis_match.group(1) if analysis_match else "",
+                        "cards": card_names,
+                    }
+                    if self.verbose:
+                        print(f"  [CRITIC] JSON parcial — recuperadas {len(card_names)} cartas")
+
                 _save_cache(cache_key, result)
+
             except Exception as e:
                 if self.verbose:
-                    print(f"  [CRITIC] Error parseando respuesta: {e}")
-                    print(f"  [CRITIC] Respuesta raw: {response[:200]}")
+                    print(f"  [CRITIC] Error: {e}")
+                    print(f"  [CRITIC] Raw: {response[:300]}")
                 return deck
 
-        # Mostrar análisis
         if self.verbose and result.get("analysis"):
-            print(f"  [CRITIC] Análisis: {result['analysis']}")
+            print(f"  [CRITIC] {result['analysis']}")
 
-        # Aplicar swaps
-        swaps = result.get("swaps", [])
-        if not swaps:
+        desired_cards = result.get("cards", [])
+        if not desired_cards:
             if self.verbose:
-                print("  [CRITIC] No se propusieron swaps.")
+                print("  [CRITIC] Sin lista de cartas — usando draft original.")
             return deck
 
-        # Construir lookup del pool no incluido
-        pool_lookup = {c["name"].lower(): c for c in pool_not_included}
+        # Guardar tierras originales antes de reconstruir
+        original_categories = deck.categorized()
 
-        applied = 0
-        for swap in swaps:
-            remove_name = swap.get("remove", "").strip()
-            add_name = swap.get("add", "").strip()
-            reason = swap.get("reason", "")
+        # Construir lookup de todas las cartas disponibles (draft + pool)
+        all_available: dict[str, dict] = {}
+        for dc in deck.cards:
+            all_available[dc.card["name"].lower()] = dc.card
+        for c in pool_not_included:
+            all_available[c["name"].lower()] = c
 
-            if not remove_name or not add_name:
-                continue
+        # Validar cada carta de la lista de Claude
+        validated: list[dict] = []
+        seen_names: set[str] = set()
+        skipped = 0
 
-            # Verificar que la carta a añadir está en el pool
-            add_card = pool_lookup.get(add_name.lower())
-            if not add_card:
+        for card_name in desired_cards:
+            name_lower = card_name.lower().strip()
+            if name_lower in seen_names:
                 if self.verbose:
-                    print(f"  [CRITIC] SKIP: '{add_name}' no encontrada en pool")
+                    print(f"  [CRITIC] SKIP duplicado: '{card_name}'")
+                skipped += 1
                 continue
 
-            # Verificar que la carta a eliminar está en el mazo
-            remove_idx = next(
-                (i for i, dc in enumerate(deck.cards)
-                 if dc.card["name"].lower() == remove_name.lower()),
-                None
-            )
-            if remove_idx is None:
+            card = all_available.get(name_lower)
+            if not card:
                 if self.verbose:
-                    print(f"  [CRITIC] SKIP: '{remove_name}' no está en el mazo")
+                    print(f"  [CRITIC] SKIP no en pool: '{card_name}'")
+                skipped += 1
                 continue
 
-            # Aplicar swap
-            removed_dc = deck.cards[remove_idx]
-            from .builder import DeckCard
-            deck.cards[remove_idx] = DeckCard(
-                card=add_card,
-                category=removed_dc.category,
-                role=removed_dc.role,
-                justification=f"[CRITIC] {reason}",
-            )
-
-            if self.verbose:
-                print(f"  [CRITIC] ✓ -{remove_name} → +{add_name}: {reason}")
-            applied += 1
+            validated.append(card)
+            seen_names.add(name_lower)
 
         if self.verbose:
-            print(f"  [CRITIC] {applied}/{len(swaps)} swaps aplicados")
+            print(f"  [CRITIC] {len(validated)}/{len(desired_cards)} cartas validadas "
+                  f"({skipped} descartadas)")
+
+        if len(validated) < 30:
+            if self.verbose:
+                print("  [CRITIC] Muy pocas cartas validadas — usando draft original.")
+            return deck
+
+        # Reconstruir el mazo con las cartas validadas, reclasificadas
+        from .builder import DeckCard
+        from . import classifier as cls
+
+        new_cards = []
+        for card in validated:
+            roles = cls.classify(card)
+            # Determinar categoría basada en roles
+            if "ramp" in roles and not card.get("is_land"):
+                cat = "Ramp"
+                role = "Ramp"
+            elif "draw" in roles:
+                cat = "Card Draw"
+                role = "Draw"
+            elif "removal" in roles or "sweeper" in roles or "counter" in roles:
+                cat = "Removal & Interaction"
+                role = "Removal"
+            elif "equipment" in roles:
+                cat = "Equipment"
+                role = "Equipment"
+            elif card.get("is_creature") and any(r.startswith("payoff_") for r in roles):
+                cat = "Sinergias"
+                role = "Synergy"
+            elif "threat" in roles or (card.get("is_creature") and int(card.get("cmc") or 0) >= 4):
+                cat = "Wincons & Amenazas"
+                role = "Wincon"
+            else:
+                cat = "Soporte"
+                role = "Support"
+
+            new_cards.append(DeckCard(
+                card=card,
+                category=cat,
+                role=role,
+                justification="[CRITIC] Seleccionada por análisis holístico.",
+            ))
+
+        deck.cards = new_cards
+        if self.verbose:
+            print(f"  [CRITIC] Mazo reconstruido con {len(new_cards)} cartas.")
+
+        # Preservar tierras no-básicas del draft original
+        from .builder import DeckCard as DC2
+        lands_preserved = 0
+        for cat, cards in original_categories.items():
+            if cat == "Tierras No-Básicas":
+                for dc in cards:
+                    if dc.card["name"] not in seen_names:
+                        deck.cards.append(DC2(
+                            card=dc.card,
+                            category="Tierras No-Básicas",
+                            role="Land",
+                            justification="Tierra de utilidad.",
+                        ))
+                        seen_names.add(dc.card["name"])
+                        lands_preserved += 1
+        if self.verbose and lands_preserved:
+            print(f"  [CRITIC] {lands_preserved} tierras no-básicas preservadas.")
 
         return deck
+
+    # ------------------------------------------------------------------
+    # Public: generate_gameplay_guide
+    # ------------------------------------------------------------------
+
+    def generate_gameplay_guide(self, deck: "BuiltDeck") -> str:
+        """Genera guía de juego HTML con Claude Haiku. Con caché 24h."""
+        commander_name = deck.commander["name"]
+        cache_key = "guide_" + _cache_key(commander_name, [deck.archetype.key])
+        cached = _load_cache(cache_key)
+
+        if cached:
+            if self.verbose:
+                print(f"  [GUIDE] Cache hit para '{commander_name}'")
+            return cached.get("html", "")
+
+        if self.verbose:
+            print(f"  [GUIDE] Generando guía para '{commander_name}'...")
+
+        prompt = self._build_guide_prompt(deck)
+        response = self._call_claude(prompt, max_tokens=3000)
+        if not response:
+            return ""
+
+        html = response.strip()
+        if "```" in html:
+            parts = html.split("```")
+            html = parts[1] if len(parts) > 1 else html
+            if html.startswith("html"):
+                html = html[4:]
+        html = html.strip()
+
+        _save_cache(cache_key, {"html": html})
+        return html

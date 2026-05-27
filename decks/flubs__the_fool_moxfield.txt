@@ -1,55 +1,55 @@
 // Commander
 1 Flubs, the Fool
 
-// Land Ramp (fetch extra lands)
-1 Delighted Halfling
-1 Elvish Mystic
-1 Patchwork Banner
-1 Goblin Electromancer
-1 Impulsive Pilferer
-1 Sticky Fingers
-1 Insidious Fungus
-1 Farhaven Elf
-1 Thirsting Roots
-1 Arboreal Grazer
-1 Mox Jasper
-1 Emrakul's Messenger
-1 Glittering Stockpile
-1 Charming Scoundrel
-
 // Card Draw
+1 Abundance
+1 Cultivator Colossus
+1 Scale the Heights
 1 Faithless Looting
 1 Thrill of Possibility
-1 Opt
-1 Demand Answers
 1 Cathartic Reunion
-1 Peregrin Took
 1 Tormenting Voice
+1 Opt
+1 Think Twice
+1 Enter the Enigma
+1 Crash Through
+1 Fists of Flame
+1 Demand Answers
+1 Aether Channeler
+1 Combat Research
+
+// Ramp
+1 Elvish Mystic
+1 Delighted Halfling
+1 Arboreal Grazer
+1 Farhaven Elf
+1 Impulsive Pilferer
+
+// Sinergias
+1 Satyr Wayfinder
+1 Aftermath Analyst
+1 Canopy Baloth
+1 Akoum Hellhound
+1 Spitfire Lagac
+1 Forgotten Ancient
+
+// Soporte
+1 Hermit Druid
+1 Grapple with the Past
+1 Spore Frog
+1 Tyvar's Stand
+1 Shore Up
+1 Shock
 
 // Removal & Interaction
-1 Abrade
-1 Return to Nature
-1 Essence Flux
-1 Planar Incision
-1 Wear Down
-1 Starstorm
+1 Rewind
 1 Thrashing Brontodon
+1 Return to Nature
+1 Abrade
 
-// Landfall Payoffs
-1 Spitfire Lagac
-1 Kazandu Nectarpot
-1 Scale the Heights
-1 Akoum Hellhound
-1 Skyclave Squid
-1 Dúnedain Rangers
-1 Canopy Baloth
-
-// Wincon Threats
-1 Lupine Prototype
-1 Steel Hellkite
-1 Meteor Golem
-1 Zara, Renegade Recruiter
-1 Winged Hive Tyrant
+// Equipment
+1 Blackblade Reforged
+1 Haunted Cloak
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -66,6 +66,6 @@
 1 Branch of Vitu-Ghazi
 
 // Basic Lands
-16 Forest
+17 Forest
 16 Mountain
-15 Island
+16 Island

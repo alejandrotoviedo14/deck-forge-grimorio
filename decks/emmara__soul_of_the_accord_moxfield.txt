@@ -4,61 +4,54 @@
 // Ramp
 1 Elvish Mystic
 1 Delighted Halfling
-1 Patchwork Banner
-1 Farhaven Elf
 1 Insidious Fungus
-1 Thirsting Roots
-1 Arboreal Grazer
-1 Mox Jasper
+1 Heaped Harvest
+1 Elanor Gardner
+1 Prophetic Prism
+
+// Soporte
+1 Saruli Caretaker
+1 Loam Dryad
+1 Citanul Stalwart
+1 Universal Automaton
+1 Ornithopter
+1 Spore Frog
+1 Distinguished Conjurer
+1 Impassioned Orator
+1 Grapple with the Past
+1 Revive the Shire
+1 Carrot Cake
+1 Entrapment Maneuver
+1 Death's Presence
+1 Martial Coup
+1 Blacksmith's Skill
+1 Tyvar's Stand
+
+// Sinergias
+1 Young Wolf
+1 Perilous Myr
+1 Packsong Pup
+1 Aftermath Analyst
+1 Satyr Wayfinder
 
 // Card Draw
-1 Mentor of the Meek
 1 Spirited Companion
-1 Peregrin Took
 1 Elvish Visionary
-1 Wear Down
-1 Secret Rendezvous
+1 Llanowar Visionary
+1 Mentor of the Meek
+1 Filigree Familiar
+1 Peregrin Took
+1 Stocking the Pantry
 1 Shelter
+1 Abundant Growth
+1 Karametra's Favor
 
-// Removal
-1 Return to Nature
+// Removal & Interaction
 1 Austere Command
 1 Wrath of God
+1 Return to Nature
 1 Cathar Commando
 1 Valorous Stance
-1 Seal of Cleansing
-
-// Token Generators
-1 Voice of Victory
-1 Martial Coup
-1 Arasta of the Endless Web
-1 Horn of Gondor
-1 King Darien XLVIII
-1 Mavren Fein, Dusk Apostle
-1 Dance of the Tumbleweeds
-1 Carrot Cake
-1 Chatter of the Squirrel
-1 Sunset Revelry
-
-// Sacrifice Outlets
-1 Portcullis Vine
-1 Demonmail Hauberk
-
-// Death Triggers / Drain
-1 Iron Apprentice
-1 Workshop Assistant
-1 Young Wolf
-1 Quirion Beastcaller
-1 Packsong Pup
-1 Perilous Myr
-1 Filigree Familiar
-1 Friendly Teddy
-1 Primal Druid
-
-// Big Wincons
-1 Temple Altisaur
-1 Steel Hellkite
-1 Meteor Golem
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -75,5 +68,5 @@
 1 Public Thoroughfare
 
 // Basic Lands
-21 Forest
-21 Plains
+23 Forest
+22 Plains

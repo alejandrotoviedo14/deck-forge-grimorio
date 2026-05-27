@@ -1,74 +1,60 @@
 // Commander
 1 Eivor, Battle-Ready
 
-// Core / Auto-includes
-1 Blackblade Reforged
-
 // Ramp
-1 Patchwork Banner
 1 Bureau Headmaster
-1 Impulsive Pilferer
 1 Sticky Fingers
-1 Mox Jasper
-1 Glittering Stockpile
-1 Breeches, Eager Pillager
-1 Traveler's Amulet
+1 Prophetic Prism
 1 Voyager Quickwelder
-
-// Removal & Interaction
-1 Abrade
-1 Wrath of God
-1 Cathar Commando
-1 Austere Command
-1 Valorous Stance
-1 Starstorm
-1 Seal of Cleansing
-1 Banishing Light
+1 Patchwork Banner
 
 // Card Draw
+1 Settlement Blacksmith
+1 Shelter
+1 Feather of Flight
+1 Angelic Gift
 1 Faithless Looting
 1 Thrill of Possibility
-1 Demand Answers
 1 Cathartic Reunion
-1 Spirited Companion
-1 Mentor of the Meek
+1 Tormenting Voice
 1 Crash Through
+1 Revitalize
+1 Spirited Companion
+
+// Soporte
+1 Arbaaz Mir
+1 Champion of the Flame
+1 Blacksmith's Talent
+1 Battlefield Improvisation
+1 Blacksmith's Skill
+1 Benevolent Blessing
+1 Return to Dust
+1 Unleash Fury
+1 Soul's Fire
+1 Lightning Strike
+1 Shock
+1 Flowering of the White Tree
+1 Rising of the Day
+1 Lunarch Veteran // Luminous Phantom
 
 // Equipment
+1 Blackblade Reforged
 1 Brotherhood Regalia
-1 Bloodthirsty Blade
-1 Hidden Blade
 1 Prowler's Helm
 1 Haunted Cloak
 1 Hero's Heirloom
-1 Cloudsteel Kirin
 1 Cliffhaven Kitesail
 1 Hookblade
-1 Psychic Paper
-1 Armory of Iroas
 1 Hidden Footblade
+1 Hidden Blade
+1 Headsplitter
+1 Armory of Iroas
+1 Raven Clan War-Axe
 
-// Equipment Synergy
-1 Blacksmith's Talent
-1 Goro-Goro, Disciple of Ryusei
-1 Battlefield Improvisation
-1 Benevolent Blessing
-1 Kassandra, Eagle Bearer
-1 Champion of the Flame
-
-// Soporte & Cuerpos
-1 Voice of Victory
-1 Arbaaz Mir
-1 Humble Defector
-1 Skyclave Apparition
-1 Rosie Cotton of South Lane
-
-// Wincons & Amenazas
-1 Alexios, Deimos of Kosmos
-1 Layla Hassan
-1 Steel Hellkite
-1 Meteor Golem
-1 Surtr, Fiery Jötun
+// Removal & Interaction
+1 Valorous Stance
+1 Abrade
+1 Cathar Commando
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -85,5 +71,5 @@
 1 Public Thoroughfare
 
 // Basic Lands
-17 Mountain
-17 Plains
+21 Mountain
+21 Plains

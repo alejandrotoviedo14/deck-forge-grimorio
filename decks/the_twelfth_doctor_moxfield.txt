@@ -1,61 +1,65 @@
 // Commander
 1 The Twelfth Doctor
 
-// Spellslinger Payoffs
-1 Otter
-1 Kessig Flamebreather
-1 Kindlespark Duo
-1 Akroan Crusader
-1 Zada, Hedron Grinder
-1 Firemind's Research
-1 Battlefield Thaumaturge
-1 Trail of Evidence
-1 Umara Entangler
-1 Fire Urchin
-1 Sanguinary Mage
-1 Satyr Hoplite
-
-// Counterspells
-1 Rewind
-1 Cancel
-1 Disdainful Stroke
-1 Syncopate
-1 Dazzling Denial
-1 Lofty Denial
-1 Saruman's Trickery
-1 Don't Make a Sound
-
-// Burn / Removal Spells
-1 Abrade
-1 Essence Flux
-1 Planar Incision
-1 Retraction Helix
-1 Smash to Dust
-1 Alchemist's Retrieval
-1 Raze the Effigy
-1 Unauthorized Exit
-
-// Card Draw / Cantrips
-1 Faithless Looting
-1 Opt
-1 Thrill of Possibility
-1 Demand Answers
-1 Cathartic Reunion
-1 Enter the Enigma
-1 Aether Channeler
-1 Tormenting Voice
-1 Humble Defector
+// Ramp
+1 Goblin Electromancer
 1 Sticky Fingers
-1 Think Twice
-1 Fists of Flame
-
-// Ramp (artifact only)
+1 Prophetic Prism
 1 Patchwork Banner
-1 Mox Jasper
 1 Glittering Stockpile
 1 Traveler's Amulet
-1 Prophetic Prism
-1 Fountainport Bell
+
+// Sinergias
+1 Kessig Flamebreather
+1 Otter
+1 Sanguinary Mage
+1 Umara Entangler
+1 Satyr Hoplite
+1 Akroan Crusader
+1 Zada, Hedron Grinder
+
+// Equipment
+1 Prowler's Helm
+1 Brotherhood Regalia
+1 Blackblade Reforged
+
+// Soporte
+1 Blacksmith's Talent
+1 All Will Be One
+1 Impulse
+1 Experimental Augury
+1 Lightning Strike
+1 Shock
+1 Grapeshot
+1 Cackling Counterpart
+1 Run Away Together
+1 Dramatic Reversal
+1 High Tide
+
+// Card Draw
+1 Combat Research
+1 Firemind's Research
+1 Trail of Evidence
+1 Opt
+1 Faithless Looting
+1 Think Twice
+1 Thrill of Possibility
+1 Cathartic Reunion
+1 Tormenting Voice
+1 Deliberate
+1 Crash Through
+1 Renegade Tactics
+1 Enter the Enigma
+1 Fists of Flame
+
+// Removal & Interaction
+1 Syncopate
+1 Disdainful Stroke
+1 Cancel
+1 Rewind
+1 Essence Flux
+1 Planar Incision
+1 Abrade
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -72,5 +76,5 @@
 1 Branch of Vitu-Ghazi
 
 // Basic Lands
-21 Mountain
-20 Island
+20 Mountain
+19 Island

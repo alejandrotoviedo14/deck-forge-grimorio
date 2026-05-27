@@ -4,59 +4,55 @@
 // Ramp
 1 Elvish Mystic
 1 Delighted Halfling
-1 Patchwork Banner
 1 Insidious Fungus
-1 Farhaven Elf
-1 Thirsting Roots
 1 Arboreal Grazer
-1 Mox Jasper
 
 // Card Draw
 1 Village Rites
 1 Spirited Companion
-1 Call of the Ring
-1 Mentor of the Meek
-1 Peregrin Took
 1 Elvish Visionary
+1 Abundant Growth
+1 Angelic Gift
+1 Shelter
+
+// Sinergias
+1 Aftermath Analyst
+1 Satyr Wayfinder
+1 Molt Tender
+1 Gray Merchant of Asphodel
+1 Archon of Cruelty
+1 Zetalpa, Primal Dawn
+
+// Soporte
+1 Hermit Druid
+1 Snarling Gorehound
+1 Changeling Outcast
+1 Ornithopter
+1 Spore Frog
+1 Grapple with the Past
+1 Corpse Churn
+1 Blood Beckoning
+1 Unseal the Necropolis
+1 Feign Death
+1 Supernatural Stamina
+1 Blacksmith's Skill
+1 Tyvar's Stand
+1 Return to Dust
+1 Primevals' Glorious Rebirth
 
 // Removal & Interaction
 1 Assassin's Trophy
 1 Return to Nature
 1 Murder
-1 Wrath of God
-1 Fracture
 1 Cathar Commando
+1 Wrath of God
+1 Austere Command
+1 Thrashing Brontodon
+1 Valorous Stance
 
-// Reanimation Spells
-1 Aftermath Analyst
-1 Oversold Cemetery
-1 Chthonian Nightmare
-1 Gryff's Boon
-1 Grafted Butcher
-1 Consumed by Greed
-1 Builder's Talent
-1 Broodheart Engine
-1 Blood Beckoning
-
-// Enablers (discard / mill)
-1 Satyr Wayfinder
-1 Grapple with the Past
-1 Hermit Druid
-1 Hedge Shredder
-1 Duress
-1 Snarling Gorehound
-1 Oppression
-
-// Reanimator Targets (criaturas 6+)
-1 Molt Tender
-1 Corpse Churn
-1 Steel Hellkite
-1 Patchwork Beastie
-1 Ainok Wayfarer
-1 Unseal the Necropolis
-1 Meteor Golem
-1 Redemption Choir
-1 Simian Simulacrum
+// Equipment
+1 Blackblade Reforged
+1 Haunted Cloak
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -73,6 +69,6 @@
 1 Branch of Vitu-Ghazi
 
 // Basic Lands
-14 Swamp
-14 Forest
-14 Plains
+16 Swamp
+15 Forest
+15 Plains

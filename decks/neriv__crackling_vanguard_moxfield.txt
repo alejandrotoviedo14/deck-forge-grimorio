@@ -1,67 +1,60 @@
 // Commander
 1 Neriv, Crackling Vanguard
 
-// Ramp
-1 Patchwork Banner
-1 Impulsive Pilferer
-1 Sticky Fingers
-1 Mox Jasper
-1 Heartless Summoning
-1 Glittering Stockpile
-1 Charming Scoundrel
-1 Bureau Headmaster
+// Sinergias
+1 Pashalik Mons
+1 Gray Merchant of Asphodel
+1 Marauding Blight-Priest
+1 Goblin Matron
+1 Goro-Goro, Disciple of Ryusei
+1 Voice of Victory
+1 Doomed Dissenter
+1 Perilous Myr
+1 Putrid Goblin
+1 Rosie Cotton of South Lane
+1 Fleshbag Marauder
+1 Kessig Flamebreather
 
 // Card Draw
-1 Faithless Looting
-1 Village Rites
-1 Thrill of Possibility
-1 Demand Answers
 1 Spirited Companion
-1 Mentor of the Meek
+1 Filigree Familiar
+1 Village Rites
+1 Faithless Looting
+1 Thrill of Possibility
 1 Cathartic Reunion
+1 Tormenting Voice
+1 Thunder of Unity
+1 Shelter
 
-// Removal
+// Ramp
+1 Impulsive Pilferer
+1 Charming Scoundrel
+1 Patchwork Banner
+
+// Soporte
+1 Fleshtaker
+1 Dragon Fodder
+1 Hordeling Outburst
+1 Martial Coup
+1 Lingering Souls
+1 Horn of Gondor
+1 Oversold Cemetery
+1 Reforge the Soul
+1 All-Out Assault
+1 Rising of the Day
+1 Underworld Dreams
+1 All Will Be One
+1 Return to Dust
+1 Blacksmith's Skill
+1 Soul's Fire
+1 Shock
+1 Lightning Strike
+
+// Removal & Interaction
 1 Abrade
 1 Terminate
 1 Bedevil
-1 Murder
-1 Wrath of God
-1 Austere Command
-
-// Token Generators
-1 Voice of Victory
-1 Martial Coup
-1 Dragon Fodder
-1 Goro-Goro, Disciple of Ryusei
-1 Horn of Gondor
-1 Hordeling Outburst
-1 Sazacap's Brew
-1 Pashalik Mons
-1 Tangled Colony
-1 Within Range
-
-// Sacrifice Outlets
-1 Chthonian Nightmare
-1 Bone Splinters
-1 Worthy Cost
-1 Spark Harvest
-1 Fleshtaker
-
-// Death Triggers / Drain
-1 Feign Death
-1 Supernatural Stamina
-1 Putrid Goblin
-1 Iron Apprentice
-1 Workshop Assistant
-1 Doomed Dissenter
-1 Perilous Myr
-1 Filigree Familiar
-1 Friendly Teddy
-
-// Big Wincons
-1 Gray Merchant of Asphodel
-1 Marauding Blight-Priest
-1 Twilight Prophet
+1 Fracture
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -78,6 +71,6 @@
 1 Branch of Vitu-Ghazi
 
 // Basic Lands
-13 Swamp
-13 Mountain
-13 Plains
+14 Swamp
+14 Mountain
+14 Plains

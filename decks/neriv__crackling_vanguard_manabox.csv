@@ -1,53 +1,50 @@
 Name,Set code,Set name,Collector number,Foil,Rarity,Quantity,ManaBox ID,Scryfall ID,Purchase price,Misprint,Altered,Condition,Language,Purchase price currency
 "Neriv, Crackling Vanguard",TDC,Tarkir: Dragonstorm Commander,6,normal,mythic,1,104340,ac552ea3-f521-4c42-a846-21a73364e0ca,,false,false,near_mint,en,EUR
-Patchwork Banner,BLB,Bloomburrow,247,normal,uncommon,1,96097,a8a982c8-bc08-44ba-b3ed-9e4b124615d6,,false,false,near_mint,en,EUR
-Impulsive Pilferer,CMM,Commander Masters,234,normal,common,1,84750,aea2e32d-d711-40ae-87d5-c16893bfc8ca,,false,false,near_mint,en,EUR
-Sticky Fingers,SNC,Streets of New Capenna,124,normal,common,1,67696,3678fa3d-d41f-4b7a-b25e-6fc5f78876c7,,false,false,near_mint,en,EUR
-Mox Jasper,TDM,Tarkir: Dragonstorm,246,normal,mythic,1,103999,a851d2d3-7e93-4887-bee5-4d6c9aaf9419,,false,false,near_mint,en,EUR
-Heartless Summoning,INR,Innistrad Remastered,117,normal,rare,1,102768,c50fdb09-e06c-463c-87dd-3c46f4db889a,,false,false,near_mint,en,EUR
-Glittering Stockpile,OTC,Outlaws of Thunder Junction Commander,167,normal,uncommon,1,93695,74713a58-e343-4504-9900-cf9d76951242,,false,false,near_mint,en,EUR
-Charming Scoundrel,WOE,Wilds of Eldraine,124,normal,rare,1,85717,c8090bcf-e17a-4110-a518-77ccd045b18f,,false,false,near_mint,es,EUR
-Bureau Headmaster,ACR,Assassin's Creed,296,normal,uncommon,1,95377,58766566-6e19-4f74-bfce-5a61429ffaa9,,false,false,near_mint,en,EUR
-Faithless Looting,INR,Innistrad Remastered,151,normal,common,1,102544,52e47757-0aa9-48b0-8b43-e2483d7eed67,,false,false,near_mint,en,EUR
-Village Rites,M21,Core Set 2021,126,normal,common,1,50910,9c0f60a6-b5c8-4704-8b61-94e8fc463e5d,,false,false,near_mint,en,EUR
-Thrill of Possibility,DMC,Dominaria United Commander,127,normal,common,1,71625,9752ed44-dc5e-4f73-9422-c1d267b60a3c,,false,false,near_mint,en,EUR
-Demand Answers,MKM,Murders at Karlov Manor,122,normal,common,1,91286,eca092fc-7c67-4a73-989e-5297bbaaea76,,false,false,near_mint,en,EUR
+Pashalik Mons,DMR,Dominaria Remastered,133,normal,rare,1,78125,ca20a650-65b0-4714-b7ce-0481af3db377,,false,false,near_mint,en,EUR
+Gray Merchant of Asphodel,DSC,Duskmourn: House of Horror Commander,142,normal,uncommon,1,99034,00d001d0-fd29-4b7c-9d0e-9131b995f910,,false,false,near_mint,en,EUR
+Marauding Blight-Priest,FDN,Foundations,178,normal,common,1,101528,5f70dafc-c638-4ec0-ab5b-62998f752720,,false,false,near_mint,en,EUR
+Goblin Matron,DMR,Dominaria Remastered,123,normal,common,1,78065,a521a254-c484-4d59-bb7e-8745e96d4bbf,,false,false,near_mint,en,EUR
+"Goro-Goro, Disciple of Ryusei",NEO,Kamigawa: Neon Dynasty,145,normal,rare,1,66331,1ca736c7-35a9-48c7-b5a9-69b2a6e33ad0,,false,false,near_mint,en,EUR
+Voice of Victory,TDM,Tarkir: Dragonstorm,33,normal,rare,1,104377,ec3de5f4-bb55-4ab9-995f-f3e0dc22c1bb,,false,false,near_mint,en,EUR
 Spirited Companion,BLC,Bloomburrow Commander,155,normal,common,1,96423,ada3dc9c-2f83-4f52-8776-ef23d45cc4eb,,false,false,near_mint,en,EUR
-Mentor of the Meek,INR,Innistrad Remastered,34,normal,uncommon,1,102469,280ca0f4-be07-452a-bbc0-c25570f14008,,false,false,near_mint,en,EUR
+Filigree Familiar,CMR,Commander Legends,308,normal,common,1,55767,875df3ef-fab4-455f-bfdb-8f6361b27bf6,,false,false,near_mint,en,EUR
+Doomed Dissenter,M19,Core Set 2019,93,normal,common,1,1219,a1f70ee8-7e59-43d6-a7b2-29cb5cd1d8b3,,false,false,near_mint,en,EUR
+Perilous Myr,CMR,Commander Legends,330,normal,common,1,55695,5a15c8ef-04ad-4aab-a7f1-c7a90c10eb50,,false,false,near_mint,en,EUR
+Impulsive Pilferer,CMM,Commander Masters,234,normal,common,1,84750,aea2e32d-d711-40ae-87d5-c16893bfc8ca,,false,false,near_mint,en,EUR
+Putrid Goblin,MH1,Modern Horizons,101,normal,common,1,44833,333406d5-abcc-4629-a33b-395d0662ba1b,,false,false,near_mint,en,EUR
+Fleshtaker,INR,Innistrad Remastered,235,normal,uncommon,1,102529,4b9bf7a7-28f8-410e-86d3-5637e473a5a1,,false,false,near_mint,en,EUR
+Dragon Fodder,MM3,Modern Masters 2017,93,normal,common,1,6120,a90e1524-d94a-4aba-ab2a-ba2b006cadbe,,false,false,near_mint,en,EUR
+Hordeling Outburst,ONC,Phyrexia: All Will Be One Commander,100,normal,uncommon,1,78847,c80c53a3-a2de-4e54-a50a-2eabb2ceb67c,,false,false,near_mint,en,EUR
+Martial Coup,BLC,Bloomburrow Commander,146,normal,rare,1,96479,d8e79f95-6733-476e-9bff-408e90f151c0,,false,false,near_mint,en,EUR
+Lingering Souls,INR,Innistrad Remastered,30,normal,uncommon,1,101846,09cd56b2-1987-40c2-a436-5f3cbc564f1c,,false,false,near_mint,en,EUR
+Charming Scoundrel,WOE,Wilds of Eldraine,124,normal,rare,1,85717,c8090bcf-e17a-4110-a518-77ccd045b18f,,false,false,near_mint,es,EUR
+Horn of Gondor,LTR,The Lord of the Rings: Tales of Middle-earth,240,normal,rare,1,83400,b14eaeec-d7ce-462a-90d3-2ae5ff605fdb,,false,false,near_mint,en,EUR
+Rosie Cotton of South Lane,LTR,The Lord of the Rings: Tales of Middle-earth,27,normal,uncommon,1,83198,75338f49-1f02-4333-87e4-5779ef14e688,,false,false,near_mint,en,EUR
+Patchwork Banner,BLB,Bloomburrow,247,normal,uncommon,1,96097,a8a982c8-bc08-44ba-b3ed-9e4b124615d6,,false,false,near_mint,en,EUR
+Village Rites,M21,Core Set 2021,126,normal,common,1,50910,9c0f60a6-b5c8-4704-8b61-94e8fc463e5d,,false,false,near_mint,en,EUR
+Faithless Looting,INR,Innistrad Remastered,151,normal,common,1,102544,52e47757-0aa9-48b0-8b43-e2483d7eed67,,false,false,near_mint,en,EUR
+Thrill of Possibility,DMC,Dominaria United Commander,127,normal,common,1,71625,9752ed44-dc5e-4f73-9422-c1d267b60a3c,,false,false,near_mint,en,EUR
 Cathartic Reunion,ACR,Assassin's Creed,94,normal,uncommon,1,95375,55aaab05-db3b-4317-ae32-553c76f6bade,,false,false,near_mint,en,EUR
+Tormenting Voice,SOI,Shadows over Innistrad,186,normal,common,1,8810,2f5b0a20-2422-465e-b74e-4402b34fb57b,,false,false,near_mint,en,EUR
 Abrade,INR,Innistrad Remastered,139,normal,common,1,102860,fee393c7-1868-4d11-93c3-3d143e0c8dd9,,false,false,near_mint,en,EUR
 Terminate,ACR,Assassin's Creed,98,normal,uncommon,1,95488,c6c38679-5563-4390-ba1f-804731953206,,false,false,near_mint,en,EUR
 Bedevil,DMC,Dominaria United Commander,144,normal,rare,1,71880,fc81669c-af6e-4af4-b1eb-43ff7fdda590,,false,false,near_mint,en,EUR
-Murder,ACR,Assassin's Creed,92,normal,uncommon,1,95422,86d73f4c-0bbd-4616-81a6-102db6cd7db9,,false,false,near_mint,en,EUR
-Wrath of God,DMR,Dominaria Remastered,37,normal,rare,1,78110,c3700519-b74c-4445-b42e-03690b8d4463,,false,false,near_mint,en,EUR
-Austere Command,M3C,Modern Horizons 3 Commander,167,normal,rare,1,94747,556ba00c-f0e1-47ce-aea8-c22c4f3f3b05,,false,false,near_mint,en,EUR
-Voice of Victory,TDM,Tarkir: Dragonstorm,33,normal,rare,1,104377,ec3de5f4-bb55-4ab9-995f-f3e0dc22c1bb,,false,false,near_mint,en,EUR
-Martial Coup,BLC,Bloomburrow Commander,146,normal,rare,1,96479,d8e79f95-6733-476e-9bff-408e90f151c0,,false,false,near_mint,en,EUR
-Dragon Fodder,MM3,Modern Masters 2017,93,normal,common,1,6120,a90e1524-d94a-4aba-ab2a-ba2b006cadbe,,false,false,near_mint,en,EUR
-"Goro-Goro, Disciple of Ryusei",NEO,Kamigawa: Neon Dynasty,145,normal,rare,1,66331,1ca736c7-35a9-48c7-b5a9-69b2a6e33ad0,,false,false,near_mint,en,EUR
-Horn of Gondor,LTR,The Lord of the Rings: Tales of Middle-earth,240,normal,rare,1,83400,b14eaeec-d7ce-462a-90d3-2ae5ff605fdb,,false,false,near_mint,en,EUR
-Hordeling Outburst,ONC,Phyrexia: All Will Be One Commander,100,normal,uncommon,1,78847,c80c53a3-a2de-4e54-a50a-2eabb2ceb67c,,false,false,near_mint,en,EUR
-Sazacap's Brew,BLB,Bloomburrow,151,normal,common,1,96330,6d963080-b3ec-467d-82f7-39db6ecd6bbc,,false,false,near_mint,en,EUR
-Pashalik Mons,DMR,Dominaria Remastered,133,normal,rare,1,78125,ca20a650-65b0-4714-b7ce-0481af3db377,,false,false,near_mint,en,EUR
-Tangled Colony,WOE,Wilds of Eldraine,113,normal,rare,1,85499,77111ce8-6469-4bf7-882a-4ded1e5d7cad,,false,false,near_mint,es,EUR
-Within Range,TDC,Tarkir: Dragonstorm Commander,32,normal,rare,1,104642,51188edb-9705-4960-854b-170744f40a88,,false,false,near_mint,en,EUR
-Chthonian Nightmare,MH3,Modern Horizons 3,83,normal,rare,1,94259,ce5dd2c1-b6e0-4914-b5c9-7dd451c29e22,,false,false,near_mint,en,EUR
-Bone Splinters,GNT,Game Night,27,normal,common,1,43262,58618b80-0c7e-421a-9f9f-d51a9a7784a4,,false,false,near_mint,en,EUR
-Worthy Cost,TDM,Tarkir: Dragonstorm,99,normal,common,1,104883,adc18edc-01d8-4a7e-a87b-a854e50aa75e,,false,false,near_mint,en,EUR
-Spark Harvest,CMR,Commander Legends,150,normal,common,1,55942,e4d42177-dd1b-482c-a549-6f563b3f3249,,false,false,near_mint,en,EUR
-Fleshtaker,INR,Innistrad Remastered,235,normal,uncommon,1,102529,4b9bf7a7-28f8-410e-86d3-5637e473a5a1,,false,false,near_mint,en,EUR
-Feign Death,AFR,Adventures in the Forgotten Realms,103,normal,common,1,60199,32af7061-fca6-4a06-be3c-01881e6b96f7,,false,false,near_mint,en,EUR
-Supernatural Stamina,CMR,Commander Legends,151,normal,common,1,56204,ce15ab0b-c70d-4ac0-a6ee-dbd31736ce1f,,false,false,near_mint,en,EUR
-Putrid Goblin,MH1,Modern Horizons,101,normal,common,1,44833,333406d5-abcc-4629-a33b-395d0662ba1b,,false,false,near_mint,en,EUR
-Iron Apprentice,NEO,Kamigawa: Neon Dynasty,248,normal,common,1,66852,13d6d9fc-509b-42db-8ac1-85066eb6e9c4,,false,false,near_mint,en,EUR
-Workshop Assistant,CMR,Commander Legends,348,normal,common,1,56234,e9387e8f-0e72-4212-81c8-e64050700c52,,false,false,near_mint,en,EUR
-Doomed Dissenter,M19,Core Set 2019,93,normal,common,1,1219,a1f70ee8-7e59-43d6-a7b2-29cb5cd1d8b3,,false,false,near_mint,en,EUR
-Perilous Myr,CMR,Commander Legends,330,normal,common,1,55695,5a15c8ef-04ad-4aab-a7f1-c7a90c10eb50,,false,false,near_mint,en,EUR
-Filigree Familiar,CMR,Commander Legends,308,normal,common,1,55767,875df3ef-fab4-455f-bfdb-8f6361b27bf6,,false,false,near_mint,en,EUR
-Friendly Teddy,DSK,Duskmourn: House of Horror,247,normal,common,1,98860,82b142be-4586-487a-8dd8-a55eff776458,,false,false,near_mint,en,EUR
-Gray Merchant of Asphodel,DSC,Duskmourn: House of Horror Commander,142,normal,uncommon,1,99034,00d001d0-fd29-4b7c-9d0e-9131b995f910,,false,false,near_mint,en,EUR
-Marauding Blight-Priest,FDN,Foundations,178,normal,common,1,101528,5f70dafc-c638-4ec0-ab5b-62998f752720,,false,false,near_mint,en,EUR
-Twilight Prophet,LCC,The Lost Caverns of Ixalan Commander,211,normal,mythic,1,88437,41f90e2b-cdbb-4a7c-aba0-c72055b414ed,,false,false,near_mint,en,EUR
+Fleshbag Marauder,CMR,Commander Legends,128,normal,common,1,55639,4002b3a4-e00e-44ed-8989-d553e5d7d6c8,,false,false,near_mint,en,EUR
+Oversold Cemetery,WOT,Wilds of Eldraine: Enchanting Tales,33,normal,rare,1,85377,48a6cfd3-20bb-431b-b3f5-bb32a26e5002,,false,false,near_mint,es,EUR
+Reforge the Soul,INR,Innistrad Remastered,167,normal,rare,1,101851,1c3509c6-2ae7-45be-8ac9-4d14d69db32f,,false,false,near_mint,en,EUR
+All-Out Assault,TDM,Tarkir: Dragonstorm,405,foil,mythic,1,104277,42c0f348-2435-4c62-9bf7-c1efded1fca0,,false,false,near_mint,en,EUR
+Rising of the Day,LTR,The Lord of the Rings: Tales of Middle-earth,145,normal,uncommon,1,83538,d4fbcac6-8ac9-44a8-9d1a-03d0799ac253,,false,false,near_mint,en,EUR
+Kessig Flamebreather,VOW,Innistrad: Crimson Vow,164,normal,common,1,64150,303ad78a-b02a-44dc-afe6-7f95781a5062,,false,false,near_mint,en,EUR
+Underworld Dreams,DPA,Duels of the Planeswalkers,35,normal,rare,1,21672,960c53f5-6d28-4bc4-b6a1-345f2a2a97f8,,false,false,near_mint,es,EUR
+All Will Be One,SLD,Secret Lair Drop,1888,foil,mythic,1,103731,7f9cf727-c02f-4295-a708-d2497e503a27,,false,false,near_mint,en,EUR
+Thunder of Unity,TDM,Tarkir: Dragonstorm,391,normal,rare,1,104679,5fd218be-b4c1-4dc7-9672-a16892f1b1e7,,false,false,near_mint,en,EUR
+Return to Dust,WHO,Doctor Who,211,normal,uncommon,1,87859,c516678c-37ce-4958-a149-aff03ef1dfd6,,false,false,near_mint,en,EUR
+Fracture,STX,Strixhaven: School of Mages,188,normal,uncommon,1,58245,a11224f8-06ea-4ec3-85e6-d5c8d906840c,,false,false,near_mint,en,EUR
+Blacksmith's Skill,MH2,Modern Horizons 2,6,normal,common,1,59482,31506792-d0ab-4c13-9ab8-6fa433220dbf,,false,false,near_mint,en,EUR
+Soul's Fire,CMR,Commander Legends,200,normal,common,1,55593,239a9f2e-145b-4f31-8128-4d376af1079d,,false,false,near_mint,en,EUR
+Shelter,MH1,Modern Horizons,28,normal,common,1,44906,1a50984b-5bf5-4432-a149-96492d1683de,,false,false,near_mint,en,EUR
+Shock,M21,Core Set 2021,159,normal,common,1,50819,59fa8e8d-bcb8-47bf-b71a-df11c8d0f2c9,,false,false,near_mint,en,EUR
+Lightning Strike,DMU,Dominaria United,137,normal,common,1,71560,7d541125-bfb8-4f88-8bf3-ad7b6af7ad1d,,false,false,near_mint,en,EUR
 Exotic Orchard,40K,"Warhammer 40,000 Commander",278,normal,rare,1,72563,ec9c7011-694b-4705-b85c-bf4edf26e437,,false,false,near_mint,es,EUR
 Path of Ancestry,DRC,Aetherdrift Commander,166,normal,common,1,103021,4898fba1-d692-4440-bfff-ae535bdc1ba8,,false,false,near_mint,en,EUR
 Opal Palace,M3C,Modern Horizons 3 Commander,361,normal,common,1,94972,76219ec4-65dc-4137-9b3b-070e02524397,,false,false,near_mint,en,EUR
@@ -60,6 +57,6 @@ Study Hall,C21,Commander 2021,80,normal,common,1,58649,a3de9859-98b6-4efe-847a-4
 Rupture Spire,CMR,Commander Legends,355,normal,common,1,56188,c7ef4b15-efab-4255-ac2d-7794f253aa52,,false,false,near_mint,en,EUR
 Night Market,DFT,Aetherdrift,258,normal,common,1,103214,a8c1dce3-6136-4294-9d2b-5ef8527d733b,,false,false,near_mint,en,EUR
 Branch of Vitu-Ghazi,MKM,Murders at Karlov Manor,258,normal,uncommon,1,90969,73a8169f-b858-47a5-9c76-2e7c50ad4ecd,,false,false,near_mint,en,EUR
-Swamp,INR,Innistrad Remastered,293,normal,common,13,102530,4bc918af-527c-46d7-861d-32e9150ed3df,,false,false,near_mint,en,EUR
-Mountain,FDN,Foundations,278,normal,common,13,100284,279df7e2-2a3b-464a-a7df-e91da28e3a8c,,false,false,near_mint,en,EUR
-Plains,ACR,Assassin's Creed,102,normal,common,13,95353,4578c984-afb6-4532-b5be-093ed4ecb8b9,,false,false,near_mint,en,EUR
+Swamp,INR,Innistrad Remastered,293,normal,common,14,102530,4bc918af-527c-46d7-861d-32e9150ed3df,,false,false,near_mint,en,EUR
+Mountain,FDN,Foundations,278,normal,common,14,100284,279df7e2-2a3b-464a-a7df-e91da28e3a8c,,false,false,near_mint,en,EUR
+Plains,ACR,Assassin's Creed,102,normal,common,14,95353,4578c984-afb6-4532-b5be-093ed4ecb8b9,,false,false,near_mint,en,EUR

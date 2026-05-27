@@ -1,67 +1,59 @@
 // Commander
 1 Izoni, Thousand-Eyed
 
+// Sinergias
+1 Satyr Wayfinder
+1 Young Wolf
+1 Aftermath Analyst
+1 Putrid Goblin
+1 Doomed Dissenter
+1 Fleshbag Marauder
+1 Marauding Blight-Priest
+1 Gray Merchant of Asphodel
+1 Perilous Myr
+1 Forgotten Ancient
+1 Ivy Lane Denizen
+1 Valley Rotcaller
+
 // Ramp
 1 Elvish Mystic
 1 Delighted Halfling
-1 Patchwork Banner
 1 Farhaven Elf
-1 Insidious Fungus
-1 Thirsting Roots
-1 Arboreal Grazer
-1 Mox Jasper
+1 Patchwork Banner
+1 Prophetic Prism
+
+// Soporte
+1 Changeling Outcast
+1 Universal Automaton
+1 Fang of Shigeki
+1 Spore Frog
+1 Snarling Gorehound
+1 Grapple with the Past
+1 Hermit Druid
+1 Ambush Viper
+1 Death Baron
+1 Underworld Dreams
+1 Oversold Cemetery
+1 Corpse Churn
+1 Revive the Shire
+1 Death's Presence
 
 // Card Draw
-1 Village Rites
-1 Call of the Ring
-1 Peregrin Took
+1 Llanowar Visionary
 1 Elvish Visionary
-1 Wear Down
-1 Prophetic Prism
+1 Village Rites
+1 Abundance
 1 Abundant Growth
+1 Stocking the Pantry
 
-// Removal
-1 Assassin's Trophy
-1 Return to Nature
-1 Murder
-1 Chthonian Nightmare
-1 Royal Assassin
-1 Thrashing Brontodon
-
-// Token Generators
-1 Arasta of the Endless Web
-1 Horn of Gondor
-1 Tangled Colony
-1 Dance of the Tumbleweeds
-1 Doomed Dissenter
-1 From Beyond
-1 Chatter of the Squirrel
-1 Within Range
-1 Mother Bear
-1 Ulvenwald Mysteries
-
-// Sacrifice Outlets
+// Removal & Interaction
 1 Bone Splinters
-1 Worthy Cost
 1 Spark Harvest
-1 Portcullis Vine
-1 Blood Funnel
-
-// Death Triggers / Drain
-1 Feign Death
-1 Supernatural Stamina
-1 Putrid Goblin
-1 Iron Apprentice
-1 Workshop Assistant
-1 Young Wolf
-1 Quirion Beastcaller
-1 Packsong Pup
-1 Perilous Myr
-
-// Big Wincons
-1 Gray Merchant of Asphodel
-1 Marauding Blight-Priest
-1 Twilight Prophet
+1 Return to Nature
+1 Assassin's Trophy
+1 Casualties of War
+1 Meteor Golem
+1 Thrashing Brontodon
 
 // Tierras No-Básicas
 1 Exotic Orchard
@@ -78,5 +70,5 @@
 1 Branch of Vitu-Ghazi
 
 // Basic Lands
-20 Swamp
-19 Forest
+22 Swamp
+21 Forest
