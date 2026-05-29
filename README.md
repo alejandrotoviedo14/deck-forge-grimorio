@@ -1,8 +1,27 @@
-# Deck Forge
+# Deck Forge — Grimorio
 
-Constructor local de mazos Commander a partir de tu colección de ManaBox.
+Constructor de mazos Commander a partir de tu colección de ManaBox.
 
-**Cero tokens de Claude consumidos en tiempo de ejecución.** Todo se ejecuta en tu máquina con tu `collection_enriched.json` ya generado.
+**Disponible online** → [deck-forge-grimorio-production.up.railway.app](https://deck-forge-grimorio-production.up.railway.app/)
+
+**Cero tokens de Claude consumidos en tiempo de ejecución.** Todo se ejecuta en el servidor con tu colección exportada de ManaBox.
+
+---
+
+## Uso web (recomendado)
+
+Accede desde cualquier dispositivo, sin instalar nada:
+
+1. Abre la URL de arriba
+2. Exporta tu colección desde ManaBox (`Settings → Export → CSV`)
+3. Sube el CSV en la pestaña **I. Colección**
+4. Analiza tu pool en **II. Analizar**
+5. Forja un mazo en **III. Forjar**
+6. Visualiza y descarga en **IV. Grimorio**
+
+---
+
+## Uso local (CLI)
 
 ---
 
