@@ -2,7 +2,7 @@
 
 Constructor de mazos Commander a partir de tu colección de ManaBox.
 
-**Disponible online** → [deck-forge-grimorio-production.up.railway.app](https://deck-forge-grimorio-production.up.railway.app/)
+**Disponible online** → [deckforge.up.railway.app](https://deckforge.up.railway.app/)
 
 **Cero tokens de Claude consumidos en tiempo de ejecución.** Todo se ejecuta en el servidor con tu colección exportada de ManaBox.
 
