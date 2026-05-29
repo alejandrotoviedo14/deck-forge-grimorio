@@ -3,221 +3,665 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Deck Forge</title>
+  <title>Deck Forge — Grimorio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --border: #2d3145;
-      --accent: #7c3aed;
-      --accent2: #06b6d4;
-      --text: #e2e8f0;
-      --muted: #64748b;
-      --success: #10b981;
-      --error: #ef4444;
+      --gold:        #c9a84c;
+      --gold-light:  #e8c96a;
+      --gold-dark:   #7a5c1e;
+      --bg:          #0a0806;
+      --bg2:         #100d08;
+      --panel:       #13100a;
+      --panel2:      #1a1510;
+      --border:      #3a2e1a;
+      --border-gold: #5a4520;
+      --text:        #d4c4a0;
+      --text-muted:  #7a6a4a;
+      --red:         #8b1a1a;
+      --blue:        #1a3a5c;
+      --green:       #1a3a1a;
+      --white:       #c8c0a8;
+      --black:       #2a1a2a;
+      --success:     #4a8a4a;
+      --error:       #8a2a2a;
+      --glow:        rgba(201,168,76,0.15);
     }
-    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem; }
-    header h1 { font-size: 1.4rem; font-weight: 700; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    header span { color: var(--muted); font-size: 0.85rem; }
-    main { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
-    .tabs { display: flex; gap: 0.25rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); }
-    .tab { padding: 0.6rem 1.2rem; cursor: pointer; border: none; background: none; color: var(--muted); font-size: 0.9rem; border-bottom: 2px solid transparent; transition: all 0.15s; }
-    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .tab:hover:not(.active) { color: var(--text); }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 17px;
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(90,45,10,0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(30,20,60,0.3) 0%, transparent 60%);
+    }
+
+    /* ── Runic border overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px),
+        repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px);
+    }
+
+    /* ─────────── HEADER ─────────── */
+    header {
+      position: relative;
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+      border-bottom: 1px solid var(--border-gold);
+      background: linear-gradient(180deg, rgba(201,168,76,0.06) 0%, transparent 100%);
+      overflow: hidden;
+    }
+    header::before, header::after {
+      content: '✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦';
+      display: block;
+      font-size: 0.75rem;
+      color: var(--gold-dark);
+      letter-spacing: 0.3em;
+      margin-bottom: 1rem;
+    }
+    header::after { margin-bottom: 0; margin-top: 1rem; }
+
+    .header-emblem {
+      font-size: 2.8rem;
+      display: block;
+      margin-bottom: 0.5rem;
+      filter: drop-shadow(0 0 20px rgba(201,168,76,0.6));
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { filter: drop-shadow(0 0 15px rgba(201,168,76,0.5)); }
+      50%       { filter: drop-shadow(0 0 30px rgba(201,168,76,0.9)); }
+    }
+
+    header h1 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #7a5c1e 0%, #c9a84c 40%, #e8c96a 60%, #c9a84c 80%, #7a5c1e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      letter-spacing: 0.08em;
+      line-height: 1.1;
+    }
+    header .subtitle {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-top: 0.5rem;
+    }
+
+    /* ─────────── LAYOUT ─────────── */
+    main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; position: relative; z-index: 1; }
+
+    /* ─────────── TABS ─────────── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2.5rem;
+      border: 1px solid var(--border-gold);
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--panel);
+    }
+    .tab {
+      flex: 1;
+      padding: 0.85rem 0.5rem;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-right: 1px solid var(--border-gold);
+      transition: all 0.2s;
+      position: relative;
+    }
+    .tab:last-child { border-right: none; }
+    .tab.active {
+      color: var(--gold);
+      background: linear-gradient(180deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.04) 100%);
+    }
+    .tab.active::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .tab:hover:not(.active) { color: var(--text); background: rgba(201,168,76,0.05); }
+
+    /* ─────────── PANEL ─────────── */
     .panel { display: none; }
     .panel.active { display: block; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--accent2); }
-    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.3rem; margin-top: 0.8rem; }
+
+    /* ─────────── CARD ─────────── */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border-gold);
+      border-radius: 6px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .card-title::before {
+      content: '◆';
+      font-size: 0.6rem;
+      color: var(--gold-dark);
+    }
+
+    /* ─────────── FORM ELEMENTS ─────────── */
+    label {
+      display: block;
+      font-family: 'Cinzel', serif;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+      margin-top: 1.2rem;
+    }
+
     input[type="text"], input[type="number"], select {
-      width: 100%; padding: 0.55rem 0.8rem; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--text); font-size: 0.9rem; outline: none;
+      width: 100%;
+      padding: 0.7rem 1rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: 'EB Garamond', serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
     }
-    input[type="file"] { color: var(--muted); font-size: 0.85rem; }
-    input:focus, select:focus { border-color: var(--accent); }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    @media(max-width: 600px) { .row { grid-template-columns: 1fr; } }
+    input:focus, select:focus {
+      border-color: var(--gold-dark);
+      box-shadow: 0 0 0 2px var(--glow);
+    }
+    select { cursor: pointer; }
+    select option { background: var(--panel2); }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 1.5rem;
+      background: var(--bg2);
+      border: 1px dashed var(--border-gold);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-family: 'EB Garamond', serif;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    input[type="file"]:hover {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.04);
+    }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media(max-width: 580px) { .row { grid-template-columns: 1fr; } }
+
+    .checkbox-row {
+      display: flex; align-items: center; gap: 0.6rem; margin-top: 1.2rem;
+      cursor: pointer;
+    }
+    .checkbox-row input[type="checkbox"] { accent-color: var(--gold); width: 16px; height: 16px; cursor: pointer; }
+    .checkbox-row label { margin: 0; cursor: pointer; font-size: 0.72rem; }
+
+    /* ─────────── BUTTON ─────────── */
     button.primary {
-      margin-top: 1.2rem; width: 100%; padding: 0.75rem; background: var(--accent);
-      color: #fff; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600;
-      cursor: pointer; transition: opacity 0.15s;
+      margin-top: 1.8rem;
+      width: 100%;
+      padding: 0.9rem 2rem;
+      background: linear-gradient(135deg, #3a2a0a 0%, #5a4015 50%, #3a2a0a 100%);
+      border: 1px solid var(--gold-dark);
+      border-radius: 4px;
+      color: var(--gold-light);
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
     }
-    button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    button.primary:hover:not(:disabled) { opacity: 0.85; }
-    .result { margin-top: 1.5rem; }
-    .result-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; font-size: 0.85rem; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; }
-    .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
-    .badge.ok { background: #064e3b; color: var(--success); }
-    .badge.err { background: #450a0a; color: var(--error); }
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; margin-top: 1rem; }
-    .stat { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; text-align: center; }
-    .stat .val { font-size: 1.4rem; font-weight: 700; color: var(--accent2); }
-    .stat .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
-    .dl-row { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
-    .dl-btn { padding: 0.4rem 0.9rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 0.8rem; cursor: pointer; text-decoration: none; }
-    .dl-btn:hover { border-color: var(--accent); }
-    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 0.75rem; }
-    th { text-align: left; color: var(--muted); padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); }
-    td { padding: 0.4rem 0.5rem; border-bottom: 1px solid #1e2130; }
-    tr:hover td { background: #1e2130; }
-    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 0.4rem; }
+    button.primary::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 0%, rgba(201,168,76,0.1) 50%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    button.primary:hover:not(:disabled)::before { opacity: 1; }
+    button.primary:hover:not(:disabled) {
+      border-color: var(--gold);
+      box-shadow: 0 0 20px rgba(201,168,76,0.2), inset 0 0 20px rgba(201,168,76,0.05);
+      color: var(--gold);
+    }
+    button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ─────────── STEPS ─────────── */
+    .steps { margin-bottom: 1.5rem; }
+    .step {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid rgba(58,46,26,0.5);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: var(--bg2);
+      border: 1px solid var(--border-gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      color: var(--gold-dark);
+    }
+    .step-done .step-num {
+      background: rgba(74,138,74,0.2);
+      border-color: var(--success);
+      color: #6abf6a;
+    }
+    .step-text { padding-top: 0.3rem; line-height: 1.5; font-size: 0.95rem; }
+    .step-text b { color: var(--gold-light); font-weight: 500; }
+
+    /* ─────────── MESSAGES ─────────── */
+    .msg {
+      padding: 0.8rem 1rem;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      margin-top: 1rem;
+      line-height: 1.5;
+      border-left: 3px solid;
+    }
+    .msg.ok  { background: rgba(74,138,74,0.1);  border-color: var(--success); color: #8aca8a; }
+    .msg.err { background: rgba(138,42,42,0.15); border-color: var(--error);   color: #ca8a8a; }
+    .msg.info { background: rgba(201,168,76,0.08); border-color: var(--gold-dark); color: var(--text-muted); }
+
+    /* ─────────── STATS ─────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 1rem;
+      margin-top: 1.2rem;
+    }
+    .stat {
+      background: var(--bg2);
+      border: 1px solid var(--border-gold);
+      border-radius: 4px;
+      padding: 1rem 0.75rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-dark), transparent);
+    }
+    .stat .val {
+      font-family: 'Cinzel', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--gold);
+      display: block;
+      line-height: 1.1;
+    }
+    .stat .lbl {
+      font-family: 'Cinzel', serif;
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 0.3rem;
+      display: block;
+    }
+
+    /* ─────────── TABLE ─────────── */
+    .table-wrap { overflow-x: auto; margin-top: 1rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    thead tr {
+      border-bottom: 1px solid var(--border-gold);
+    }
+    th {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold-dark);
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    td { padding: 0.55rem 0.75rem; border-bottom: 1px solid rgba(58,46,26,0.4); }
+    tr:hover td { background: rgba(201,168,76,0.04); }
+    .score-bar {
+      display: inline-block;
+      height: 4px;
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+      border-radius: 2px;
+      vertical-align: middle;
+      margin-left: 0.4rem;
+    }
+
+    /* ─────────── DOWNLOADS ─────────── */
+    .dl-row { display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap; }
+    .dl-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border-gold);
+      border-radius: 4px;
+      background: var(--bg2);
+      color: var(--text-muted);
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .dl-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ─────────── SPINNER ─────────── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border-gold);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.4rem;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .msg { padding: 0.6rem 0.8rem; border-radius: 6px; font-size: 0.85rem; margin-top: 0.75rem; }
-    .msg.ok { background: #064e3b44; border: 1px solid var(--success); color: var(--success); }
-    .msg.err { background: #450a0a44; border: 1px solid var(--error); color: var(--error); }
-    iframe { width: 100%; height: 600px; border: 1px solid var(--border); border-radius: 8px; margin-top: 1rem; }
-    .step { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
-    .step-num { width: 24px; height: 24px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
-    .step-done .step-num { background: var(--success); }
-    .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem; }
-    .checkbox-row label { margin: 0; color: var(--text); }
+
+    /* ─────────── GRIMORIO IFRAME ─────────── */
+    .grimorio-wrap {
+      border: 1px solid var(--border-gold);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 1rem;
+      position: relative;
+    }
+    .grimorio-wrap::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      z-index: 1;
+    }
+    iframe { width: 100%; height: 680px; border: none; display: block; }
+
+    /* ─────────── MANA SYMBOLS decorativos ─────────── */
+    .mana-deco {
+      display: flex; justify-content: center; gap: 0.8rem;
+      margin: 1.5rem 0 0;
+      opacity: 0.3;
+      font-size: 1.1rem;
+    }
+    .mana-w { color: #f8f6e3; }
+    .mana-u { color: #4a90d9; }
+    .mana-b { color: #c0a0c8; }
+    .mana-r { color: #e05030; }
+    .mana-g { color: #40a840; }
+
+    /* ─────────── DIVIDER ─────────── */
+    .divider {
+      display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0;
+      color: var(--border-gold);
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-gold));
+    }
+    .divider::after { background: linear-gradient(90deg, var(--border-gold), transparent); }
+
+    /* ─────────── COLOR BADGES ─────────── */
+    .color-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin: 0 1px;
+    }
+    .c-W { background: #f8f6e3; color: #333; }
+    .c-U { background: #1a4a8a; color: #9cc; }
+    .c-B { background: #2a1a2a; color: #c0a0c8; border: 1px solid #5a3a5a; }
+    .c-R { background: #7a1a0a; color: #fca; }
+    .c-G { background: #0a3a0a; color: #8fa; }
+
+    /* ─────────── FOOTER ─────────── */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
-  <h1>⚔ Deck Forge</h1>
-  <span>Constructor de mazos Commander desde tu colección</span>
+  <span class="header-emblem">⚔</span>
+  <h1>Deck Forge</h1>
+  <p class="subtitle">Grimorio del Constructor de Mazos Commander</p>
+  <div class="mana-deco">
+    <span class="mana-w">☀</span>
+    <span class="mana-u">💧</span>
+    <span class="mana-b">💀</span>
+    <span class="mana-r">🔥</span>
+    <span class="mana-g">🌿</span>
+  </div>
 </header>
 
 <main>
+
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab active" onclick="showTab('setup')">1. Colección</button>
-    <button class="tab" onclick="showTab('analyze')" id="tab-analyze">2. Analizar</button>
-    <button class="tab" onclick="showTab('build')" id="tab-build">3. Construir</button>
-    <button class="tab" onclick="showTab('grimorio')" id="tab-grimorio">4. Grimorio</button>
+    <button class="tab active" onclick="showTab('setup', this)">I. Colección</button>
+    <button class="tab" onclick="showTab('analyze', this)">II. Analizar</button>
+    <button class="tab" onclick="showTab('build', this)">III. Forjar</button>
+    <button class="tab" onclick="showTab('grimorio', this)">IV. Grimorio</button>
   </div>
 
-  <!-- PASO 1: CARGAR COLECCIÓN -->
+  <!-- ══════════ PANEL I: COLECCIÓN ══════════ -->
   <div class="panel active" id="panel-setup">
     <div class="card">
-      <h2>Carga tu colección de ManaBox</h2>
+      <div class="card-title">Invocar la Colección</div>
 
-      <div class="step" id="step1">
-        <div class="step-num">1</div>
-        <span>En ManaBox: <b>Settings → Export → CSV</b> → descarga tu colección real</span>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <span>Si tienes proxies, expórtalas también como fake.csv (opcional)</span>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <span>Sube los archivos aquí — el servidor los procesa con Scryfall</span>
+      <div class="steps">
+        <div class="step" id="step1">
+          <div class="step-num">I</div>
+          <div class="step-text">En ManaBox: <b>Settings → Export → CSV</b> para exportar tu colección</div>
+        </div>
+        <div class="step">
+          <div class="step-num">II</div>
+          <div class="step-text">Sube el archivo aquí — el servidor lo enriquecerá con datos de <b>Scryfall</b></div>
+        </div>
+        <div class="step">
+          <div class="step-num">III</div>
+          <div class="step-text">La primera vez descarga el catálogo completo (~300MB). Las siguientes son <b>instantáneas</b></div>
+        </div>
       </div>
 
-      <label>Tu colección de ManaBox (archivo CSV exportado)</label>
+      <div class="divider">Ofrenda de Cartas</div>
+
+      <label>Tu colección de ManaBox (archivo CSV)</label>
       <input type="file" id="real-csv" accept=".csv" />
 
       <button class="primary" id="btn-ingest" onclick="doIngest()">
-        Procesar colección
+        ✦ Invocar Colección ✦
       </button>
 
       <div id="ingest-result" class="result"></div>
     </div>
   </div>
 
-  <!-- PASO 2: ANALIZAR -->
+  <!-- ══════════ PANEL II: ANALIZAR ══════════ -->
   <div class="panel" id="panel-analyze">
     <div class="card">
-      <h2>Análisis del pool</h2>
+      <div class="card-title">Leer los Augurios</div>
+
+      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;margin-bottom:1rem">
+        El oráculo examinará tu colección y revelará qué comandantes pueden liderar tus fuerzas, ordenados por potencial arcano.
+      </p>
+
       <div class="row">
         <div>
           <label>Mínimo de colores</label>
           <select id="min-colors">
-            <option value="2">2 (bicolor+)</option>
-            <option value="3">3 (tricolor+)</option>
-            <option value="1">1 (monocolor+)</option>
+            <option value="2">Bicolor o más</option>
+            <option value="3">Tricolor o más</option>
+            <option value="1">Monocolor o más</option>
           </select>
         </div>
         <div>
-          <label>Top N comandantes</label>
+          <label>Comandantes a revelar</label>
           <input type="number" id="top-n" value="20" min="5" max="100" />
         </div>
       </div>
-      <button class="primary" onclick="doAnalyze()">Analizar pool</button>
-      <div id="analyze-result" class="result"></div>
+
+      <button class="primary" onclick="doAnalyze()">✦ Consultar el Oráculo ✦</button>
+      <div id="analyze-result"></div>
     </div>
   </div>
 
-  <!-- PASO 3: CONSTRUIR -->
+  <!-- ══════════ PANEL III: FORJAR ══════════ -->
   <div class="panel" id="panel-build">
     <div class="card">
-      <h2>Construir mazo</h2>
-      <label>Comandante (nombre exacto, o dejar vacío para auto-detectar)</label>
+      <div class="card-title">Forjar el Mazo</div>
+
+      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;margin-bottom:1rem">
+        Escoge a tu comandante y el maestro artesano ensamblará 100 cartas de tu colección, optimizadas para la victoria.
+      </p>
+
+      <label>Comandante (nombre exacto, o vacío para auto-detectar)</label>
       <input type="text" id="commander" placeholder="ej. Vorel of the Hull Clade" />
 
       <div class="row">
         <div>
-          <label>Colores (si no hay comandante)</label>
-          <input type="text" id="colors" placeholder="ej. GU, WUB" />
+          <label>Identidad de color (si no hay comandante)</label>
+          <input type="text" id="colors" placeholder="ej. GU, WUB, WUBRG" />
         </div>
         <div>
-          <label>Arquetipo</label>
+          <label>Arquetipo de batalla</label>
           <select id="archetype">
             <option value="">Auto-detectar</option>
             <option value="counters">+1/+1 Counters / Proliferate</option>
             <option value="equipment">Equipment Voltron</option>
-            <option value="aristocrats">Tokens / Sacrifice</option>
-            <option value="spellslinger">Spellslinger</option>
-            <option value="tribal">Tribal</option>
-            <option value="blink">Blink / ETB</option>
-            <option value="landfall">Landfall</option>
-            <option value="lifegain">Lifegain</option>
-            <option value="reanimator">Reanimator</option>
+            <option value="aristocrats">Tokens / Sacrificio / Drenaje</option>
+            <option value="spellslinger">Spellslinger / Cantrips</option>
+            <option value="tribal">Tribal / Kindred</option>
+            <option value="blink">Blink / ETB Abuse</option>
+            <option value="landfall">Landfall / Señor de Tierras</option>
+            <option value="lifegain">Ganancias de Vida</option>
+            <option value="reanimator">Reanimador / Cementerio</option>
           </select>
         </div>
       </div>
 
       <div class="checkbox-row">
         <input type="checkbox" id="use-edhrec" checked />
-        <label for="use-edhrec">Usar EDHREC (recomendado, más lento)</label>
+        <label for="use-edhrec">Consultar el Grimorio de EDHREC (más lento pero más preciso)</label>
       </div>
 
-      <button class="primary" onclick="doBuild()">Construir mazo</button>
-      <div id="build-result" class="result"></div>
+      <button class="primary" onclick="doBuild()">✦ Forjar el Mazo ✦</button>
+      <div id="build-result"></div>
     </div>
   </div>
 
-  <!-- PASO 4: GRIMORIO -->
+  <!-- ══════════ PANEL IV: GRIMORIO ══════════ -->
   <div class="panel" id="panel-grimorio">
     <div class="card">
-      <h2>Grimorio</h2>
-      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.5rem">
-        Todos los mazos construidos en esta sesión
+      <div class="card-title">El Grimorio</div>
+      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6">
+        Todos los mazos forjados en esta sesión. Las páginas del grimorio se iluminarán tras cada invocación.
       </p>
-      <button class="primary" style="margin-top:0" onclick="loadGrimorio()">Actualizar grimorio</button>
+      <button class="primary" style="margin-top:1.2rem" onclick="loadGrimorio()">✦ Abrir el Grimorio ✦</button>
+    </div>
+    <div class="grimorio-wrap">
       <iframe id="grimorio-frame" src="about:blank"></iframe>
     </div>
   </div>
+
 </main>
 
-<script>
-  // Estado global
-  let collection = null;   // JSON string
-  let realCsvFile = null;  // File object
+<footer>
+  Deck Forge — Constructor de Mazos Commander &nbsp;✦&nbsp; Forjado con fuego arcano
+</footer>
 
-  // ─── Tabs ───────────────────────────────────────────────────────────────
-  function showTab(name) {
+<script>
+  let collection = null;
+  let realCsvFile = null;
+
+  // ── Tabs ──
+  function showTab(name, btn) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelector(`#panel-${name}`).classList.add('active');
-    event.target.classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+    btn.classList.add('active');
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────
-  function setLoading(btn, loading) {
+  // ── Helpers ──
+  function setLoading(btn, loading, label) {
     btn.disabled = loading;
     btn.innerHTML = loading
-      ? '<span class="spinner"></span> Procesando...'
-      : btn.dataset.label || btn.textContent;
-    if (!btn.dataset.label) btn.dataset.label = btn.textContent;
+      ? `<span class="spinner"></span> ${label || 'Invocando...'}`
+      : (btn.dataset.orig || btn.innerHTML);
+    if (!btn.dataset.orig && !loading) btn.dataset.orig = btn.innerHTML;
   }
 
-  function showMsg(container, type, html) {
+  function msg(container, type, html) {
+    if (typeof container === 'string') container = document.getElementById(container);
     container.innerHTML = `<div class="msg ${type}">${html}</div>`;
   }
 
@@ -228,16 +672,24 @@
     a.click();
   }
 
-  // ─── INGEST ──────────────────────────────────────────────────────────────
+  function colorBadges(colors) {
+    if (!colors) return '—';
+    return [...colors].map(c =>
+      `<span class="color-badge c-${c}">${c}</span>`
+    ).join('');
+  }
+
+  // ── INGEST ──
   async function doIngest() {
     const btn = document.getElementById('btn-ingest');
     const result = document.getElementById('ingest-result');
     const realFile = document.getElementById('real-csv').files[0];
 
-    if (!realFile) { showMsg(result, 'err', 'Selecciona tu archivo CSV de ManaBox primero.'); return; }
+    if (!realFile) { msg(result, 'err', 'Debes ofrecer tu CSV de ManaBox antes de proceder.'); return; }
 
-    setLoading(btn, true);
-    showMsg(result, 'ok', '<span class="spinner"></span> Descargando datos de Scryfall (puede tardar 1-2 min la primera vez)...');
+    if (!btn.dataset.orig) btn.dataset.orig = btn.innerHTML;
+    setLoading(btn, true, 'Consultando los Pergaminos de Scryfall...');
+    msg(result, 'info', '<span class="spinner"></span> Descargando el catálogo de Scryfall — puede tardar 1-2 minutos la primera vez...');
 
     const fd = new FormData();
     fd.append('real_csv', realFile);
@@ -249,33 +701,33 @@
 
       collection = JSON.stringify(data.collection);
       realCsvFile = realFile;
+      document.getElementById('step1').classList.add('step-done');
 
       result.innerHTML = `
-        <div class="msg ok">✓ Colección procesada correctamente</div>
+        <div class="msg ok">✦ Colección invocada con éxito</div>
         <div class="stat-grid">
-          <div class="stat"><div class="val">${data.real_count}</div><div class="lbl">Cartas reales</div></div>
-          <div class="stat"><div class="val">${data.fake_count}</div><div class="lbl">Proxies excluidas</div></div>
+          <div class="stat"><span class="val">${data.real_count}</span><span class="lbl">Cartas reales</span></div>
+          <div class="stat"><span class="val">${data.fake_count}</span><span class="lbl">Proxies excluidas</span></div>
         </div>
-        <p style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted)">
-          Pasa a las pestañas Analizar y Construir.
+        <p style="margin-top:1rem;color:var(--text-muted);font-size:0.9rem">
+          Los pergaminos han sido descifrados. Procede a <b style="color:var(--gold-light)">Analizar</b> o <b style="color:var(--gold-light)">Forjar</b>.
         </p>`;
-
-      document.getElementById('step1').classList.add('step-done');
     } catch(e) {
-      showMsg(result, 'err', '✗ Error: ' + e.message);
+      msg(result, 'err', '✗ El ritual ha fallado: ' + e.message);
     } finally {
-      setLoading(btn, false);
-      btn.textContent = 'Procesar colección';
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.orig;
     }
   }
 
-  // ─── ANALYZE ─────────────────────────────────────────────────────────────
+  // ── ANALYZE ──
   async function doAnalyze() {
-    if (!collection) { alert('Carga tu colección primero (pestaña 1).'); return; }
+    if (!collection) { alert('Invoca tu colección primero (pestaña I).'); return; }
     const btn = event.target;
+    if (!btn.dataset.orig) btn.dataset.orig = btn.innerHTML;
+    setLoading(btn, true, 'Consultando el Oráculo...');
     const result = document.getElementById('analyze-result');
-    setLoading(btn, true);
-    result.innerHTML = '<div class="msg ok"><span class="spinner"></span> Analizando...</div>';
+    msg(result, 'info', '<span class="spinner"></span> El oráculo estudia tus cartas...');
 
     const fd = new FormData();
     fd.append('collection', collection);
@@ -289,49 +741,57 @@
 
       const rows = data.commanders.map(c => `
         <tr>
-          <td>${c.name}</td>
-          <td>${c.colors || '—'}</td>
-          <td>${c.archetype_name || '—'}</td>
-          <td>${c.total_score}</td>
-          <td>${c.bracket_ceiling}</td>
+          <td style="font-weight:500;color:var(--text)">${c.name}</td>
+          <td>${colorBadges(c.colors)}</td>
+          <td style="color:var(--text-muted);font-size:0.85rem">${c.archetype_name || '—'}</td>
+          <td>
+            <span style="color:var(--gold);font-family:'Cinzel',serif">${c.total_score}</span>
+            <span class="score-bar" style="width:${c.total_score * 0.8}px"></span>
+          </td>
+          <td style="color:var(--text-muted)">${c.bracket_ceiling}</td>
         </tr>`).join('');
 
       result.innerHTML = `
-        <div class="stat-grid">
-          <div class="stat"><div class="val">${data.pool_size}</div><div class="lbl">Cartas en pool</div></div>
-          <div class="stat"><div class="val">${data.max_bracket}</div><div class="lbl">Bracket máximo</div></div>
-          <div class="stat"><div class="val">${data.commanders.length}</div><div class="lbl">Comandantes</div></div>
+        <div class="stat-grid" style="margin-top:1.2rem">
+          <div class="stat"><span class="val">${data.pool_size}</span><span class="lbl">Cartas en pool</span></div>
+          <div class="stat"><span class="val">${data.max_bracket}</span><span class="lbl">Bracket máximo</span></div>
+          <div class="stat"><span class="val">${data.commanders.length}</span><span class="lbl">Comandantes</span></div>
         </div>
-        <table>
-          <thead><tr><th>Comandante</th><th>Colores</th><th>Arquetipo</th><th>Score</th><th>Bracket</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`;
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Comandante</th><th>Colores</th><th>Arquetipo</th><th>Score</th><th>Bracket</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
     } catch(e) {
-      showMsg(result, 'err', '✗ ' + e.message);
+      msg(result, 'err', '✗ El oráculo no pudo responder: ' + e.message);
     } finally {
-      setLoading(btn, false); btn.textContent = 'Analizar pool';
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.orig;
     }
   }
 
-  // ─── BUILD ───────────────────────────────────────────────────────────────
+  // ── BUILD ──
   async function doBuild() {
-    if (!collection) { alert('Carga tu colección primero (pestaña 1).'); return; }
-    if (!realCsvFile) { alert('Necesitas tu real.csv (pestaña 1).'); return; }
+    if (!collection) { alert('Invoca tu colección primero (pestaña I).'); return; }
     const btn = event.target;
+    if (!btn.dataset.orig) btn.dataset.orig = btn.innerHTML;
+    setLoading(btn, true, 'Forjando el Mazo...');
     const result = document.getElementById('build-result');
-    setLoading(btn, true);
-    result.innerHTML = '<div class="msg ok"><span class="spinner"></span> Construyendo mazo (puede tardar 30-60 seg con EDHREC)...</div>';
+    msg(result, 'info', '<span class="spinner"></span> El maestro artesano ensambla las cartas — puede tardar hasta 60 segundos con EDHREC activo...');
 
     const fd = new FormData();
     fd.append('collection', collection);
     fd.append('real_csv', realCsvFile);
-    const cmd = document.getElementById('commander').value.trim();
+    const cmd    = document.getElementById('commander').value.trim();
     const colors = document.getElementById('colors').value.trim();
-    const arch = document.getElementById('archetype').value;
+    const arch   = document.getElementById('archetype').value;
     const edhrec = document.getElementById('use-edhrec').checked;
-    if (cmd) fd.append('commander', cmd);
+    if (cmd)    fd.append('commander', cmd);
     if (colors) fd.append('colors', colors);
-    if (arch) fd.append('archetype', arch);
+    if (arch)   fd.append('archetype', arch);
     fd.append('use_edhrec', edhrec);
 
     try {
@@ -342,12 +802,13 @@
       window._lastBuild = data;
 
       result.innerHTML = `
-        <div class="msg ok">✓ Mazo construido: <b>${data.commander}</b></div>
+        <div class="msg ok">✦ Mazo forjado: <b>${data.commander}</b></div>
         <div class="stat-grid">
-          <div class="stat"><div class="val">${data.card_count + data.needed_basics}</div><div class="lbl">Cartas totales</div></div>
-          <div class="stat"><div class="val">${data.bracket}</div><div class="lbl">Bracket</div></div>
-          <div class="stat"><div class="val">${data.archetype}</div><div class="lbl">Arquetipo</div></div>
+          <div class="stat"><span class="val">${data.card_count + data.needed_basics}</span><span class="lbl">Cartas totales</span></div>
+          <div class="stat"><span class="val">${data.bracket}</span><span class="lbl">Bracket</span></div>
+          <div class="stat"><span class="val">${data.archetype}</span><span class="lbl">Arquetipo</span></div>
         </div>
+        <div class="divider" style="margin:1.2rem 0 0.8rem">Exportar el Grimorio</div>
         <div class="dl-row">
           <button class="dl-btn" onclick="download('${data.deck_key}_moxfield.txt', window._lastBuild.moxfield_txt)">
             ⬇ Moxfield .txt
@@ -361,18 +822,19 @@
         </div>`;
 
       // Auto-cargar grimorio
-      const frame = document.getElementById('grimorio-frame');
-      frame.srcdoc = data.grimorio_html;
+      document.getElementById('grimorio-frame').srcdoc = data.grimorio_html;
     } catch(e) {
-      showMsg(result, 'err', '✗ ' + e.message);
+      msg(result, 'err', '✗ La forja ha fallado: ' + e.message);
     } finally {
-      setLoading(btn, false); btn.textContent = 'Construir mazo';
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.orig;
     }
   }
 
-  // ─── GRIMORIO ────────────────────────────────────────────────────────────
+  // ── GRIMORIO ──
   async function loadGrimorio() {
     const frame = document.getElementById('grimorio-frame');
+    msg('grimorio-frame', 'info', ''); // no aplica, es iframe
     const res = await fetch('/api/grimorio');
     const html = await res.text();
     frame.srcdoc = html;
