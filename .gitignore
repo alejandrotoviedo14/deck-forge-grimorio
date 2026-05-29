@@ -1,2 +1,11 @@
-
+﻿
 .env
+
+__pycache__/
+*.pyc
+.venv/
+collection_enriched.json
+real.csv
+fake.csv
+decks/decks_index.json
+
