@@ -574,6 +574,7 @@ async def build(
 
     # Guardar el CSV real temporalmente para to_manabox_csv
     tmp_real = _WORK_DIR / "upload" / "real.csv"
+    tmp_real.parent.mkdir(parents=True, exist_ok=True)
     tmp_real.write_bytes(real_bytes)
 
     mox_path.write_text(to_moxfield_txt(deck, basics), encoding="utf-8")
@@ -668,6 +669,7 @@ async def multi(
     basics = _load_basics_from_bytes(real_bytes)
     pool = build_real_pool(coll)
     tmp_real = _WORK_DIR / "upload" / "real.csv"
+    tmp_real.parent.mkdir(parents=True, exist_ok=True)
     tmp_real.write_bytes(real_bytes)
 
     results = []
