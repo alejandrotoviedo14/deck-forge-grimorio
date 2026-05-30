@@ -92,18 +92,80 @@ def to_manabox_csv(deck: BuiltDeck, raw_csv_path, basics_csv_data=None) -> str:
 # Color identity → CSS class
 COLOR_CLASS = {"W": "w", "U": "u", "B": "b", "R": "r", "G": "g", "C": "c"}
 
-# Archetype descriptions for wincon section
-ARCHETYPE_WINCONS = {
-    "counters":    ["Simic Ascendancy a 20 contadores", "Alpha strike con criatura monstruosa", "Proliferate loop con engine de draw"],
-    "equipment":   ["21 puntos de daño de comandante (voltron)", "One-shot con evasión + Swords", "Stax con equipos de protección"],
-    "aristocrats": ["Drain incremental con Blood Artist / Zulaport", "Loop de sacrifice infinito", "Token flood + sac outlet"],
-    "spellslinger":["Storm-lite con Grapeshot o Brain Freeze", "Burn incremental con Guttersnipe", "Niv-Mizzet loop draw-damage"],
-    "tribal":      ["Board wide con Coat of Arms", "Shared Animosity alpha strike", "Lord stack + evasión tribal"],
-    "blink":       ["ETB loop infinito con Panharmonicon", "Value acumulado con Conjurer's Closet", "ETB combo 2 cartas"],
-    "landfall":    ["Scute Swarm tokens exponencial", "Avenger of Zendikar + ramp", "Valakut / Scapeshift combo"],
-    "lifegain":    ["Aetherflux Reservoir oneshot", "Sanguine Bond + Exquisite Blood loop", "Felidar Sovereign victory"],
-    "reanimator":  ["Criatura 8+ en turno 3-4", "Sheoldred / Grave Titan loop", "Entomb + Reanimate turn 1"],
-}
+def _extract_wincons_from_deck(deck: "BuiltDeck") -> list[str]:
+    """
+    Extrae wincons reales del mazo construido.
+    Prioriza cartas con rol Wincon/Threat, luego payoffs de arquetipo.
+    Devuelve entre 2 y 4 descripciones basadas en cartas que SÍ están en el mazo.
+    """
+    wincon_roles = {"Wincon", "Threat"}
+    payoff_roles = {"Payoff", "Death Payoff", "ETB Target", "Tribal", "Landfall",
+                    "Lifegain Payoff", "Reanimate", "Target", "Wincon"}
+
+    # 1. Cartas explícitamente categorizadas como Wincon/Threat
+    primary = [
+        dc for dc in deck.cards
+        if dc.role in wincon_roles or dc.category in ("Wincons & Amenazas", "Wincon")
+    ]
+
+    # 2. Payoffs de arquetipo como segunda fuente
+    secondary = [
+        dc for dc in deck.cards
+        if dc.role in payoff_roles and dc not in primary
+    ]
+
+    # 3. Criaturas con CMC alto del mazo como fallback
+    fallback = [
+        dc for dc in deck.cards
+        if dc.card.get("is_creature") and int(dc.card.get("cmc") or 0) >= 5
+        and dc not in primary and dc not in secondary
+    ]
+
+    # Ordenar por edhrec_rank (más popular primero)
+    def rank_key(dc):
+        return dc.card.get("edhrec_rank") or 999999
+
+    candidates = (
+        sorted(primary, key=rank_key)
+        + sorted(secondary, key=rank_key)
+        + sorted(fallback, key=rank_key)
+    )
+
+    wincons = []
+    for dc in candidates[:4]:
+        name = dc.card.get("name", "")
+        oracle = (dc.card.get("oracle_text") or "").replace("\n", " ")[:120]
+        cmc_val = int(dc.card.get("cmc") or 0)
+        type_line = dc.card.get("type_line", "")
+
+        # Generar descripción contextual basada en el texto real de la carta
+        if "you win the game" in oracle.lower():
+            desc = f"{name} — condición de victoria directa"
+        elif "deals" in oracle.lower() and "damage" in oracle.lower():
+            desc = f"{name} — daño directo como motor de cierre"
+        elif "commander damage" in oracle.lower() or dc.role in ("Wincon",) and "Creature" in type_line:
+            desc = f"{name} — amenaza de combate principal (CMC {cmc_val})"
+        elif "drain" in oracle.lower() or "lose life" in oracle.lower():
+            desc = f"{name} — drenaje incremental de vida"
+        elif "token" in oracle.lower() and "create" in oracle.lower():
+            desc = f"{name} — generador de tokens para alpha strike"
+        elif "double" in oracle.lower() or "copy" in oracle.lower():
+            desc = f"{name} — multiplicador de efectos"
+        elif cmc_val >= 6:
+            desc = f"{name} — amenaza de final de juego (CMC {cmc_val})"
+        else:
+            desc = f"{name} — wincon del arquetipo {deck.archetype.name}"
+
+        wincons.append(desc)
+
+    # Si no encontramos nada, al menos devolvemos el plan general sin mencionar cartas específicas
+    if not wincons:
+        wincons = [
+            f"Plan A: desarrollar el plan de {deck.archetype.name} y cerrar con criaturas del mazo",
+            "Plan B: ventaja acumulada + presión de comandante",
+        ]
+
+    return wincons
 
 ARCHETYPE_DESCRIPTIONS = {
     "counters":    "Acumulamos +1/+1 counters. El comandante los duplica o prolifera.",
@@ -180,7 +242,7 @@ def _build_deck_data_json(deck: BuiltDeck, bracket: BracketReport) -> dict:
         "archetype_key": archetype_key,
         "archetype_name": deck.archetype.name,
         "archetype_desc": ARCHETYPE_DESCRIPTIONS.get(archetype_key, deck.archetype.description),
-        "wincons": ARCHETYPE_WINCONS.get(archetype_key, []),
+        "wincons": _extract_wincons_from_deck(deck),
         "colors": deck.colors,
         "color_pips": _color_pips(deck.colors),
         "bracket": bracket.bracket,
