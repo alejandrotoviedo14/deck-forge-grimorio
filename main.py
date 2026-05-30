@@ -69,6 +69,65 @@ def _save_upload(upload: UploadFile, dest: Path) -> Path:
     return dest
 
 
+def _build_sim_cards(deck) -> list[dict]:
+    """Construye la lista de 99 cartas para el simulador (sin el comandante)."""
+    BASIC_NAMES = {
+        "W": "Plains", "U": "Island", "B": "Swamp", "R": "Mountain", "G": "Forest"
+    }
+    BASIC_IDS = {
+        "Plains":   "bc8d829c-22f9-4a35-bb4c-a0dfd7ab18a0",
+        "Island":   "b278f8b3-7799-4a67-a81b-96e61aa28f8e",
+        "Swamp":    "72b4d0b9-40f3-4a1e-8cf6-baab3bf3e4fc",
+        "Mountain": "f0e9fb8a-cc60-4e79-b6de-54e4e73d8873",
+        "Forest":   "a3fb7228-e76b-4240-a9b1-58a9c7ab98d2",
+    }
+
+    def scryfall_img(sid):
+        if not sid or len(sid) < 2: return ""
+        return f"https://cards.scryfall.io/normal/front/{sid[0]}/{sid[1]}/{sid}.jpg"
+
+    cards = []
+    for dc in deck.cards:
+        c = dc.card
+        sid = c.get("scryfall_id") or c.get("id") or ""
+        cards.append({
+            "name": c.get("name", ""),
+            "scryfall_id": sid,
+            "img": scryfall_img(sid),
+            "type_line": c.get("type_line", ""),
+            "cmc": int(c.get("cmc") or 0),
+            "is_land": bool(c.get("is_land")),
+            "category": dc.category,
+            "role": dc.role,
+        })
+
+    # Añadir básicas
+    colors = deck.colors or "W"
+    needed = deck.needed_basics
+    basics_per_color = {c: 0 for c in colors}
+    per = needed // len(colors)
+    rem = needed % len(colors)
+    for i, c in enumerate(colors):
+        basics_per_color[c] = per + (1 if i < rem else 0)
+
+    for color, count in basics_per_color.items():
+        name = BASIC_NAMES.get(color, "Plains")
+        sid = BASIC_IDS.get(name, "")
+        for _ in range(count):
+            cards.append({
+                "name": name,
+                "scryfall_id": sid,
+                "img": scryfall_img(sid),
+                "type_line": "Basic Land",
+                "cmc": 0,
+                "is_land": True,
+                "category": "Tierras Básicas",
+                "role": "Land",
+            })
+
+    return cards
+
+
 def _load_basics_from_bytes(content: bytes) -> dict:
     import csv as csv_mod
     basics = {}
@@ -337,6 +396,9 @@ async def build(
     index = load_index(deck_dir)
     grimorio_html = build_multi_html_from_index(deck_dir, index.get("decks", {}))
 
+    # Preparar lista de cartas para el simulador
+    sim_cards = _build_sim_cards(deck)
+
     return {
         "ok": True,
         "commander": deck.commander["name"],
@@ -350,6 +412,7 @@ async def build(
         "grimorio_html": grimorio_html,
         "moxfield_txt": mox_path.read_text(encoding="utf-8"),
         "manabox_csv": csv_path.read_text(encoding="utf-8"),
+        "sim_cards": sim_cards,
     }
 
 
@@ -480,6 +543,59 @@ async def upgrade(
         "summary": str(report),
     }
     return report_dict
+
+
+# ---------------------------------------------------------------------------
+# GET /api/decks/{deck_key}/cards — cartas para el simulador
+# ---------------------------------------------------------------------------
+
+@app.get("/api/decks/{deck_key}/cards")
+async def deck_cards_for_sim(deck_key: str):
+    """Devuelve las 99 cartas del mazo para el simulador."""
+    from core.deck_index import get_deck
+    deck_data = get_deck(_DECKS_DIR, deck_key)
+    if not deck_data:
+        raise HTTPException(status_code=404, detail=f"Mazo '{deck_key}' no encontrado")
+
+    BASIC_IDS = {
+        "Plains":   "bc8d829c-22f9-4a35-bb4c-a0dfd7ab18a0",
+        "Island":   "b278f8b3-7799-4a67-a81b-96e61aa28f8e",
+        "Swamp":    "72b4d0b9-40f3-4a1e-8cf6-baab3bf3e4fc",
+        "Mountain": "f0e9fb8a-cc60-4e79-b6de-54e4e73d8873",
+        "Forest":   "a3fb7228-e76b-4240-a9b1-58a9c7ab98d2",
+    }
+    BASIC_NAMES = {"W":"Plains","U":"Island","B":"Swamp","R":"Mountain","G":"Forest"}
+
+    def img(sid):
+        if not sid or len(sid) < 2: return ""
+        return f"https://cards.scryfall.io/normal/front/{sid[0]}/{sid[1]}/{sid}.jpg"
+
+    cards = []
+    for c in deck_data.get("cards", []):
+        sid = c.get("scryfall_id") or c.get("id") or ""
+        cards.append({
+            "name": c.get("name",""),
+            "scryfall_id": sid,
+            "img": img(sid),
+            "type_line": c.get("type_line",""),
+            "cmc": int(c.get("cmc") or 0),
+            "is_land": bool(c.get("is_land")),
+            "category": "",
+            "role": "",
+        })
+
+    colors = deck_data.get("colors", "W")
+    needed = deck_data.get("needed_basics", 37)
+    per = needed // max(len(colors),1)
+    rem = needed % max(len(colors),1)
+    for i, c in enumerate(colors):
+        name = BASIC_NAMES.get(c, "Plains")
+        sid = BASIC_IDS.get(name, "")
+        for _ in range(per + (1 if i < rem else 0)):
+            cards.append({"name":name,"scryfall_id":sid,"img":img(sid),
+                          "type_line":"Basic Land","cmc":0,"is_land":True,
+                          "category":"Tierras Básicas","role":"Land"})
+    return {"commander": deck_data.get("commander",""), "cards": cards}
 
 
 # ---------------------------------------------------------------------------

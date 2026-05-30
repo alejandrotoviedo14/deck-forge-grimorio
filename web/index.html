@@ -179,6 +179,106 @@
     .hint { font-size:0.85rem; color:var(--text-muted); font-style:italic; margin-top:0.5rem; }
 
     footer { text-align:center; padding:2rem 1rem; border-top:1px solid var(--border); color:var(--text-muted); font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; }
+
+    /* ── SIMULADOR ── */
+    .sim-controls { display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .sim-btn {
+      padding:0.5rem 1.1rem; border:1px solid var(--border-gold); border-radius:4px;
+      background:var(--bg2); color:var(--gold-light); font-family:'Cinzel',serif;
+      font-size:0.72rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;
+      cursor:pointer; transition:all 0.2s;
+    }
+    .sim-btn:hover { border-color:var(--gold); background:rgba(201,168,76,0.08); }
+    .sim-btn:disabled { opacity:0.3; cursor:not-allowed; }
+    .sim-btn.danger { border-color:#8a2a2a; color:#ca8a8a; }
+    .sim-btn.danger:hover { background:rgba(138,42,42,0.15); }
+
+    .sim-stat { font-family:'Cinzel',serif; font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem; }
+    .sim-stat b { color:var(--gold); font-size:1.1rem; }
+
+    .sim-life-area { display:flex; align-items:center; gap:0.5rem; margin-left:auto; }
+    .sim-life-btn { width:28px; height:28px; border:1px solid var(--border-gold); border-radius:50%; background:var(--bg2); color:var(--gold); font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+    .sim-life-btn:hover { border-color:var(--gold); background:rgba(201,168,76,0.1); }
+    .sim-life-val { font-family:'Cinzel',serif; font-size:1.5rem; font-weight:700; color:var(--gold); min-width:3ch; text-align:center; }
+
+    .sim-zones { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+    @media(max-width:600px) { .sim-zones { grid-template-columns:1fr; } }
+    .sim-zone-label { font-family:'Cinzel',serif; font-size:0.65rem; color:var(--gold-dark); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.5rem; }
+    .sim-zone-count { font-size:0.8rem; color:var(--text-muted); float:right; }
+
+    .sim-hand {
+      display:flex; flex-wrap:wrap; gap:8px; min-height:180px;
+      background:var(--bg2); border:1px solid var(--border-gold); border-radius:6px; padding:1rem;
+    }
+    .sim-card {
+      width:80px; border-radius:6px; overflow:hidden; cursor:pointer;
+      border:2px solid transparent; transition:all 0.2s; position:relative; flex-shrink:0;
+    }
+    .sim-card:hover { border-color:var(--gold); transform:translateY(-8px); z-index:10; }
+    .sim-card.selected { border-color:var(--gold); transform:translateY(-12px); box-shadow:0 8px 20px rgba(201,168,76,0.3); }
+    .sim-card.tapped { transform:rotate(7deg); opacity:0.8; }
+    .sim-card.tapped:hover { transform:rotate(7deg) translateY(-4px); }
+    .sim-card img { width:100%; display:block; border-radius:4px; }
+    .sim-card .card-name-fallback {
+      background:var(--panel2); border:1px solid var(--border); border-radius:4px;
+      padding:4px; font-size:0.6rem; color:var(--text); min-height:110px;
+      display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.3;
+    }
+
+    .sim-card-actions {
+      position:absolute; bottom:0; left:0; right:0;
+      background:linear-gradient(0deg,rgba(0,0,0,0.9) 0%,transparent 100%);
+      padding:20px 4px 4px; display:none; gap:2px; flex-direction:column;
+    }
+    .sim-card:hover .sim-card-actions { display:flex; }
+    .sim-card-action {
+      background:rgba(201,168,76,0.2); border:none; color:var(--gold-light);
+      font-size:0.55rem; padding:2px 4px; border-radius:2px; cursor:pointer;
+      font-family:'Cinzel',serif; letter-spacing:0.05em; text-transform:uppercase;
+      transition:background 0.15s; text-align:center;
+    }
+    .sim-card-action:hover { background:rgba(201,168,76,0.4); }
+
+    .sim-gy {
+      display:flex; flex-wrap:wrap; gap:6px; min-height:60px;
+      background:var(--bg2); border:1px solid var(--border); border-radius:6px; padding:0.75rem;
+    }
+    .sim-gy .sim-card { width:50px; opacity:0.6; }
+    .sim-gy .sim-card:hover { opacity:1; transform:translateY(-4px) scale(1.3); z-index:20; }
+
+    .sim-phase {
+      display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:1rem;
+    }
+    .phase-pip {
+      padding:0.25rem 0.7rem; border-radius:99px; font-family:'Cinzel',serif;
+      font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase;
+      border:1px solid var(--border); color:var(--text-muted); cursor:pointer; transition:all 0.15s;
+    }
+    .phase-pip.active { background:rgba(201,168,76,0.15); border-color:var(--gold); color:var(--gold); }
+
+    .sim-log {
+      background:var(--bg2); border:1px solid var(--border); border-radius:4px;
+      padding:0.75rem 1rem; max-height:120px; overflow-y:auto; margin-top:1rem;
+      font-size:0.82rem; color:var(--text-muted); font-style:italic; line-height:1.6;
+    }
+    .sim-log p { margin:0; }
+    .sim-log p + p { border-top:1px solid var(--border); margin-top:0.3rem; padding-top:0.3rem; }
+    .log-gold { color:var(--gold-light); font-style:normal; }
+
+    .sim-empty { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:1rem; min-height:300px; color:var(--text-muted); text-align:center; }
+    .sim-empty p { font-size:0.95rem; line-height:1.6; }
+
+    .sim-mulligan-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85);
+      z-index:100; align-items:center; justify-content:center; flex-direction:column; gap:1.5rem;
+    }
+    .sim-mulligan-overlay.visible { display:flex; }
+    .sim-mulligan-box { background:var(--panel); border:1px solid var(--border-gold); border-radius:8px; padding:2rem; max-width:500px; width:90%; text-align:center; }
+    .sim-mulligan-box h3 { font-family:'Cinzel',serif; color:var(--gold); margin-bottom:1rem; }
+    .sim-mulligan-input { display:flex; align-items:center; justify-content:center; gap:1rem; margin:1rem 0; }
+    .sim-mulligan-n { font-family:'Cinzel',serif; font-size:2rem; color:var(--gold); min-width:2ch; }
+    .sim-mull-btn-row { display:flex; gap:0.75rem; justify-content:center; margin-top:1rem; }
+    .keep-btn { background:linear-gradient(135deg,#1a3a1a,#2a5a2a); border-color:#4a8a4a; color:#8aca8a; }
   </style>
 </head>
 <body>
@@ -199,6 +299,7 @@
     <button class="tab" onclick="showTab('analyze',this)">II. Analizar</button>
     <button class="tab" onclick="showTab('build',this)">III. Forjar</button>
     <button class="tab" onclick="showTab('grimorio',this)">IV. Grimorio</button>
+    <button class="tab" onclick="showTab('sim',this)">V. Simular</button>
   </div>
 
   <!-- ══ I. COLECCIÓN ══ -->
@@ -324,6 +425,94 @@
     </div>
   </div>
 
+  <!-- ══ V. SIMULADOR ══ -->
+  <div class="panel" id="panel-sim">
+    <div class="card">
+      <div class="card-title">Mesa de Juego</div>
+
+      <!-- Selector de mazo -->
+      <div class="col-selector" id="sim-deck-selector">
+        <div class="col-selector-header">◆ Mazo a simular</div>
+        <select id="sim-deck-select">
+          <option value="">— Forja un mazo primero —</option>
+        </select>
+        <button class="primary" style="margin-top:1rem" onclick="startSim()">✦ Comenzar Partida ✦</button>
+      </div>
+
+      <!-- Mesa (oculta hasta que empiece la partida) -->
+      <div id="sim-table" style="display:none">
+
+        <!-- Controles superiores -->
+        <div class="sim-controls">
+          <button class="sim-btn" onclick="simDraw()" id="btn-draw">⬇ Robar</button>
+          <button class="sim-btn" onclick="simNextTurn()" id="btn-next">→ Siguiente Turno</button>
+          <button class="sim-btn" onclick="showMulliganOverlay()" id="btn-mull">↩ Mulligan</button>
+          <button class="sim-btn danger" onclick="resetSim()">↺ Nueva Partida</button>
+
+          <div class="sim-stat">Turno <b id="sim-turn">1</b></div>
+          <div class="sim-stat">Mazo <b id="sim-library-count">99</b></div>
+          <div class="sim-stat">Mano <b id="sim-hand-count">7</b></div>
+
+          <div class="sim-life-area">
+            <button class="sim-life-btn" onclick="changeLife(-1)">−</button>
+            <div class="sim-life-val" id="sim-life">40</div>
+            <button class="sim-life-btn" onclick="changeLife(+1)">+</button>
+          </div>
+        </div>
+
+        <!-- Fases -->
+        <div class="sim-phase" id="sim-phases">
+          <span class="phase-pip active" onclick="setPhase(this)">Inicio</span>
+          <span class="phase-pip" onclick="setPhase(this)">Mantenimiento</span>
+          <span class="phase-pip" onclick="setPhase(this)">Robar</span>
+          <span class="phase-pip" onclick="setPhase(this)">Principal I</span>
+          <span class="phase-pip" onclick="setPhase(this)">Combate</span>
+          <span class="phase-pip" onclick="setPhase(this)">Principal II</span>
+          <span class="phase-pip" onclick="setPhase(this)">Final</span>
+        </div>
+
+        <!-- Mano -->
+        <div class="sim-zone-label">Mano <span class="sim-zone-count" id="hand-label"></span></div>
+        <div class="sim-hand" id="sim-hand"></div>
+
+        <!-- Cementerio -->
+        <div class="sim-zones" style="margin-top:1rem">
+          <div>
+            <div class="sim-zone-label">Cementerio <span class="sim-zone-count" id="gy-label"></span></div>
+            <div class="sim-gy" id="sim-gy"></div>
+          </div>
+          <div>
+            <div class="sim-zone-label">Exilio <span class="sim-zone-count" id="exile-label"></span></div>
+            <div class="sim-gy" id="sim-exile"></div>
+          </div>
+        </div>
+
+        <!-- Log -->
+        <div class="sim-log" id="sim-log"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay de Mulligan -->
+  <div class="sim-mulligan-overlay" id="mull-overlay">
+    <div class="sim-mulligan-box">
+      <h3>Mulligan de Londres</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">
+        Robas 7 cartas nuevas y devuelves <b id="mull-return-n">N</b> al fondo del mazo.
+      </p>
+      <div class="sim-mulligan-input">
+        <button class="sim-life-btn" onclick="changeMullN(-1)">−</button>
+        <div class="sim-mulligan-n" id="mull-n-display">1</div>
+        <button class="sim-life-btn" onclick="changeMullN(+1)">+</button>
+      </div>
+      <p style="color:var(--text-muted);font-size:0.82rem">Cartas a devolver</p>
+      <div class="sim-mull-btn-row">
+        <button class="sim-btn keep-btn" onclick="doMulligan()">✦ Hacer Mulligan</button>
+        <button class="sim-btn" onclick="hideMulliganOverlay()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ IV. GRIMORIO ══ -->
   <div class="panel" id="panel-grimorio">
     <div class="card">
@@ -357,6 +546,7 @@ function showTab(name, btn) {
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
   if (name === 'analyze' || name === 'build') refreshCollectionSelects();
+  if (name === 'sim') refreshSimDeckSelect();
 }
 
 // ── Helpers ──
@@ -681,6 +871,230 @@ async function loadGrimorio() {
   const frame = document.getElementById('grimorio-frame');
   const res = await fetch('/api/grimorio');
   frame.srcdoc = await res.text();
+}
+
+// ── SIMULADOR ──
+const SIM = {
+  library: [], hand: [], graveyard: [], exile: [],
+  turn: 1, life: 40, mulligans: 0,
+  commander: '', deckKey: '', mullN: 1,
+};
+
+function _builtDecks() {
+  // Retorna mazos disponibles en el índice del servidor
+  return fetch('/api/decks').then(r=>r.json()).then(d=>d.decks||[]).catch(()=>[]);
+}
+
+async function refreshSimDeckSelect() {
+  const decks = await _builtDecks();
+  const sel = document.getElementById('sim-deck-select');
+  sel.innerHTML = decks.length
+    ? '<option value="">— Selecciona un mazo —</option>' + decks.map(d=>
+        `<option value="${d.key}">${d.commander} (${d.archetype}, Bracket ${d.bracket})</option>`
+      ).join('')
+    : '<option value="">— Forja un mazo primero —</option>';
+
+  // Si hay un mazo recién forjado, seleccionarlo
+  if (_lastBuild?.deck_key) sel.value = _lastBuild.deck_key;
+}
+
+async function startSim() {
+  const key = document.getElementById('sim-deck-select').value;
+  if (!key) { alert('Selecciona un mazo para simular.'); return; }
+
+  // Intentar usar cartas del último build si coincide
+  let cards;
+  if (_lastBuild?.deck_key === key && _lastBuild?.sim_cards) {
+    cards = _lastBuild.sim_cards;
+    SIM.commander = _lastBuild.commander;
+  } else {
+    const res = await fetch(`/api/decks/${key}/cards`);
+    const data = await res.json();
+    cards = data.cards;
+    SIM.commander = data.commander;
+  }
+
+  SIM.deckKey = key;
+  SIM.library = _shuffle([...cards]);
+  SIM.hand = [];
+  SIM.graveyard = [];
+  SIM.exile = [];
+  SIM.turn = 1;
+  SIM.life = 40;
+  SIM.mulligans = 0;
+
+  // Robar mano inicial
+  for (let i = 0; i < 7; i++) SIM.hand.push(SIM.library.pop());
+
+  document.getElementById('sim-table').style.display = 'block';
+  document.getElementById('sim-deck-selector').style.display = 'none';
+  renderSim();
+  simLog(`✦ Partida iniciada con <span class="log-gold">${SIM.commander}</span>. Mano de 7 cartas.`);
+}
+
+function resetSim() {
+  SIM.library=[]; SIM.hand=[]; SIM.graveyard=[]; SIM.exile=[];
+  SIM.turn=1; SIM.life=40; SIM.mulligans=0;
+  document.getElementById('sim-table').style.display='none';
+  document.getElementById('sim-deck-selector').style.display='block';
+  document.getElementById('sim-log').innerHTML='';
+  refreshSimDeckSelect();
+}
+
+function _shuffle(arr) {
+  for (let i=arr.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function simDraw() {
+  if (!SIM.library.length) { simLog('⚠ <span class="log-gold">¡Biblioteca vacía!</span>'); return; }
+  const card = SIM.library.pop();
+  SIM.hand.push(card);
+  renderSim();
+  simLog(`Robas: <span class="log-gold">${card.name}</span>`);
+}
+
+function simNextTurn() {
+  SIM.turn++;
+  simDraw();
+  setPhase(document.querySelector('.sim-phase .phase-pip'));
+  renderSim();
+  simLog(`— <span class="log-gold">Turno ${SIM.turn}</span> —`);
+}
+
+function changeLife(delta) {
+  SIM.life += delta;
+  document.getElementById('sim-life').textContent = SIM.life;
+  if (delta < 0) simLog(`Vida: <span class="log-gold">${SIM.life}</span> (${delta})`);
+  else simLog(`Vida: <span class="log-gold">${SIM.life}</span> (+${delta})`);
+}
+
+function setPhase(el) {
+  document.querySelectorAll('.phase-pip').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function simDiscardFromHand(idx) {
+  const card = SIM.hand.splice(idx,1)[0];
+  SIM.graveyard.push(card);
+  renderSim();
+  simLog(`Descarta: <span class="log-gold">${card.name}</span>`);
+}
+
+function simExileFromHand(idx) {
+  const card = SIM.hand.splice(idx,1)[0];
+  SIM.exile.push(card);
+  renderSim();
+  simLog(`Exilia: <span class="log-gold">${card.name}</span>`);
+}
+
+function simPlayFromHand(idx) {
+  const card = SIM.hand.splice(idx,1)[0];
+  if (card.is_land) {
+    simLog(`Juega tierra: <span class="log-gold">${card.name}</span>`);
+  } else {
+    SIM.graveyard.push(card);
+    simLog(`Lanza: <span class="log-gold">${card.name}</span> (CMC ${card.cmc})`);
+  }
+  renderSim();
+}
+
+function simRecurFromGY(idx) {
+  const card = SIM.graveyard.splice(idx,1)[0];
+  SIM.hand.push(card);
+  renderSim();
+  simLog(`Reanima a mano: <span class="log-gold">${card.name}</span>`);
+}
+
+// Mulligan
+function showMulliganOverlay() {
+  SIM.mullN = SIM.mulligans + 1;
+  document.getElementById('mull-n-display').textContent = SIM.mullN;
+  document.getElementById('mull-return-n').textContent = SIM.mullN;
+  document.getElementById('mull-overlay').classList.add('visible');
+}
+function hideMulliganOverlay() {
+  document.getElementById('mull-overlay').classList.remove('visible');
+}
+function changeMullN(delta) {
+  SIM.mullN = Math.max(0, Math.min(7, SIM.mullN + delta));
+  document.getElementById('mull-n-display').textContent = SIM.mullN;
+  document.getElementById('mull-return-n').textContent = SIM.mullN;
+}
+function doMulligan() {
+  // Devolver mano a biblioteca
+  SIM.library = [...SIM.hand, ...SIM.library];
+  SIM.hand = [];
+  _shuffle(SIM.library);
+  // Robar 7
+  for (let i=0; i<7; i++) {
+    if (SIM.library.length) SIM.hand.push(SIM.library.pop());
+  }
+  // Devolver N al fondo
+  const toReturn = SIM.mullN;
+  for (let i=0; i<toReturn && SIM.hand.length; i++) {
+    const card = SIM.hand.shift(); // quita de la mano (elige la primera — el jugador elige cuál)
+    SIM.library.unshift(card);
+  }
+  SIM.mulligans++;
+  hideMulliganOverlay();
+  renderSim();
+  simLog(`↩ Mulligan #${SIM.mulligans} — mano de ${SIM.hand.length} cartas (devueltas ${toReturn}).`);
+}
+
+// Render
+function renderSim() {
+  document.getElementById('sim-turn').textContent = SIM.turn;
+  document.getElementById('sim-library-count').textContent = SIM.library.length;
+  document.getElementById('sim-hand-count').textContent = SIM.hand.length;
+  document.getElementById('sim-life').textContent = SIM.life;
+  document.getElementById('hand-label').textContent = `(${SIM.hand.length})`;
+  document.getElementById('gy-label').textContent = `(${SIM.graveyard.length})`;
+  document.getElementById('exile-label').textContent = `(${SIM.exile.length})`;
+
+  document.getElementById('sim-hand').innerHTML = SIM.hand.map((c,i) => cardHtml(c,i,'hand')).join('');
+  document.getElementById('sim-gy').innerHTML = SIM.graveyard.map((c,i) => cardHtml(c,i,'gy')).join('');
+  document.getElementById('sim-exile').innerHTML = SIM.exile.map((c,i) => cardHtml(c,i,'exile')).join('');
+}
+
+function cardHtml(card, idx, zone) {
+  const imgHtml = card.img
+    ? `<img src="${card.img}" alt="${card.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const fallback = `<div class="card-name-fallback" style="${card.img?'display:none':'display:flex'}">${card.name}</div>`;
+
+  let actions = '';
+  if (zone === 'hand') {
+    actions = `<div class="sim-card-actions">
+      <button class="sim-card-action" onclick="simPlayFromHand(${idx})">▶ Jugar</button>
+      <button class="sim-card-action" onclick="simDiscardFromHand(${idx})">🗑 Descartar</button>
+      <button class="sim-card-action" onclick="simExileFromHand(${idx})">✦ Exiliar</button>
+    </div>`;
+  } else if (zone === 'gy') {
+    actions = `<div class="sim-card-actions">
+      <button class="sim-card-action" onclick="simRecurFromGY(${idx})">↩ A mano</button>
+    </div>`;
+  }
+
+  const typeTag = card.is_land
+    ? `<div style="position:absolute;top:3px;left:3px;background:rgba(40,138,40,0.8);color:#8fa;font-size:0.5rem;padding:1px 4px;border-radius:2px;font-family:'Cinzel',serif">TIERRA</div>`
+    : '';
+
+  return `<div class="sim-card" title="${card.name} — ${card.type_line}" onclick="toggleSelected(this)">
+    ${typeTag}${imgHtml}${fallback}${actions}
+  </div>`;
+}
+
+function toggleSelected(el) {
+  el.classList.toggle('selected');
+}
+
+function simLog(text) {
+  const log = document.getElementById('sim-log');
+  log.innerHTML = `<p>${text}</p>` + log.innerHTML;
 }
 
 // ── Init ──
