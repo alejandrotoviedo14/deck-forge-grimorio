@@ -167,6 +167,13 @@ async def index():
         return HTMLResponse(ui.read_text(encoding="utf-8"))
     return HTMLResponse("<h1>Deck Forge API</h1><p>Docs: <a href='/docs'>/docs</a></p>")
 
+@app.get("/simulator", response_class=HTMLResponse)
+async def simulator():
+    ui = Path(__file__).parent / "web" / "simulator.html"
+    if ui.exists():
+        return HTMLResponse(ui.read_text(encoding="utf-8"))
+    return HTMLResponse("<p>Simulador no disponible</p>")
+
 
 # ---------------------------------------------------------------------------
 # Supabase helpers para PINs persistentes

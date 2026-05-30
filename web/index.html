@@ -310,7 +310,7 @@
     <button class="tab" onclick="showTab('analyze',this)">II. Analizar</button>
     <button class="tab" onclick="showTab('build',this)">III. Forjar</button>
     <button class="tab" onclick="showTab('grimorio',this)">IV. Grimorio</button>
-    <button class="tab" onclick="showTab('sim',this)">V. Simular</button>
+    <button class="tab" onclick="openSimulator()">V. Simular</button>
   </div>
 
   <!-- ══ I. COLECCIÓN ══ -->
@@ -1162,6 +1162,11 @@ function toggleSelected(el) {
 function simLog(text) {
   const log = document.getElementById('sim-log');
   log.innerHTML = `<p>${text}</p>` + log.innerHTML;
+}
+
+// ── Simulator ──
+function openSimulator() {
+  window.open('/simulator', '_blank');
 }
 
 // ── Init ──
