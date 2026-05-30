@@ -236,6 +236,38 @@ def _supa_load_pin(pin: str) -> dict | None:
     return None
 
 
+def _supa_save_deck(pin: str, deck_key: str, commander: str, archetype: str,
+                    colors: str, bracket: int, deck_data: dict) -> bool:
+    """Guarda/actualiza un mazo en Supabase vinculado a un PIN."""
+    if not _supa_available():
+        return False
+    import requests as req
+    payload = {
+        "pin": pin, "deck_key": deck_key, "commander": commander,
+        "archetype": archetype, "colors": colors, "bracket": bracket,
+        "deck_data": deck_data,
+    }
+    # Upsert por (pin, deck_key)
+    r = req.post(
+        f"{_SUPABASE_URL}/rest/v1/decks",
+        headers={**_supa_headers(), "Prefer": "resolution=merge-duplicates"},
+        json=payload, timeout=30,
+    )
+    return r.status_code in (200, 201)
+
+
+def _supa_load_decks(pin: str) -> list[dict]:
+    """Carga todos los mazos de un PIN desde Supabase."""
+    if not _supa_available():
+        return []
+    import requests as req
+    r = req.get(f"{_SUPABASE_URL}/rest/v1/decks?pin=eq.{pin}&select=*",
+                headers=_supa_headers(), timeout=15)
+    if r.status_code == 200:
+        return r.json()
+    return []
+
+
 # ---------------------------------------------------------------------------
 # GET /api/collections — lista colecciones de la sesión actual
 # ---------------------------------------------------------------------------
@@ -328,13 +360,40 @@ async def restore_session(pin: str = Form(...)):
 
     col_id = meta.get("id", f"pin_{pin}")
 
-    # Registrar en sesión actual
+    # Registrar colección en sesión actual
     (_SESSION_COLLECTIONS_DIR / f"{col_id}.json").write_text(
         json.dumps(coll, ensure_ascii=False), encoding="utf-8"
     )
     (_SESSION_COLLECTIONS_DIR / f"{col_id}.meta.json").write_text(
         json.dumps(meta), encoding="utf-8"
     )
+
+    # Restaurar mazos vinculados al PIN
+    supa_decks = _supa_load_decks(pin)
+    restored_decks = []
+    for d in supa_decks:
+        dd = d.get("deck_data", {})
+        try:
+            register_deck(
+                output_dir=_DECKS_DIR,
+                deck_key=d["deck_key"],
+                commander_card=dd.get("commander_card", {}),
+                archetype_key=dd.get("archetype_key", ""),
+                colors=dd.get("colors", ""),
+                bracket=dd.get("bracket", 1),
+                bracket_score=dd.get("bracket_score", 0),
+                cards=dd.get("cards", []),
+                needed_basics=dd.get("needed_basics", 37),
+                html_data=dd.get("html_data", {}),
+            )
+            restored_decks.append({
+                "key": d["deck_key"],
+                "commander": d.get("commander", ""),
+                "archetype": d.get("archetype", ""),
+                "bracket": d.get("bracket", 1),
+            })
+        except Exception:
+            pass
 
     return {
         "ok": True,
@@ -343,6 +402,7 @@ async def restore_session(pin: str = Form(...)):
         "real_count": len(coll.get("real", [])),
         "pin": pin,
         "collection": coll,
+        "decks_restored": restored_decks,
     }
 
 
@@ -460,6 +520,7 @@ async def build(
     colors: str | None = Form(None),
     archetype: str | None = Form(None),
     use_edhrec: bool = Form(True),
+    pin: str | None = Form(None),
 ):
     """Construye un mazo y devuelve HTML + exportaciones."""
     try:
@@ -531,6 +592,24 @@ async def build(
     # Preparar lista de cartas para el simulador
     sim_cards = _build_sim_cards(deck)
 
+    # Guardar mazo en Supabase vinculado al PIN si se proporcionó
+    saved_to_pin = False
+    if pin and pin.strip():
+        full_deck_data = {
+            "commander_card": deck.commander,
+            "archetype_key": deck.archetype.key,
+            "colors": deck.colors,
+            "bracket": bracket.bracket,
+            "bracket_score": round(bracket.score, 2),
+            "cards": [dc.card for dc in deck.cards],
+            "needed_basics": deck.needed_basics,
+            "html_data": html_data,
+        }
+        saved_to_pin = _supa_save_deck(
+            pin.strip(), safe, deck.commander["name"],
+            deck.archetype.key, deck.colors, bracket.bracket, full_deck_data,
+        )
+
     return {
         "ok": True,
         "commander": deck.commander["name"],
@@ -545,6 +624,7 @@ async def build(
         "moxfield_txt": mox_path.read_text(encoding="utf-8"),
         "manabox_csv": csv_path.read_text(encoding="utf-8"),
         "sim_cards": sim_cards,
+        "saved_to_pin": saved_to_pin,
     }
 
 

@@ -557,6 +557,7 @@
 // ── Estado global ──
 let _collections = {};       // id → { name, real_count, collection (JSON) }
 let _activeColId = null;     // colección activa para ingest/build
+let _activePIN = null;       // PIN activo — se pasa al build para guardar en Supabase
 let _analyzeColId = null;    // colección seleccionada en analizar
 let _buildColId = null;      // colección seleccionada en forjar
 let _analyzedCommanders = []; // lista de comandantes del último análisis
@@ -704,6 +705,7 @@ async function doIngest() {
     const pin = saveData.pin;
     _collections[colId] = { name: colName, real_count: data.real_count, collection: data.collection };
     _activeColId = colId;
+    _activePIN = pin;
 
     document.getElementById('step1').classList.add('step-done');
     renderSavedCollections();
@@ -756,10 +758,14 @@ async function doRestorePin() {
 
     _collections[data.id] = { name: data.name, real_count: data.real_count, collection: data.collection };
     _activeColId = data.id;
+    _activePIN = data.pin;
     renderSavedCollections();
     refreshCollectionSelects();
 
-    msg('restore-result', 'ok', `✦ Colección "<b>${data.name}</b>" restaurada — ${data.real_count} cartas listas.`);
+    const decksMsg = data.decks_restored?.length
+      ? ` y <b>${data.decks_restored.length} mazo${data.decks_restored.length>1?'s':''}</b> restaurado${data.decks_restored.length>1?'s':''}`
+      : '';
+    msg('restore-result', 'ok', `✦ Colección "<b>${data.name}</b>"${decksMsg} restaurada — ${data.real_count} cartas listas.`);
     document.getElementById('pin-input').value = '';
   } catch(e) {
     msg('restore-result', 'err', '✗ ' + e.message);
@@ -895,6 +901,9 @@ async function doBuild() {
   if (colors) fd.append('colors', colors);
   if (arch) fd.append('archetype', arch);
   fd.append('use_edhrec', edhrec);
+  // Pasar PIN activo para guardar el mazo en Supabase
+  const activePinForBuild = _activePIN || '';
+  if (activePinForBuild) fd.append('pin', activePinForBuild);
 
   try {
     const res = await fetch('/api/build', { method: 'POST', body: fd });
@@ -902,8 +911,13 @@ async function doBuild() {
     if (!res.ok) throw new Error(data.detail);
 
     _lastBuild = data;
+    const pinBadge = data.saved_to_pin
+      ? `<div class="msg ok" style="margin-top:0.5rem">✦ Mazo guardado en PIN <b>${activePinForBuild}</b> — se restaurará automáticamente</div>`
+      : activePinForBuild ? `<div class="msg err" style="margin-top:0.5rem">⚠ No se pudo guardar en Supabase</div>` : '';
+
     result.innerHTML = `
       <div class="msg ok">✦ Mazo forjado: <b>${data.commander}</b></div>
+      ${pinBadge}
       <div class="stat-grid">
         <div class="stat"><span class="val">${data.card_count + data.needed_basics}</span><span class="lbl">Cartas totales</span></div>
         <div class="stat"><span class="val">${data.bracket}</span><span class="lbl">Bracket</span></div>
