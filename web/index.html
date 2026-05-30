@@ -7,513 +7,201 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --gold:        #c9a84c;
-      --gold-light:  #e8c96a;
-      --gold-dark:   #7a5c1e;
-      --bg:          #0a0806;
-      --bg2:         #100d08;
-      --panel:       #13100a;
-      --panel2:      #1a1510;
-      --border:      #3a2e1a;
-      --border-gold: #5a4520;
-      --text:        #d4c4a0;
-      --text-muted:  #7a6a4a;
-      --red:         #8b1a1a;
-      --blue:        #1a3a5c;
-      --green:       #1a3a1a;
-      --white:       #c8c0a8;
-      --black:       #2a1a2a;
-      --success:     #4a8a4a;
-      --error:       #8a2a2a;
-      --glow:        rgba(201,168,76,0.15);
+      --gold: #c9a84c; --gold-light: #e8c96a; --gold-dark: #7a5c1e;
+      --bg: #0a0806; --bg2: #100d08; --panel: #13100a; --panel2: #1a1510;
+      --border: #3a2e1a; --border-gold: #5a4520;
+      --text: #d4c4a0; --text-muted: #7a6a4a;
+      --success: #4a8a4a; --error: #8a2a2a;
+      --glow: rgba(201,168,76,0.15);
     }
-
-    html { scroll-behavior: smooth; }
-
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 17px;
-      min-height: 100vh;
-      background-image:
-        radial-gradient(ellipse at 20% 0%, rgba(90,45,10,0.3) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 100%, rgba(30,20,60,0.3) 0%, transparent 60%);
+      background: var(--bg); color: var(--text);
+      font-family: 'EB Garamond', Georgia, serif; font-size: 17px; min-height: 100vh;
+      background-image: radial-gradient(ellipse at 20% 0%, rgba(90,45,10,0.3) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 100%, rgba(30,20,60,0.3) 0%, transparent 60%);
     }
-
-    /* ── Runic border overlay ── */
     body::before {
-      content: '';
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
       background-image:
         repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px),
         repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px);
     }
-
-    /* ─────────── HEADER ─────────── */
     header {
-      position: relative;
-      text-align: center;
-      padding: 3rem 1rem 2rem;
+      position: relative; text-align: center; padding: 3rem 1rem 2rem;
       border-bottom: 1px solid var(--border-gold);
-      background: linear-gradient(180deg, rgba(201,168,76,0.06) 0%, transparent 100%);
-      overflow: hidden;
+      background: linear-gradient(180deg, rgba(201,168,76,0.06) 0%, transparent 100%); overflow: hidden;
     }
     header::before, header::after {
       content: '✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦';
-      display: block;
-      font-size: 0.75rem;
-      color: var(--gold-dark);
-      letter-spacing: 0.3em;
-      margin-bottom: 1rem;
+      display: block; font-size: 0.75rem; color: var(--gold-dark); letter-spacing: 0.3em; margin-bottom: 1rem;
     }
     header::after { margin-bottom: 0; margin-top: 1rem; }
-
     .header-emblem {
-      font-size: 2.8rem;
-      display: block;
-      margin-bottom: 0.5rem;
+      font-size: 2.8rem; display: block; margin-bottom: 0.5rem;
       filter: drop-shadow(0 0 20px rgba(201,168,76,0.6));
       animation: pulse-glow 3s ease-in-out infinite;
     }
     @keyframes pulse-glow {
-      0%, 100% { filter: drop-shadow(0 0 15px rgba(201,168,76,0.5)); }
-      50%       { filter: drop-shadow(0 0 30px rgba(201,168,76,0.9)); }
+      0%,100% { filter: drop-shadow(0 0 15px rgba(201,168,76,0.5)); }
+      50% { filter: drop-shadow(0 0 30px rgba(201,168,76,0.9)); }
     }
-
     header h1 {
-      font-family: 'Cinzel Decorative', serif;
-      font-size: clamp(2rem, 6vw, 3.5rem);
-      font-weight: 700;
+      font-family: 'Cinzel Decorative', serif; font-size: clamp(2rem,6vw,3.5rem); font-weight: 700;
       background: linear-gradient(135deg, #7a5c1e 0%, #c9a84c 40%, #e8c96a 60%, #c9a84c 80%, #7a5c1e 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: none;
-      letter-spacing: 0.08em;
-      line-height: 1.1;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      letter-spacing: 0.08em; line-height: 1.1;
     }
-    header .subtitle {
-      font-family: 'Cinzel', serif;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      margin-top: 0.5rem;
-    }
+    header .subtitle { font-family:'Cinzel',serif; font-size:0.85rem; color:var(--text-muted); letter-spacing:0.3em; text-transform:uppercase; margin-top:0.5rem; }
+    .mana-deco { display:flex; justify-content:center; gap:0.8rem; margin:1.5rem 0 0; opacity:0.3; font-size:1.1rem; }
 
-    /* ─────────── LAYOUT ─────────── */
     main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; position: relative; z-index: 1; }
 
-    /* ─────────── TABS ─────────── */
-    .tabs {
-      display: flex;
-      gap: 0;
-      margin-bottom: 2.5rem;
-      border: 1px solid var(--border-gold);
-      border-radius: 4px;
-      overflow: hidden;
-      background: var(--panel);
-    }
-    .tab {
-      flex: 1;
-      padding: 0.85rem 0.5rem;
-      cursor: pointer;
-      border: none;
-      background: none;
-      color: var(--text-muted);
-      font-family: 'Cinzel', serif;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      border-right: 1px solid var(--border-gold);
-      transition: all 0.2s;
-      position: relative;
-    }
-    .tab:last-child { border-right: none; }
-    .tab.active {
-      color: var(--gold);
-      background: linear-gradient(180deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.04) 100%);
-    }
-    .tab.active::after {
-      content: '';
-      position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    }
-    .tab:hover:not(.active) { color: var(--text); background: rgba(201,168,76,0.05); }
+    /* TABS */
+    .tabs { display:flex; gap:0; margin-bottom:2.5rem; border:1px solid var(--border-gold); border-radius:4px; overflow:hidden; background:var(--panel); }
+    .tab { flex:1; padding:0.85rem 0.5rem; cursor:pointer; border:none; background:none; color:var(--text-muted); font-family:'Cinzel',serif; font-size:0.75rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; border-right:1px solid var(--border-gold); transition:all 0.2s; position:relative; }
+    .tab:last-child { border-right:none; }
+    .tab.active { color:var(--gold); background:linear-gradient(180deg,rgba(201,168,76,0.12) 0%,rgba(201,168,76,0.04) 100%); }
+    .tab.active::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+    .tab:hover:not(.active) { color:var(--text); background:rgba(201,168,76,0.05); }
 
-    /* ─────────── PANEL ─────────── */
-    .panel { display: none; }
-    .panel.active { display: block; }
+    .panel { display:none; }
+    .panel.active { display:block; }
 
-    /* ─────────── CARD ─────────── */
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--border-gold);
-      border-radius: 6px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    }
+    /* CARD */
+    .card { background:var(--panel); border:1px solid var(--border-gold); border-radius:6px; padding:2rem; margin-bottom:2rem; position:relative; overflow:hidden; }
+    .card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+    .card-title { font-family:'Cinzel',serif; font-size:1rem; font-weight:700; color:var(--gold); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.6rem; }
+    .card-title::before { content:'◆'; font-size:0.6rem; color:var(--gold-dark); }
 
-    .card-title {
-      font-family: 'Cinzel', serif;
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-    .card-title::before {
-      content: '◆';
-      font-size: 0.6rem;
-      color: var(--gold-dark);
-    }
-
-    /* ─────────── FORM ELEMENTS ─────────── */
-    label {
-      display: block;
-      font-family: 'Cinzel', serif;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 0.4rem;
-      margin-top: 1.2rem;
-    }
-
+    /* FORM */
+    label { display:block; font-family:'Cinzel',serif; font-size:0.72rem; color:var(--text-muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.4rem; margin-top:1.2rem; }
     input[type="text"], input[type="number"], select {
-      width: 100%;
-      padding: 0.7rem 1rem;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-family: 'EB Garamond', serif;
-      font-size: 1rem;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      -webkit-appearance: none;
+      width:100%; padding:0.7rem 1rem; background:var(--bg2); border:1px solid var(--border); border-radius:4px;
+      color:var(--text); font-family:'EB Garamond',serif; font-size:1rem; outline:none; transition:border-color 0.2s,box-shadow 0.2s; -webkit-appearance:none;
     }
-    input:focus, select:focus {
-      border-color: var(--gold-dark);
-      box-shadow: 0 0 0 2px var(--glow);
-    }
-    select { cursor: pointer; }
-    select option { background: var(--panel2); }
+    input:focus, select:focus { border-color:var(--gold-dark); box-shadow:0 0 0 2px var(--glow); }
+    select { cursor:pointer; } select option { background:var(--panel2); }
+    input[type="file"] { width:100%; padding:1.5rem; background:var(--bg2); border:1px dashed var(--border-gold); border-radius:4px; color:var(--text-muted); font-family:'EB Garamond',serif; font-size:0.95rem; cursor:pointer; transition:border-color 0.2s,background 0.2s; }
+    input[type="file"]:hover { border-color:var(--gold); background:rgba(201,168,76,0.04); }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+    @media(max-width:580px) { .row { grid-template-columns:1fr; } }
+    .checkbox-row { display:flex; align-items:center; gap:0.6rem; margin-top:1.2rem; cursor:pointer; }
+    .checkbox-row input[type="checkbox"] { accent-color:var(--gold); width:16px; height:16px; cursor:pointer; }
+    .checkbox-row label { margin:0; cursor:pointer; font-size:0.72rem; }
 
-    input[type="file"] {
-      width: 100%;
-      padding: 1.5rem;
-      background: var(--bg2);
-      border: 1px dashed var(--border-gold);
-      border-radius: 4px;
-      color: var(--text-muted);
-      font-family: 'EB Garamond', serif;
-      font-size: 0.95rem;
-      cursor: pointer;
-      text-align: center;
-      transition: border-color 0.2s, background 0.2s;
-    }
-    input[type="file"]:hover {
-      border-color: var(--gold);
-      background: rgba(201,168,76,0.04);
-    }
+    /* COLLECTION SELECTOR */
+    .col-selector { background:var(--bg2); border:1px solid var(--border-gold); border-radius:4px; padding:1rem 1.2rem; margin-bottom:1rem; }
+    .col-selector-header { font-family:'Cinzel',serif; font-size:0.7rem; color:var(--gold-dark); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.6rem; }
+    .col-selector select { margin-top:0; }
+    .col-empty { font-size:0.85rem; color:var(--text-muted); font-style:italic; padding:0.3rem 0; }
 
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    @media(max-width: 580px) { .row { grid-template-columns: 1fr; } }
-
-    .checkbox-row {
-      display: flex; align-items: center; gap: 0.6rem; margin-top: 1.2rem;
-      cursor: pointer;
-    }
-    .checkbox-row input[type="checkbox"] { accent-color: var(--gold); width: 16px; height: 16px; cursor: pointer; }
-    .checkbox-row label { margin: 0; cursor: pointer; font-size: 0.72rem; }
-
-    /* ─────────── BUTTON ─────────── */
+    /* BUTTON */
     button.primary {
-      margin-top: 1.8rem;
-      width: 100%;
-      padding: 0.9rem 2rem;
-      background: linear-gradient(135deg, #3a2a0a 0%, #5a4015 50%, #3a2a0a 100%);
-      border: 1px solid var(--gold-dark);
-      border-radius: 4px;
-      color: var(--gold-light);
-      font-family: 'Cinzel', serif;
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-      overflow: hidden;
+      margin-top:1.8rem; width:100%; padding:0.9rem 2rem;
+      background:linear-gradient(135deg,#3a2a0a 0%,#5a4015 50%,#3a2a0a 100%);
+      border:1px solid var(--gold-dark); border-radius:4px; color:var(--gold-light);
+      font-family:'Cinzel',serif; font-size:0.85rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase;
+      cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden;
     }
-    button.primary::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, transparent 0%, rgba(201,168,76,0.1) 50%, transparent 100%);
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    button.primary:hover:not(:disabled)::before { opacity: 1; }
-    button.primary:hover:not(:disabled) {
-      border-color: var(--gold);
-      box-shadow: 0 0 20px rgba(201,168,76,0.2), inset 0 0 20px rgba(201,168,76,0.05);
-      color: var(--gold);
-    }
-    button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.primary::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,transparent 0%,rgba(201,168,76,0.1) 50%,transparent 100%); opacity:0; transition:opacity 0.2s; }
+    button.primary:hover:not(:disabled)::before { opacity:1; }
+    button.primary:hover:not(:disabled) { border-color:var(--gold); box-shadow:0 0 20px rgba(201,168,76,0.2),inset 0 0 20px rgba(201,168,76,0.05); color:var(--gold); }
+    button.primary:disabled { opacity:0.4; cursor:not-allowed; }
 
-    /* ─────────── STEPS ─────────── */
-    .steps { margin-bottom: 1.5rem; }
-    .step {
-      display: flex; align-items: flex-start; gap: 1rem;
-      padding: 0.8rem 0;
-      border-bottom: 1px solid rgba(58,46,26,0.5);
+    button.secondary {
+      margin-top:0.75rem; width:100%; padding:0.6rem 1.5rem;
+      background:transparent; border:1px solid var(--border-gold); border-radius:4px;
+      color:var(--text-muted); font-family:'Cinzel',serif; font-size:0.75rem; font-weight:600;
+      letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; transition:all 0.2s;
     }
-    .step:last-child { border-bottom: none; }
-    .step-num {
-      width: 28px; height: 28px; flex-shrink: 0;
-      background: var(--bg2);
-      border: 1px solid var(--border-gold);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Cinzel', serif;
-      font-size: 0.75rem;
-      color: var(--gold-dark);
-    }
-    .step-done .step-num {
-      background: rgba(74,138,74,0.2);
-      border-color: var(--success);
-      color: #6abf6a;
-    }
-    .step-text { padding-top: 0.3rem; line-height: 1.5; font-size: 0.95rem; }
-    .step-text b { color: var(--gold-light); font-weight: 500; }
+    button.secondary:hover { border-color:var(--gold); color:var(--gold); }
 
-    /* ─────────── MESSAGES ─────────── */
-    .msg {
-      padding: 0.8rem 1rem;
-      border-radius: 4px;
-      font-size: 0.95rem;
-      margin-top: 1rem;
-      line-height: 1.5;
-      border-left: 3px solid;
-    }
-    .msg.ok  { background: rgba(74,138,74,0.1);  border-color: var(--success); color: #8aca8a; }
-    .msg.err { background: rgba(138,42,42,0.15); border-color: var(--error);   color: #ca8a8a; }
-    .msg.info { background: rgba(201,168,76,0.08); border-color: var(--gold-dark); color: var(--text-muted); }
+    /* STEPS */
+    .steps { margin-bottom:1.5rem; }
+    .step { display:flex; align-items:flex-start; gap:1rem; padding:0.8rem 0; border-bottom:1px solid rgba(58,46,26,0.5); }
+    .step:last-child { border-bottom:none; }
+    .step-num { width:28px; height:28px; flex-shrink:0; background:var(--bg2); border:1px solid var(--border-gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Cinzel',serif; font-size:0.75rem; color:var(--gold-dark); }
+    .step-done .step-num { background:rgba(74,138,74,0.2); border-color:var(--success); color:#6abf6a; }
+    .step-text { padding-top:0.3rem; line-height:1.5; font-size:0.95rem; }
+    .step-text b { color:var(--gold-light); font-weight:500; }
 
-    /* ─────────── STATS ─────────── */
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-      gap: 1rem;
-      margin-top: 1.2rem;
-    }
-    .stat {
-      background: var(--bg2);
-      border: 1px solid var(--border-gold);
-      border-radius: 4px;
-      padding: 1rem 0.75rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .stat::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold-dark), transparent);
-    }
-    .stat .val {
-      font-family: 'Cinzel', serif;
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--gold);
-      display: block;
-      line-height: 1.1;
-    }
-    .stat .lbl {
-      font-family: 'Cinzel', serif;
-      font-size: 0.62rem;
-      color: var(--text-muted);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-top: 0.3rem;
-      display: block;
-    }
+    /* MESSAGES */
+    .msg { padding:0.8rem 1rem; border-radius:4px; font-size:0.95rem; margin-top:1rem; line-height:1.5; border-left:3px solid; }
+    .msg.ok  { background:rgba(74,138,74,0.1);  border-color:var(--success); color:#8aca8a; }
+    .msg.err { background:rgba(138,42,42,0.15); border-color:var(--error);   color:#ca8a8a; }
+    .msg.info { background:rgba(201,168,76,0.08); border-color:var(--gold-dark); color:var(--text-muted); }
 
-    /* ─────────── TABLE ─────────── */
-    .table-wrap { overflow-x: auto; margin-top: 1rem; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    thead tr {
-      border-bottom: 1px solid var(--border-gold);
-    }
-    th {
-      font-family: 'Cinzel', serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--gold-dark);
-      padding: 0.5rem 0.75rem;
-      text-align: left;
-      font-weight: 600;
-    }
-    td { padding: 0.55rem 0.75rem; border-bottom: 1px solid rgba(58,46,26,0.4); }
-    tr:hover td { background: rgba(201,168,76,0.04); }
-    .score-bar {
-      display: inline-block;
-      height: 4px;
-      background: linear-gradient(90deg, var(--gold-dark), var(--gold));
-      border-radius: 2px;
-      vertical-align: middle;
-      margin-left: 0.4rem;
-    }
+    /* STATS */
+    .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:1rem; margin-top:1.2rem; }
+    .stat { background:var(--bg2); border:1px solid var(--border-gold); border-radius:4px; padding:1rem 0.75rem; text-align:center; position:relative; overflow:hidden; }
+    .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dark),transparent); }
+    .stat .val { font-family:'Cinzel',serif; font-size:1.6rem; font-weight:700; color:var(--gold); display:block; line-height:1.1; }
+    .stat .lbl { font-family:'Cinzel',serif; font-size:0.62rem; color:var(--text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-top:0.3rem; display:block; }
 
-    /* ─────────── DOWNLOADS ─────────── */
-    .dl-row { display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap; }
-    .dl-btn {
-      padding: 0.5rem 1rem;
-      border: 1px solid var(--border-gold);
-      border-radius: 4px;
-      background: var(--bg2);
-      color: var(--text-muted);
-      font-family: 'Cinzel', serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-    .dl-btn:hover { border-color: var(--gold); color: var(--gold); }
+    /* TABLE */
+    .table-wrap { overflow-x:auto; margin-top:1rem; }
+    table { width:100%; border-collapse:collapse; font-size:0.9rem; }
+    thead tr { border-bottom:1px solid var(--border-gold); }
+    th { font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold-dark); padding:0.5rem 0.75rem; text-align:left; font-weight:600; }
+    td { padding:0.55rem 0.75rem; border-bottom:1px solid rgba(58,46,26,0.4); }
+    tr:hover td { background:rgba(201,168,76,0.04); }
+    tr.clickable { cursor:pointer; }
+    tr.clickable:hover td { background:rgba(201,168,76,0.08); }
+    tr.selected td { background:rgba(201,168,76,0.12); border-left:2px solid var(--gold); }
+    .score-bar { display:inline-block; height:4px; background:linear-gradient(90deg,var(--gold-dark),var(--gold)); border-radius:2px; vertical-align:middle; margin-left:0.4rem; }
 
-    /* ─────────── SPINNER ─────────── */
-    .spinner {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid var(--border-gold);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 0.4rem;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* DOWNLOADS */
+    .dl-row { display:flex; gap:0.75rem; margin-top:1rem; flex-wrap:wrap; }
+    .dl-btn { padding:0.5rem 1rem; border:1px solid var(--border-gold); border-radius:4px; background:var(--bg2); color:var(--text-muted); font-family:'Cinzel',serif; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; text-decoration:none; transition:all 0.2s; }
+    .dl-btn:hover { border-color:var(--gold); color:var(--gold); }
 
-    /* ─────────── GRIMORIO IFRAME ─────────── */
-    .grimorio-wrap {
-      border: 1px solid var(--border-gold);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 1rem;
-      position: relative;
-    }
-    .grimorio-wrap::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-      z-index: 1;
-    }
-    iframe { width: 100%; height: 680px; border: none; display: block; }
+    /* SPINNER */
+    .spinner { display:inline-block; width:14px; height:14px; border:2px solid var(--border-gold); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:0.4rem; }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* ─────────── MANA SYMBOLS decorativos ─────────── */
-    .mana-deco {
-      display: flex; justify-content: center; gap: 0.8rem;
-      margin: 1.5rem 0 0;
-      opacity: 0.3;
-      font-size: 1.1rem;
-    }
-    .mana-w { color: #f8f6e3; }
-    .mana-u { color: #4a90d9; }
-    .mana-b { color: #c0a0c8; }
-    .mana-r { color: #e05030; }
-    .mana-g { color: #40a840; }
+    /* GRIMORIO */
+    .grimorio-wrap { border:1px solid var(--border-gold); border-radius:4px; overflow:hidden; margin-top:1rem; position:relative; }
+    .grimorio-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); z-index:1; }
+    iframe { width:100%; height:680px; border:none; display:block; }
 
-    /* ─────────── DIVIDER ─────────── */
-    .divider {
-      display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0;
-      color: var(--border-gold);
-      font-family: 'Cinzel', serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border-gold));
-    }
-    .divider::after { background: linear-gradient(90deg, var(--border-gold), transparent); }
+    /* DIVIDER */
+    .divider { display:flex; align-items:center; gap:1rem; margin:1.5rem 0; color:var(--border-gold); font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; }
+    .divider::before, .divider::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--border-gold)); }
+    .divider::after { background:linear-gradient(90deg,var(--border-gold),transparent); }
 
-    /* ─────────── COLOR BADGES ─────────── */
-    .color-badge {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 20px; height: 20px;
-      border-radius: 50%;
-      font-size: 0.7rem;
-      font-weight: 700;
-      margin: 0 1px;
-    }
-    .c-W { background: #f8f6e3; color: #333; }
-    .c-U { background: #1a4a8a; color: #9cc; }
-    .c-B { background: #2a1a2a; color: #c0a0c8; border: 1px solid #5a3a5a; }
-    .c-R { background: #7a1a0a; color: #fca; }
-    .c-G { background: #0a3a0a; color: #8fa; }
+    /* COLOR BADGES */
+    .color-badge { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; font-size:0.7rem; font-weight:700; margin:0 1px; }
+    .c-W { background:#f8f6e3; color:#333; } .c-U { background:#1a4a8a; color:#9cc; }
+    .c-B { background:#2a1a2a; color:#c0a0c8; border:1px solid #5a3a5a; } .c-R { background:#7a1a0a; color:#fca; } .c-G { background:#0a3a0a; color:#8fa; }
 
-    /* ─────────── FOOTER ─────────── */
-    footer {
-      text-align: center;
-      padding: 2rem 1rem;
-      border-top: 1px solid var(--border);
-      color: var(--text-muted);
-      font-family: 'Cinzel', serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
+    /* COMMANDER SELECT HINT */
+    .hint { font-size:0.85rem; color:var(--text-muted); font-style:italic; margin-top:0.5rem; }
+
+    footer { text-align:center; padding:2rem 1rem; border-top:1px solid var(--border); color:var(--text-muted); font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; }
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <span class="header-emblem">⚔</span>
   <h1>Deck Forge</h1>
   <p class="subtitle">Grimorio del Constructor de Mazos Commander</p>
   <div class="mana-deco">
-    <span class="mana-w">☀</span>
-    <span class="mana-u">💧</span>
-    <span class="mana-b">💀</span>
-    <span class="mana-r">🔥</span>
-    <span class="mana-g">🌿</span>
+    <span style="color:#f8f6e3">☀</span><span style="color:#4a90d9">💧</span>
+    <span style="color:#c0a0c8">💀</span><span style="color:#e05030">🔥</span><span style="color:#40a840">🌿</span>
   </div>
 </header>
 
 <main>
-
-  <!-- TABS -->
   <div class="tabs">
-    <button class="tab active" onclick="showTab('setup', this)">I. Colección</button>
-    <button class="tab" onclick="showTab('analyze', this)">II. Analizar</button>
-    <button class="tab" onclick="showTab('build', this)">III. Forjar</button>
-    <button class="tab" onclick="showTab('grimorio', this)">IV. Grimorio</button>
+    <button class="tab active" onclick="showTab('setup',this)">I. Colección</button>
+    <button class="tab" onclick="showTab('analyze',this)">II. Analizar</button>
+    <button class="tab" onclick="showTab('build',this)">III. Forjar</button>
+    <button class="tab" onclick="showTab('grimorio',this)">IV. Grimorio</button>
   </div>
 
-  <!-- ══════════ PANEL I: COLECCIÓN ══════════ -->
+  <!-- ══ I. COLECCIÓN ══ -->
   <div class="panel active" id="panel-setup">
     <div class="card">
       <div class="card-title">Invocar la Colección</div>
@@ -521,39 +209,47 @@
       <div class="steps">
         <div class="step" id="step1">
           <div class="step-num">I</div>
-          <div class="step-text">En ManaBox: <b>Settings → Export → CSV</b> para exportar tu colección</div>
+          <div class="step-text">En ManaBox: <b>Settings → Export → CSV</b></div>
         </div>
         <div class="step">
           <div class="step-num">II</div>
-          <div class="step-text">Sube el archivo aquí — el servidor lo enriquecerá con datos de <b>Scryfall</b></div>
+          <div class="step-text">Sube el archivo y dale un <b>nombre</b> para reutilizarla</div>
         </div>
         <div class="step">
           <div class="step-num">III</div>
-          <div class="step-text">La primera vez descarga el catálogo completo (~300MB). Las siguientes son <b>instantáneas</b></div>
+          <div class="step-text">La colección quedará guardada y disponible en todas las pestañas</div>
         </div>
       </div>
 
-      <div class="divider">Ofrenda de Cartas</div>
+      <div class="divider">Nueva Colección</div>
+
+      <label>Nombre de la colección</label>
+      <input type="text" id="col-name" placeholder="ej. Mi Colección Mayo 2026" />
 
       <label>Tu colección de ManaBox (archivo CSV)</label>
       <input type="file" id="real-csv" accept=".csv" />
 
-      <button class="primary" id="btn-ingest" onclick="doIngest()">
-        ✦ Invocar Colección ✦
-      </button>
+      <button class="primary" id="btn-ingest" onclick="doIngest()">✦ Invocar Colección ✦</button>
+      <div id="ingest-result"></div>
+    </div>
 
-      <div id="ingest-result" class="result"></div>
+    <div class="card" id="saved-collections-card">
+      <div class="card-title">Colecciones Guardadas</div>
+      <div id="saved-collections-list"><div class="col-empty">Ninguna colección guardada aún.</div></div>
     </div>
   </div>
 
-  <!-- ══════════ PANEL II: ANALIZAR ══════════ -->
+  <!-- ══ II. ANALIZAR ══ -->
   <div class="panel" id="panel-analyze">
     <div class="card">
       <div class="card-title">Leer los Augurios</div>
 
-      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;margin-bottom:1rem">
-        El oráculo examinará tu colección y revelará qué comandantes pueden liderar tus fuerzas, ordenados por potencial arcano.
-      </p>
+      <div class="col-selector">
+        <div class="col-selector-header">◆ Colección a analizar</div>
+        <select id="analyze-col-select" onchange="onAnalyzeColChange()">
+          <option value="">— Selecciona una colección —</option>
+        </select>
+      </div>
 
       <div class="row">
         <div>
@@ -575,22 +271,31 @@
     </div>
   </div>
 
-  <!-- ══════════ PANEL III: FORJAR ══════════ -->
+  <!-- ══ III. FORJAR ══ -->
   <div class="panel" id="panel-build">
     <div class="card">
       <div class="card-title">Forjar el Mazo</div>
 
-      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;margin-bottom:1rem">
-        Escoge a tu comandante y el maestro artesano ensamblará 100 cartas de tu colección, optimizadas para la victoria.
-      </p>
+      <div class="col-selector">
+        <div class="col-selector-header">◆ Colección a usar</div>
+        <select id="build-col-select" onchange="onBuildColChange()">
+          <option value="">— Selecciona una colección —</option>
+        </select>
+      </div>
 
-      <label>Comandante (nombre exacto, o vacío para auto-detectar)</label>
+      <label>Comandante</label>
+      <select id="commander-select" onchange="onCommanderSelectChange()">
+        <option value="">— Elige del análisis o escribe abajo —</option>
+      </select>
+      <p class="hint" id="commander-hint">Ejecuta el Oráculo (pestaña II) para ver comandantes sugeridos aquí.</p>
+
+      <label>O escribe el nombre exacto del comandante</label>
       <input type="text" id="commander" placeholder="ej. Vorel of the Hull Clade" />
 
       <div class="row">
         <div>
           <label>Identidad de color (si no hay comandante)</label>
-          <input type="text" id="colors" placeholder="ej. GU, WUB, WUBRG" />
+          <input type="text" id="colors" placeholder="ej. GU, WUB" />
         </div>
         <div>
           <label>Arquetipo de batalla</label>
@@ -619,12 +324,12 @@
     </div>
   </div>
 
-  <!-- ══════════ PANEL IV: GRIMORIO ══════════ -->
+  <!-- ══ IV. GRIMORIO ══ -->
   <div class="panel" id="panel-grimorio">
     <div class="card">
       <div class="card-title">El Grimorio</div>
       <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6">
-        Todos los mazos forjados en esta sesión. Las páginas del grimorio se iluminarán tras cada invocación.
+        Todos los mazos forjados en esta sesión.
       </p>
       <button class="primary" style="margin-top:1.2rem" onclick="loadGrimorio()">✦ Abrir el Grimorio ✦</button>
     </div>
@@ -632,213 +337,354 @@
       <iframe id="grimorio-frame" src="about:blank"></iframe>
     </div>
   </div>
-
 </main>
 
-<footer>
-  Deck Forge — Constructor de Mazos Commander &nbsp;✦&nbsp; Forjado con fuego arcano
-</footer>
+<footer>Deck Forge — Constructor de Mazos Commander &nbsp;✦&nbsp; Forjado con fuego arcano</footer>
 
 <script>
-  let collection = null;
-  let realCsvFile = null;
+// ── Estado global ──
+let _collections = {};       // id → { name, real_count, collection (JSON) }
+let _activeColId = null;     // colección activa para ingest/build
+let _analyzeColId = null;    // colección seleccionada en analizar
+let _buildColId = null;      // colección seleccionada en forjar
+let _analyzedCommanders = []; // lista de comandantes del último análisis
+let _lastBuild = null;
 
-  // ── Tabs ──
-  function showTab(name, btn) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + name).classList.add('active');
-    btn.classList.add('active');
-  }
+// ── Tabs ──
+function showTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'analyze' || name === 'build') refreshCollectionSelects();
+}
 
-  // ── Helpers ──
-  function setLoading(btn, loading, label) {
-    btn.disabled = loading;
-    btn.innerHTML = loading
-      ? `<span class="spinner"></span> ${label || 'Invocando...'}`
-      : (btn.dataset.orig || btn.innerHTML);
-    if (!btn.dataset.orig && !loading) btn.dataset.orig = btn.innerHTML;
-  }
+// ── Helpers ──
+function setLoading(btn, loading, label) {
+  btn.disabled = loading;
+  if (!btn.dataset.orig) btn.dataset.orig = btn.innerHTML;
+  btn.innerHTML = loading ? `<span class="spinner"></span> ${label || 'Invocando...'}` : btn.dataset.orig;
+}
 
-  function msg(container, type, html) {
-    if (typeof container === 'string') container = document.getElementById(container);
-    container.innerHTML = `<div class="msg ${type}">${html}</div>`;
-  }
+function msg(id, type, html) {
+  const el = typeof id === 'string' ? document.getElementById(id) : id;
+  if (el) el.innerHTML = `<div class="msg ${type}">${html}</div>`;
+}
 
-  function download(filename, content) {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([content]));
-    a.download = filename;
-    a.click();
-  }
+function download(filename, content) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content]));
+  a.download = filename; a.click();
+}
 
-  function colorBadges(colors) {
-    if (!colors) return '—';
-    return [...colors].map(c =>
-      `<span class="color-badge c-${c}">${c}</span>`
-    ).join('');
-  }
+function colorBadges(colors) {
+  if (!colors) return '—';
+  return [...colors].map(c => `<span class="color-badge c-${c}">${c}</span>`).join('');
+}
 
-  // ── INGEST ──
-  async function doIngest() {
-    const btn = document.getElementById('btn-ingest');
-    const result = document.getElementById('ingest-result');
-    const realFile = document.getElementById('real-csv').files[0];
-
-    if (!realFile) { msg(result, 'err', 'Debes ofrecer tu CSV de ManaBox antes de proceder.'); return; }
-
-    if (!btn.dataset.orig) btn.dataset.orig = btn.innerHTML;
-    setLoading(btn, true, 'Consultando los Pergaminos de Scryfall...');
-    msg(result, 'info', '<span class="spinner"></span> Descargando el catálogo de Scryfall — puede tardar 1-2 minutos la primera vez...');
-
-    const fd = new FormData();
-    fd.append('real_csv', realFile);
-
-    try {
-      const res = await fetch('/api/ingest', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || res.statusText);
-
-      collection = JSON.stringify(data.collection);
-      realCsvFile = realFile;
-      document.getElementById('step1').classList.add('step-done');
-
-      result.innerHTML = `
-        <div class="msg ok">✦ Colección invocada con éxito</div>
-        <div class="stat-grid">
-          <div class="stat"><span class="val">${data.real_count}</span><span class="lbl">Cartas reales</span></div>
-          <div class="stat"><span class="val">${data.fake_count}</span><span class="lbl">Proxies excluidas</span></div>
-        </div>
-        <p style="margin-top:1rem;color:var(--text-muted);font-size:0.9rem">
-          Los pergaminos han sido descifrados. Procede a <b style="color:var(--gold-light)">Analizar</b> o <b style="color:var(--gold-light)">Forjar</b>.
-        </p>`;
-    } catch(e) {
-      msg(result, 'err', '✗ El ritual ha fallado: ' + e.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = btn.dataset.orig;
+// ── Colecciones guardadas ──
+async function loadCollections() {
+  try {
+    const res = await fetch('/api/collections');
+    const data = await res.json();
+    for (const col of data.collections) {
+      if (!_collections[col.id]) {
+        _collections[col.id] = { name: col.name, real_count: col.real_count, collection: null };
+      }
     }
+    renderSavedCollections();
+    refreshCollectionSelects();
+  } catch(e) {}
+}
+
+function renderSavedCollections() {
+  const container = document.getElementById('saved-collections-list');
+  const ids = Object.keys(_collections);
+  if (!ids.length) {
+    container.innerHTML = '<div class="col-empty">Ninguna colección guardada aún.</div>';
+    return;
+  }
+  container.innerHTML = ids.map(id => {
+    const col = _collections[id];
+    const active = id === _activeColId ? ' style="color:var(--gold)"' : '';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+      <span${active}>
+        <b style="font-family:'Cinzel',serif;font-size:0.9rem">${col.name}</b>
+        <span style="color:var(--text-muted);font-size:0.82rem;margin-left:0.5rem">${col.real_count} cartas</span>
+      </span>
+      <button class="dl-btn" onclick="selectCollection('${id}')">Usar esta</button>
+    </div>`;
+  }).join('');
+}
+
+function refreshCollectionSelects() {
+  const ids = Object.keys(_collections);
+  ['analyze-col-select', 'build-col-select'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Selecciona una colección —</option>';
+    ids.forEach(id => {
+      const opt = document.createElement('option');
+      opt.value = id; opt.textContent = `${_collections[id].name} (${_collections[id].real_count} cartas)`;
+      sel.appendChild(opt);
+    });
+    if (current && _collections[current]) sel.value = current;
+    else if (_activeColId && _collections[_activeColId]) sel.value = _activeColId;
+  });
+}
+
+function selectCollection(id) {
+  _activeColId = id;
+  renderSavedCollections();
+  refreshCollectionSelects();
+  msg('ingest-result', 'ok', `✦ Colección activa: <b>${_collections[id].name}</b>`);
+}
+
+async function getCollectionData(id) {
+  if (_collections[id]?.collection) return _collections[id].collection;
+  try {
+    const res = await fetch(`/api/collections/${id}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    _collections[id].collection = data;
+    return data;
+  } catch(e) { return null; }
+}
+
+async function onAnalyzeColChange() {
+  _analyzeColId = document.getElementById('analyze-col-select').value || null;
+}
+
+async function onBuildColChange() {
+  _buildColId = document.getElementById('build-col-select').value || null;
+}
+
+// ── INGEST ──
+async function doIngest() {
+  const btn = document.getElementById('btn-ingest');
+  const result = document.getElementById('ingest-result');
+  const realFile = document.getElementById('real-csv').files[0];
+  const colName = document.getElementById('col-name').value.trim() || (realFile?.name.replace('.csv','') || 'Mi Colección');
+
+  if (!realFile) { msg(result, 'err', 'Debes seleccionar tu CSV de ManaBox.'); return; }
+
+  setLoading(btn, true, 'Consultando los Pergaminos de Scryfall...');
+  msg(result, 'info', '<span class="spinner"></span> Descargando el catálogo de Scryfall — puede tardar 1-2 minutos la primera vez...');
+
+  const fd = new FormData();
+  fd.append('real_csv', realFile);
+
+  try {
+    const res = await fetch('/api/ingest', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+
+    // Guardar en servidor con nombre
+    const colJson = JSON.stringify(data.collection);
+    const saveFd = new FormData();
+    saveFd.append('collection', colJson);
+    saveFd.append('name', colName);
+    const saveRes = await fetch('/api/collections/save', { method: 'POST', body: saveFd });
+    const saveData = await saveRes.json();
+
+    const colId = saveData.id;
+    _collections[colId] = { name: colName, real_count: data.real_count, collection: data.collection };
+    _activeColId = colId;
+
+    document.getElementById('step1').classList.add('step-done');
+    renderSavedCollections();
+    refreshCollectionSelects();
+
+    result.innerHTML = `
+      <div class="msg ok">✦ Colección "<b>${colName}</b>" guardada</div>
+      <div class="stat-grid">
+        <div class="stat"><span class="val">${data.real_count}</span><span class="lbl">Cartas reales</span></div>
+        <div class="stat"><span class="val">${data.fake_count}</span><span class="lbl">Proxies excluidas</span></div>
+      </div>
+      <p style="margin-top:1rem;color:var(--text-muted);font-size:0.9rem">
+        Ahora puedes <b style="color:var(--gold-light)">Analizar</b> o <b style="color:var(--gold-light)">Forjar</b>.
+      </p>`;
+  } catch(e) {
+    msg(result, 'err', '✗ El ritual ha fallado: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+// ── ANALYZE ──
+async function doAnalyze() {
+  const colId = document.getElementById('analyze-col-select').value;
+  if (!colId) { alert('Selecciona una colección primero.'); return; }
+
+  const collData = await getCollectionData(colId);
+  if (!collData) { alert('No se pudo cargar la colección.'); return; }
+
+  const btn = event.target;
+  const result = document.getElementById('analyze-result');
+  setLoading(btn, true, 'Consultando el Oráculo...');
+  msg(result, 'info', '<span class="spinner"></span> El oráculo estudia tus cartas...');
+
+  const fd = new FormData();
+  fd.append('collection', JSON.stringify(collData));
+  fd.append('min_colors', document.getElementById('min-colors').value);
+  fd.append('top', document.getElementById('top-n').value);
+
+  try {
+    const res = await fetch('/api/analyze', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail);
+
+    _analyzedCommanders = data.commanders;
+    updateCommanderDropdown();
+
+    const rows = data.commanders.map((c, i) => `
+      <tr class="clickable" onclick="selectCommanderFromTable('${c.name.replace(/'/g,"\\'")}')">
+        <td style="font-weight:500;color:var(--text)">${c.name}</td>
+        <td>${colorBadges(c.colors)}</td>
+        <td style="color:var(--text-muted);font-size:0.85rem">${c.archetype_name || '—'}</td>
+        <td><span style="color:var(--gold);font-family:'Cinzel',serif">${c.total_score}</span>
+            <span class="score-bar" style="width:${c.total_score*0.8}px"></span></td>
+        <td style="color:var(--text-muted)">${c.bracket_ceiling}</td>
+      </tr>`).join('');
+
+    result.innerHTML = `
+      <div class="msg ok">✦ Haz click en un comandante para seleccionarlo y forjar su mazo</div>
+      <div class="stat-grid">
+        <div class="stat"><span class="val">${data.pool_size}</span><span class="lbl">Cartas en pool</span></div>
+        <div class="stat"><span class="val">${data.max_bracket}</span><span class="lbl">Bracket máximo</span></div>
+        <div class="stat"><span class="val">${data.commanders.length}</span><span class="lbl">Comandantes</span></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Comandante</th><th>Colores</th><th>Arquetipo</th><th>Score</th><th>Bracket</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  } catch(e) {
+    msg(result, 'err', '✗ El oráculo no pudo responder: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+function selectCommanderFromTable(name) {
+  // Resaltar fila
+  document.querySelectorAll('#analyze-result tr').forEach(r => r.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  // Seleccionar en el dropdown de forjar
+  document.getElementById('commander-select').value = name;
+  document.getElementById('commander').value = name;
+  // Cambiar a la tab de forjar
+  document.querySelectorAll('.tab')[2].click();
+}
+
+function updateCommanderDropdown() {
+  const sel = document.getElementById('commander-select');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Elige del análisis o escribe abajo —</option>';
+  _analyzedCommanders.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    opt.textContent = `${c.name} — ${c.archetype_name || '?'} (Score ${c.total_score})`;
+    sel.appendChild(opt);
+  });
+  if (current) sel.value = current;
+
+  const hint = document.getElementById('commander-hint');
+  if (_analyzedCommanders.length) {
+    hint.textContent = `${_analyzedCommanders.length} comandantes disponibles del último análisis.`;
+  }
+}
+
+function onCommanderSelectChange() {
+  const val = document.getElementById('commander-select').value;
+  if (val) document.getElementById('commander').value = val;
+}
+
+// ── BUILD ──
+async function doBuild() {
+  const colId = document.getElementById('build-col-select').value || _activeColId;
+  if (!colId) { alert('Selecciona una colección primero.'); return; }
+
+  const collData = await getCollectionData(colId);
+  if (!collData) { alert('No se pudo cargar la colección.'); return; }
+
+  // Necesitamos el CSV real — lo reconstruimos del collection o pedimos re-upload
+  // Usamos el archivo en memoria si está disponible, sino pedimos
+  const realFileInput = document.getElementById('real-csv');
+
+  const btn = event.target;
+  const result = document.getElementById('build-result');
+  setLoading(btn, true, 'Forjando el Mazo...');
+  msg(result, 'info', '<span class="spinner"></span> El maestro artesano ensambla las cartas...');
+
+  const fd = new FormData();
+  fd.append('collection', JSON.stringify(collData));
+
+  // CSV real: usar el último archivo subido si coincide la colección
+  if (realFileInput.files[0]) {
+    fd.append('real_csv', realFileInput.files[0]);
+  } else {
+    // Crear un CSV mínimo a partir de la colección (solo para las básicas)
+    const minCsv = _buildMinimalCsv(collData);
+    fd.append('real_csv', new Blob([minCsv], {type:'text/csv'}), 'collection.csv');
   }
 
-  // ── ANALYZE ──
-  async function doAnalyze() {
-    if (!collection) { alert('Invoca tu colección primero (pestaña I).'); return; }
-    const btn = event.target;
-    if (!btn.dataset.orig) btn.dataset.orig = btn.innerHTML;
-    setLoading(btn, true, 'Consultando el Oráculo...');
-    const result = document.getElementById('analyze-result');
-    msg(result, 'info', '<span class="spinner"></span> El oráculo estudia tus cartas...');
+  const cmd = document.getElementById('commander').value.trim();
+  const colors = document.getElementById('colors').value.trim();
+  const arch = document.getElementById('archetype').value;
+  const edhrec = document.getElementById('use-edhrec').checked;
+  if (cmd) fd.append('commander', cmd);
+  if (colors) fd.append('colors', colors);
+  if (arch) fd.append('archetype', arch);
+  fd.append('use_edhrec', edhrec);
 
-    const fd = new FormData();
-    fd.append('collection', collection);
-    fd.append('min_colors', document.getElementById('min-colors').value);
-    fd.append('top', document.getElementById('top-n').value);
+  try {
+    const res = await fetch('/api/build', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail);
 
-    try {
-      const res = await fetch('/api/analyze', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail);
+    _lastBuild = data;
+    result.innerHTML = `
+      <div class="msg ok">✦ Mazo forjado: <b>${data.commander}</b></div>
+      <div class="stat-grid">
+        <div class="stat"><span class="val">${data.card_count + data.needed_basics}</span><span class="lbl">Cartas totales</span></div>
+        <div class="stat"><span class="val">${data.bracket}</span><span class="lbl">Bracket</span></div>
+        <div class="stat"><span class="val">${data.archetype}</span><span class="lbl">Arquetipo</span></div>
+      </div>
+      <div class="divider" style="margin:1.2rem 0 0.8rem">Exportar</div>
+      <div class="dl-row">
+        <button class="dl-btn" onclick="download('${data.deck_key}_moxfield.txt', _lastBuild.moxfield_txt)">⬇ Moxfield .txt</button>
+        <button class="dl-btn" onclick="download('${data.deck_key}_manabox.csv', _lastBuild.manabox_csv)">⬇ ManaBox .csv</button>
+        <button class="dl-btn" onclick="download('grimorio.html', _lastBuild.grimorio_html)">⬇ Grimorio HTML</button>
+      </div>`;
 
-      const rows = data.commanders.map(c => `
-        <tr>
-          <td style="font-weight:500;color:var(--text)">${c.name}</td>
-          <td>${colorBadges(c.colors)}</td>
-          <td style="color:var(--text-muted);font-size:0.85rem">${c.archetype_name || '—'}</td>
-          <td>
-            <span style="color:var(--gold);font-family:'Cinzel',serif">${c.total_score}</span>
-            <span class="score-bar" style="width:${c.total_score * 0.8}px"></span>
-          </td>
-          <td style="color:var(--text-muted)">${c.bracket_ceiling}</td>
-        </tr>`).join('');
-
-      result.innerHTML = `
-        <div class="stat-grid" style="margin-top:1.2rem">
-          <div class="stat"><span class="val">${data.pool_size}</span><span class="lbl">Cartas en pool</span></div>
-          <div class="stat"><span class="val">${data.max_bracket}</span><span class="lbl">Bracket máximo</span></div>
-          <div class="stat"><span class="val">${data.commanders.length}</span><span class="lbl">Comandantes</span></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr>
-              <th>Comandante</th><th>Colores</th><th>Arquetipo</th><th>Score</th><th>Bracket</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>`;
-    } catch(e) {
-      msg(result, 'err', '✗ El oráculo no pudo responder: ' + e.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = btn.dataset.orig;
-    }
+    document.getElementById('grimorio-frame').srcdoc = data.grimorio_html;
+  } catch(e) {
+    msg(result, 'err', '✗ La forja ha fallado: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = btn.dataset.orig;
   }
+}
 
-  // ── BUILD ──
-  async function doBuild() {
-    if (!collection) { alert('Invoca tu colección primero (pestaña I).'); return; }
-    const btn = event.target;
-    if (!btn.dataset.orig) btn.dataset.orig = btn.innerHTML;
-    setLoading(btn, true, 'Forjando el Mazo...');
-    const result = document.getElementById('build-result');
-    msg(result, 'info', '<span class="spinner"></span> El maestro artesano ensambla las cartas — puede tardar hasta 60 segundos con EDHREC activo...');
-
-    const fd = new FormData();
-    fd.append('collection', collection);
-    fd.append('real_csv', realCsvFile);
-    const cmd    = document.getElementById('commander').value.trim();
-    const colors = document.getElementById('colors').value.trim();
-    const arch   = document.getElementById('archetype').value;
-    const edhrec = document.getElementById('use-edhrec').checked;
-    if (cmd)    fd.append('commander', cmd);
-    if (colors) fd.append('colors', colors);
-    if (arch)   fd.append('archetype', arch);
-    fd.append('use_edhrec', edhrec);
-
-    try {
-      const res = await fetch('/api/build', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail);
-
-      window._lastBuild = data;
-
-      result.innerHTML = `
-        <div class="msg ok">✦ Mazo forjado: <b>${data.commander}</b></div>
-        <div class="stat-grid">
-          <div class="stat"><span class="val">${data.card_count + data.needed_basics}</span><span class="lbl">Cartas totales</span></div>
-          <div class="stat"><span class="val">${data.bracket}</span><span class="lbl">Bracket</span></div>
-          <div class="stat"><span class="val">${data.archetype}</span><span class="lbl">Arquetipo</span></div>
-        </div>
-        <div class="divider" style="margin:1.2rem 0 0.8rem">Exportar el Grimorio</div>
-        <div class="dl-row">
-          <button class="dl-btn" onclick="download('${data.deck_key}_moxfield.txt', window._lastBuild.moxfield_txt)">
-            ⬇ Moxfield .txt
-          </button>
-          <button class="dl-btn" onclick="download('${data.deck_key}_manabox.csv', window._lastBuild.manabox_csv)">
-            ⬇ ManaBox .csv
-          </button>
-          <button class="dl-btn" onclick="download('grimorio.html', window._lastBuild.grimorio_html)">
-            ⬇ Grimorio HTML
-          </button>
-        </div>`;
-
-      // Auto-cargar grimorio
-      document.getElementById('grimorio-frame').srcdoc = data.grimorio_html;
-    } catch(e) {
-      msg(result, 'err', '✗ La forja ha fallado: ' + e.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = btn.dataset.orig;
-    }
+function _buildMinimalCsv(collData) {
+  // CSV mínimo con las cartas reales para extraer las básicas
+  const rows = ['Name,Quantity,Scryfall ID,Set code,Set name,Collector number,Foil,Rarity,ManaBox ID,Language,Condition'];
+  for (const card of (collData.real || [])) {
+    rows.push(`"${card.name}",${card.quantity || 1},"${card.scryfall_id || ''}","${card.set || ''}","${card.set_name || ''}","${card.collector_number || ''}","${card.foil || 'normal'}","${card.rarity || ''}","","${card.language || 'en'}","${card.condition || 'near_mint'}"`);
   }
+  return rows.join('\n');
+}
 
-  // ── GRIMORIO ──
-  async function loadGrimorio() {
-    const frame = document.getElementById('grimorio-frame');
-    msg('grimorio-frame', 'info', ''); // no aplica, es iframe
-    const res = await fetch('/api/grimorio');
-    const html = await res.text();
-    frame.srcdoc = html;
-  }
+// ── GRIMORIO ──
+async function loadGrimorio() {
+  const frame = document.getElementById('grimorio-frame');
+  const res = await fetch('/api/grimorio');
+  frame.srcdoc = await res.text();
+}
+
+// ── Init ──
+loadCollections();
 </script>
 </body>
 </html>

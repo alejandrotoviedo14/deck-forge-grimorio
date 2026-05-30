@@ -51,6 +51,10 @@ _WORK_DIR = Path(tempfile.mkdtemp(prefix="deck_forge_"))
 _DECKS_DIR = _WORK_DIR / "decks"
 _DECKS_DIR.mkdir(parents=True, exist_ok=True)
 
+# Directorio de colecciones guardadas (persiste en la sesión del servidor)
+_COLLECTIONS_DIR = _WORK_DIR / "collections"
+_COLLECTIONS_DIR.mkdir(parents=True, exist_ok=True)
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -97,6 +101,71 @@ async def index():
     if ui.exists():
         return HTMLResponse(ui.read_text(encoding="utf-8"))
     return HTMLResponse("<h1>Deck Forge API</h1><p>Docs: <a href='/docs'>/docs</a></p>")
+
+
+# ---------------------------------------------------------------------------
+# GET /api/collections — lista colecciones guardadas
+# ---------------------------------------------------------------------------
+
+@app.get("/api/collections")
+async def list_collections():
+    """Lista todas las colecciones guardadas en esta sesión."""
+    cols = []
+    for f in sorted(_COLLECTIONS_DIR.glob("*.json"), key=lambda x: x.stat().st_mtime, reverse=True):
+        try:
+            meta = json.loads((f.parent / f.stem).with_suffix(".meta.json").read_text())
+        except Exception:
+            meta = {}
+        cols.append({
+            "id": f.stem,
+            "name": meta.get("name", f.stem),
+            "real_count": meta.get("real_count", 0),
+            "uploaded_at": meta.get("uploaded_at", ""),
+        })
+    return {"collections": cols}
+
+
+# ---------------------------------------------------------------------------
+# POST /api/collections/save — guarda una colección con nombre
+# ---------------------------------------------------------------------------
+
+@app.post("/api/collections/save")
+async def save_collection(
+    collection: str = Form(...),
+    name: str = Form(...),
+):
+    """Guarda una colección JSON con un nombre amigable."""
+    import time
+    try:
+        coll = json.loads(collection)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    col_id = _safe_filename(name) or f"col_{int(time.time())}"
+    col_path = _COLLECTIONS_DIR / f"{col_id}.json"
+    meta_path = _COLLECTIONS_DIR / f"{col_id}.meta.json"
+
+    col_path.write_text(json.dumps(coll, ensure_ascii=False), encoding="utf-8")
+    meta_path.write_text(json.dumps({
+        "name": name,
+        "id": col_id,
+        "real_count": len(coll.get("real", [])),
+        "uploaded_at": time.strftime("%Y-%m-%d %H:%M"),
+    }), encoding="utf-8")
+
+    return {"ok": True, "id": col_id, "name": name}
+
+
+# ---------------------------------------------------------------------------
+# GET /api/collections/{id} — carga una colección guardada
+# ---------------------------------------------------------------------------
+
+@app.get("/api/collections/{col_id}")
+async def get_collection(col_id: str):
+    col_path = _COLLECTIONS_DIR / f"{col_id}.json"
+    if not col_path.exists():
+        raise HTTPException(status_code=404, detail="Colección no encontrada")
+    return json.loads(col_path.read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------------------
