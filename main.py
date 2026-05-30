@@ -241,19 +241,21 @@ def _supa_save_deck(pin: str, deck_key: str, commander: str, archetype: str,
     """Guarda/actualiza un mazo en Supabase vinculado a un PIN."""
     if not _supa_available():
         return False
-    import requests as req
-    payload = {
-        "pin": pin, "deck_key": deck_key, "commander": commander,
-        "archetype": archetype, "colors": colors, "bracket": bracket,
-        "deck_data": deck_data,
-    }
-    # Upsert por (pin, deck_key)
-    r = req.post(
-        f"{_SUPABASE_URL}/rest/v1/decks",
-        headers={**_supa_headers(), "Prefer": "resolution=merge-duplicates"},
-        json=payload, timeout=30,
-    )
-    return r.status_code in (200, 201)
+    try:
+        import requests as req
+        payload = {
+            "pin": pin, "deck_key": deck_key, "commander": commander,
+            "archetype": archetype, "colors": colors, "bracket": bracket,
+            "deck_data": deck_data,
+        }
+        r = req.post(
+            f"{_SUPABASE_URL}/rest/v1/decks",
+            headers={**_supa_headers(), "Prefer": "resolution=merge-duplicates"},
+            json=payload, timeout=30,
+        )
+        return r.status_code in (200, 201)
+    except Exception:
+        return False
 
 
 def _supa_load_decks(pin: str) -> list[dict]:
@@ -523,12 +525,17 @@ async def build(
     pin: str | None = Form(None),
 ):
     """Construye un mazo y devuelve HTML + exportaciones."""
+    import traceback
     try:
         coll = json.loads(collection)
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=400, detail=f"collection JSON inválido: {e}")
 
-    real_bytes = await real_csv.read()
+    try:
+        real_bytes = await real_csv.read()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error leyendo CSV: {e}")
+
     basics = _load_basics_from_bytes(real_bytes)
     pool = build_real_pool(coll)
 
@@ -586,29 +593,40 @@ async def build(
         html_data=html_data,
     )
 
-    index = load_index(deck_dir)
-    grimorio_html = build_multi_html_from_index(deck_dir, index.get("decks", {}))
+    try:
+        index = load_index(deck_dir)
+        grimorio_html = build_multi_html_from_index(deck_dir, index.get("decks", {}))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generando grimorio HTML: {e}\n{traceback.format_exc()}")
 
     # Preparar lista de cartas para el simulador
-    sim_cards = _build_sim_cards(deck)
+    try:
+        sim_cards = _build_sim_cards(deck)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error preparando simulador: {e}\n{traceback.format_exc()}")
 
     # Guardar mazo en Supabase vinculado al PIN si se proporcionó
     saved_to_pin = False
     if pin and pin.strip():
-        full_deck_data = {
-            "commander_card": deck.commander,
-            "archetype_key": deck.archetype.key,
-            "colors": deck.colors,
-            "bracket": bracket.bracket,
-            "bracket_score": round(bracket.score, 2),
-            "cards": [dc.card for dc in deck.cards],
-            "needed_basics": deck.needed_basics,
-            "html_data": html_data,
-        }
-        saved_to_pin = _supa_save_deck(
-            pin.strip(), safe, deck.commander["name"],
-            deck.archetype.key, deck.colors, bracket.bracket, full_deck_data,
-        )
+        try:
+            # Usar solo campos ligeros para el html_data (sin oracle_text largo)
+            light_html_data = {k: v for k, v in html_data.items() if k != "categories"}
+            full_deck_data = {
+                "commander_card": deck.commander,
+                "archetype_key": deck.archetype.key,
+                "colors": deck.colors,
+                "bracket": bracket.bracket,
+                "bracket_score": round(bracket.score, 2),
+                "cards": [dc.card for dc in deck.cards],
+                "needed_basics": deck.needed_basics,
+                "html_data": light_html_data,
+            }
+            saved_to_pin = _supa_save_deck(
+                pin.strip(), safe, deck.commander["name"],
+                deck.archetype.key, deck.colors, bracket.bracket, full_deck_data,
+            )
+        except Exception as e:
+            saved_to_pin = False
 
     return {
         "ok": True,
