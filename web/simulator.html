@@ -6,473 +6,575 @@
   <title>Mesa de Juego — Deck Forge</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --felt:       #1a3a1a;
-      --felt2:      #153015;
-      --felt-line:  rgba(255,255,255,0.07);
-      --gold:       #c9a84c;
-      --gold-dark:  #7a5c1e;
-      --text:       #e8d8b0;
-      --text-muted: #8a7a5a;
-      --zone-bg:    rgba(0,0,0,0.25);
-      --zone-border:rgba(201,168,76,0.3);
-      --card-w:     100px;
-      --card-h:     140px;
-      --card-w-sm:  72px;
-      --card-h-sm:  100px;
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --felt:#1c3a1c;--felt-dark:#122812;--felt-line:rgba(255,255,255,0.05);
+      --gold:#c9a84c;--gold-dark:#7a5c1e;--gold-light:#e8c96a;
+      --text:#e8d8b0;--text-muted:#8a7a5a;
+      --zone-border:rgba(201,168,76,0.25);--zone-bg:rgba(0,0,0,0.2);
+      --card-w:88px;--card-h:123px;
+      --hand-card-w:100px;--hand-card-h:140px;
+      --radius:6px;
+      --W:#f8f6e3;--U:#4a90d9;--B:#c0a0c8;--R:#e05030;--G:#40a840;--C:#aaa;
     }
+    html,body{width:100%;height:100%;overflow:hidden;background:#0a0a0a;font-family:'EB Garamond',serif;user-select:none}
 
-    html, body { width:100%; height:100%; overflow:hidden; background:#0a0a0a; font-family:'EB Garamond',serif; }
-
-    /* ── TABLE ── */
-    #table {
-      width:100vw; height:100vh;
+    /* ══ LAYOUT ══ */
+    #app{
+      width:100vw;height:100vh;
       display:grid;
-      grid-template-rows: 48px 1fr 1fr 180px;
-      grid-template-columns: 120px 1fr 160px;
-      background:
-        radial-gradient(ellipse at 50% 50%, #22441a 0%, #152d12 60%, #0d1f0a 100%);
+      grid-template-rows:44px 1fr 44px 170px;
+      grid-template-columns:110px 1fr 150px;
+      background:radial-gradient(ellipse at 50% 40%,#1e3e18 0%,#122010 55%,#0a1608 100%);
       position:relative;
     }
+    #app::before{content:'';position:absolute;inset:0;pointer-events:none;
+      background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,var(--felt-line) 28px,var(--felt-line) 29px),
+      repeating-linear-gradient(90deg,transparent,transparent 28px,var(--felt-line) 28px,var(--felt-line) 29px);z-index:0}
 
-    /* Felt texture lines */
-    #table::before {
-      content:''; position:absolute; inset:0; pointer-events:none;
-      background-image:
-        repeating-linear-gradient(0deg, transparent, transparent 30px, var(--felt-line) 30px, var(--felt-line) 31px),
-        repeating-linear-gradient(90deg, transparent, transparent 30px, var(--felt-line) 30px, var(--felt-line) 31px);
-      z-index:0;
+    /* ══ TOPBAR ══ */
+    #topbar{
+      grid-column:1/-1;grid-row:1;
+      display:flex;align-items:center;gap:8px;padding:0 10px;
+      background:rgba(0,0,0,0.55);border-bottom:1px solid var(--gold-dark);
+      position:relative;z-index:20;flex-wrap:nowrap;overflow:hidden;
+    }
+    .tb-title{font-family:'Cinzel',serif;font-size:0.78rem;color:var(--gold);white-space:nowrap;margin-right:4px}
+    .tb-sep{width:1px;height:22px;background:rgba(201,168,76,0.2);flex-shrink:0}
+
+    /* Phase strip */
+    #phase-strip{display:flex;gap:1px;flex-shrink:0}
+    .phase-btn{
+      padding:3px 8px;border:1px solid rgba(201,168,76,0.15);border-radius:3px;
+      background:transparent;color:var(--text-muted);font-family:'Cinzel',serif;
+      font-size:0.58rem;letter-spacing:0.04em;text-transform:uppercase;
+      cursor:pointer;transition:all 0.15s;white-space:nowrap;
+    }
+    .phase-btn:hover{border-color:rgba(201,168,76,0.4);color:var(--text)}
+    .phase-btn.active{background:rgba(201,168,76,0.18);border-color:var(--gold);color:var(--gold)}
+    .phase-btn.done{opacity:0.4}
+    .phase-btn.action-phase{border-color:rgba(201,168,76,0.35);color:#c8a870}
+
+    /* Life + controls */
+    .tb-btn{
+      padding:3px 10px;border:1px solid var(--gold-dark);border-radius:3px;
+      background:rgba(201,168,76,0.06);color:var(--gold);font-family:'Cinzel',serif;
+      font-size:0.6rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+      cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0;
+    }
+    .tb-btn:hover{background:rgba(201,168,76,0.18);border-color:var(--gold)}
+    .tb-btn.red{border-color:#5a2020;color:#ca8080}.tb-btn.red:hover{background:rgba(138,40,40,0.2)}
+    .tb-stat{font-family:'Cinzel',serif;font-size:0.68rem;color:var(--text-muted);white-space:nowrap;flex-shrink:0}
+    .tb-stat b{color:var(--text)}
+
+    .life-area{display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0}
+    .life-label{font-family:'Cinzel',serif;font-size:0.55rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase}
+    .life-num{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:var(--gold);min-width:2.5ch;text-align:center;cursor:pointer;padding:0 2px}
+    .life-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--gold-dark);background:transparent;color:var(--gold);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.12s}
+    .life-btn:hover{background:rgba(201,168,76,0.18)}
+
+    /* Mana pool */
+    #mana-pool{display:flex;gap:3px;align-items:center;flex-shrink:0}
+    .mana-pip{
+      width:22px;height:22px;border-radius:50%;font-family:'Cinzel',serif;font-size:0.65rem;font-weight:700;
+      display:flex;align-items:center;justify-content:center;cursor:pointer;
+      border:2px solid rgba(255,255,255,0.15);transition:all 0.15s;position:relative;
+    }
+    .mana-pip[data-count="0"]{opacity:0.3}
+    .mana-pip:not([data-count="0"]){box-shadow:0 0 6px currentColor;opacity:1}
+    .mana-pip .pip-count{position:absolute;top:-4px;right:-4px;background:#1a1a1a;border-radius:50%;width:12px;height:12px;font-size:0.5rem;display:flex;align-items:center;justify-content:center;color:var(--text)}
+    .mana-W{background:#f8f6e3;color:#333}.mana-U{background:#1a4a8a;color:#aed}.mana-B{background:#2a1a2a;color:#c0a0c8}
+    .mana-R{background:#7a1a0a;color:#fca}.mana-G{background:#0a3a0a;color:#8fa}.mana-C{background:#555;color:#ddd}
+
+    /* ══ LEFT STACKS ══ */
+    #left-panel{
+      grid-column:1;grid-row:2/4;
+      display:flex;flex-direction:column;gap:8px;padding:8px 6px;
+      position:relative;z-index:10;
+    }
+    .stack{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+    .stack-card{
+      width:72px;height:100px;border:1px solid var(--zone-border);border-radius:5px;
+      background:var(--zone-bg);position:relative;overflow:hidden;
+      transition:border-color 0.15s,box-shadow 0.15s;
+    }
+    .stack:hover .stack-card{border-color:var(--gold);box-shadow:0 0 8px rgba(201,168,76,0.3)}
+    .stack-card img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+    .stack-badge{position:absolute;bottom:3px;right:3px;background:rgba(0,0,0,0.85);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;font-weight:700;padding:1px 4px;border-radius:2px}
+    .card-back{width:100%;height:100%;background:linear-gradient(135deg,#0a0830,#1a1060,#0a0830);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:rgba(255,255,255,0.1)}
+    .stack-label{font-family:'Cinzel',serif;font-size:0.55rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase}
+
+    /* Commander zone */
+    .cmd-zone{
+      border:1px solid rgba(201,168,76,0.4);border-radius:5px;padding:4px;
+      background:rgba(201,168,76,0.04);cursor:pointer;
+      transition:all 0.15s;
+    }
+    .cmd-zone:hover{border-color:var(--gold);background:rgba(201,168,76,0.1)}
+    .cmd-tax{font-family:'Cinzel',serif;font-size:0.6rem;color:var(--gold-dark);text-align:center;margin-top:2px}
+
+    /* ══ BATTLEFIELD ══ */
+    #battlefield{
+      grid-column:2;grid-row:2/4;
+      display:flex;flex-direction:column;
+      position:relative;z-index:10;padding:6px;gap:4px;overflow:hidden;
     }
 
-    /* ── TOP BAR ── */
-    #topbar {
-      grid-column: 1 / -1;
-      grid-row: 1;
-      display:flex; align-items:center; gap:1rem; padding:0 1rem;
-      background:rgba(0,0,0,0.5); border-bottom:1px solid var(--gold-dark);
-      position:relative; z-index:10;
+    /* Lands strip */
+    #lands-zone{
+      height:118px;flex-shrink:0;
+      border:1px solid var(--zone-border);border-radius:var(--radius);
+      background:rgba(0,50,0,0.15);
+      position:relative;padding:4px;
+      display:flex;align-items:center;gap:4px;overflow-x:auto;overflow-y:hidden;
     }
-    .tb-title { font-family:'Cinzel',serif; font-size:0.85rem; color:var(--gold); letter-spacing:0.1em; margin-right:0.5rem; }
-    .tb-sep { width:1px; height:24px; background:rgba(201,168,76,0.2); }
+    #lands-zone::-webkit-scrollbar{height:3px}
+    #lands-zone::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:2px}
+    .zone-tag{position:absolute;top:3px;left:6px;font-family:'Cinzel',serif;font-size:0.52rem;color:rgba(100,200,100,0.4);letter-spacing:0.15em;text-transform:uppercase;pointer-events:none}
 
-    .tb-btn {
-      padding:0.3rem 0.9rem; border:1px solid var(--gold-dark); border-radius:3px;
-      background:rgba(201,168,76,0.08); color:var(--gold);
-      font-family:'Cinzel',serif; font-size:0.65rem; font-weight:600;
-      letter-spacing:0.1em; text-transform:uppercase; cursor:pointer;
-      transition:all 0.15s; white-space:nowrap;
+    /* Permanents area */
+    #permanents-zone{
+      flex:1;
+      border:1px solid var(--zone-border);border-radius:var(--radius);
+      background:rgba(0,0,0,0.12);
+      position:relative;overflow:hidden;
     }
-    .tb-btn:hover { background:rgba(201,168,76,0.2); border-color:var(--gold); }
-    .tb-btn.danger { border-color:#5a2a2a; color:#ca8a8a; }
-    .tb-btn.danger:hover { background:rgba(138,42,42,0.2); }
+    #perm-cards{width:100%;height:100%;position:relative}
 
-    .tb-stat { font-family:'Cinzel',serif; font-size:0.7rem; color:var(--text-muted); white-space:nowrap; }
-    .tb-stat b { color:var(--text); }
-
-    /* Life counter */
-    .life-counter { display:flex; align-items:center; gap:0.4rem; margin-left:auto; }
-    .life-btn { width:26px; height:26px; border-radius:50%; border:1px solid var(--gold-dark); background:rgba(0,0,0,0.4); color:var(--gold); font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
-    .life-btn:hover { background:rgba(201,168,76,0.2); }
-    .life-val { font-family:'Cinzel',serif; font-size:1.4rem; font-weight:700; color:var(--gold); min-width:2.5ch; text-align:center; cursor:pointer; }
-    .life-label { font-family:'Cinzel',serif; font-size:0.6rem; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; }
-
-    /* Phase tracker */
-    .phases { display:flex; gap:2px; align-items:center; }
-    .phase {
-      padding:2px 7px; border-radius:2px; font-family:'Cinzel',serif;
-      font-size:0.58rem; letter-spacing:0.05em; text-transform:uppercase;
-      border:1px solid rgba(201,168,76,0.15); color:var(--text-muted);
-      cursor:pointer; transition:all 0.15s; white-space:nowrap;
-    }
-    .phase.active { background:rgba(201,168,76,0.2); border-color:var(--gold); color:var(--gold); }
-    .phase:hover:not(.active) { border-color:rgba(201,168,76,0.3); color:var(--text); }
-
-    /* ── SIDE STACKS (left col) ── */
-    #stacks {
-      grid-column:1; grid-row:2/4;
-      display:flex; flex-direction:column; gap:0.75rem;
-      padding:0.75rem; position:relative; z-index:5;
-    }
-    .stack-zone {
-      display:flex; flex-direction:column; align-items:center; gap:4px;
-      cursor:pointer;
-    }
-    .stack-pile {
-      width:var(--card-w-sm); height:var(--card-h-sm);
-      border:1px solid var(--zone-border); border-radius:6px;
-      background:var(--zone-bg); position:relative;
-      display:flex; align-items:center; justify-content:center;
-      transition:border-color 0.15s;
-    }
-    .stack-pile:hover { border-color:var(--gold); }
-    .stack-pile img { width:100%; height:100%; object-fit:cover; border-radius:5px; }
-    .stack-pile .pile-count {
-      position:absolute; bottom:4px; right:4px;
-      background:rgba(0,0,0,0.8); color:var(--gold);
-      font-family:'Cinzel',serif; font-size:0.75rem; font-weight:700;
-      padding:1px 5px; border-radius:3px;
-    }
-    .stack-pile .pile-empty-icon { font-size:1.5rem; opacity:0.3; }
-    .stack-label { font-family:'Cinzel',serif; font-size:0.6rem; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; }
-
-    /* Card back */
-    .card-back {
-      width:100%; height:100%;
-      background: linear-gradient(135deg, #1a1060 0%, #2a1880 50%, #1a1060 100%);
-      border-radius:5px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:1.8rem;
-    }
-
-    /* ── BATTLEFIELD ── */
-    #battlefield {
-      grid-column:2; grid-row:2/4;
-      position:relative; z-index:5;
-      padding:0.5rem;
-      overflow:hidden;
-    }
-    .bf-label {
-      position:absolute; top:8px; left:50%; transform:translateX(-50%);
-      font-family:'Cinzel',serif; font-size:0.6rem; color:var(--text-muted);
-      letter-spacing:0.2em; text-transform:uppercase; opacity:0.5;
-      pointer-events:none;
-    }
-    #bf-cards {
-      width:100%; height:100%;
-      position:relative;
-    }
-    .bf-card {
+    /* ══ BATTLEFIELD CARDS ══ */
+    .bf-card{
       position:absolute;
-      width:var(--card-w); height:var(--card-h);
-      cursor:grab; user-select:none;
-      transition:box-shadow 0.15s, filter 0.15s;
-      border-radius:6px;
+      width:var(--card-w);height:var(--card-h);
+      border-radius:5px;cursor:pointer;
+      border:2px solid transparent;
+      transition:box-shadow 0.15s,border-color 0.15s;
     }
-    .bf-card:hover { z-index:50 !important; box-shadow:0 0 20px rgba(201,168,76,0.5); }
-    .bf-card img { width:100%; height:100%; object-fit:cover; border-radius:6px; pointer-events:none; display:block; }
-    .bf-card .card-name-fb { width:100%; height:100%; background:linear-gradient(135deg,#1a1060,#3a2080); border-radius:6px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:0.65rem; color:var(--text); padding:6px; pointer-events:none; }
-    .bf-card.tapped { transform:rotate(90deg) !important; }
-    .bf-card.tapped:hover { transform:rotate(90deg) !important; }
+    .bf-card:hover{z-index:50!important;box-shadow:0 0 14px rgba(201,168,76,0.5);border-color:rgba(201,168,76,0.4)}
+    .bf-card img{width:100%;height:100%;object-fit:cover;border-radius:4px;pointer-events:none;display:block}
+    .bf-card .card-fb{width:100%;height:100%;background:linear-gradient(135deg,#0d1060,#2a1880);border-radius:4px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:0.58rem;color:var(--text);padding:4px;pointer-events:none}
+    .bf-card.tapped{transform:rotate(90deg)!important;transform-origin:center center}
+    .bf-card.attacking{border-color:#e05030!important;box-shadow:0 0 12px rgba(224,80,48,0.6)!important}
+    .bf-card.selected-attack{border-color:#ff8040!important;box-shadow:0 0 16px rgba(255,128,64,0.8)!important}
 
-    /* Counter badge */
-    .counter-badge {
-      position:absolute; top:-6px; right:-6px;
-      background:#1a3a8a; color:#8af; border:1px solid #3a5aaa;
-      font-family:'Cinzel',serif; font-size:0.65rem; font-weight:700;
-      padding:1px 5px; border-radius:99px; pointer-events:none; z-index:2;
-    }
-    .counter-badge.pos { background:#1a5a1a; color:#8fa; border-color:#3a8a3a; }
-
-    /* ── RIGHT PANEL ── */
-    #right-panel {
-      grid-column:3; grid-row:2/4;
-      display:flex; flex-direction:column; gap:0.5rem;
-      padding:0.75rem 0.5rem; position:relative; z-index:5;
-      overflow-y:auto;
-    }
-    .rp-section { font-family:'Cinzel',serif; font-size:0.6rem; color:var(--gold-dark); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.3rem; }
-    .log-box {
-      background:rgba(0,0,0,0.3); border:1px solid rgba(201,168,76,0.15);
-      border-radius:4px; padding:0.5rem; font-size:0.75rem; color:var(--text-muted);
-      line-height:1.5; overflow-y:auto; flex:1; max-height:200px;
-    }
-    .log-box p { margin:0; border-bottom:1px solid rgba(255,255,255,0.04); padding:2px 0; }
-    .log-gold { color:var(--gold); }
-
-    /* ── HAND ── */
-    #hand-area {
-      grid-column:1/-1; grid-row:4;
-      position:relative; z-index:10;
-      background:linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 100%);
-      border-top:1px solid rgba(201,168,76,0.2);
-      display:flex; align-items:flex-end; justify-content:center;
-      padding:0 1rem 8px;
-      overflow:visible;
-    }
-    #hand-cards {
-      display:flex; align-items:flex-end; justify-content:center;
-      position:relative; height:170px; width:100%;
-    }
-    .hand-card {
-      position:absolute;
-      width:var(--card-w); height:var(--card-h);
-      border-radius:8px; cursor:pointer;
-      transition:transform 0.2s, z-index 0s, filter 0.2s;
+    /* Land card in strip */
+    .land-card{
+      width:var(--card-w);height:106px;flex-shrink:0;
+      border-radius:5px;cursor:pointer;border:2px solid transparent;
+      transition:all 0.15s;
       transform-origin:bottom center;
-      filter:drop-shadow(0 4px 12px rgba(0,0,0,0.8));
     }
-    .hand-card img { width:100%; height:100%; object-fit:cover; border-radius:8px; display:block; pointer-events:none; }
-    .hand-card .card-name-fb { width:100%; height:100%; background:linear-gradient(135deg,#1a1060,#3a2080); border-radius:8px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:0.65rem; color:var(--text); padding:6px; pointer-events:none; }
-    .hand-card:hover { z-index:100 !important; transform:translateY(-40px) scale(1.15) !important; filter:drop-shadow(0 12px 24px rgba(0,0,0,0.9)); }
-    .hand-card.selected { z-index:90 !important; transform:translateY(-30px) scale(1.1) !important; filter:drop-shadow(0 0 16px rgba(201,168,76,0.8)); }
+    .land-card:hover{border-color:rgba(201,168,76,0.5);transform:translateY(-4px)}
+    .land-card img{width:100%;height:100%;object-fit:cover;border-radius:4px;pointer-events:none;display:block}
+    .land-card .card-fb{width:100%;height:100%;background:linear-gradient(135deg,#0a2a0a,#1a4a1a);border-radius:4px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:0.55rem;color:#8fa;padding:4px}
+    .land-card.tapped{transform:rotate(90deg);margin:0 20px}
+    .land-card.tapped:hover{transform:rotate(90deg) translateY(-3px)}
 
-    /* Hand count label */
-    .hand-label {
-      position:absolute; left:8px; bottom:8px;
-      font-family:'Cinzel',serif; font-size:0.65rem; color:var(--text-muted);
-      letter-spacing:0.1em; z-index:5;
-    }
+    /* Counter badges */
+    .counter{position:absolute;top:-5px;right:-5px;background:#1a3a8a;color:#adf;border:1px solid #3a5aaa;font-family:'Cinzel',serif;font-size:0.6rem;font-weight:700;padding:1px 4px;border-radius:99px;pointer-events:none;z-index:3}
+    .counter.pos{background:#1a5a1a;color:#8fa;border-color:#3a8a3a}
+    .loyalty-counter{position:absolute;bottom:-5px;right:-5px;background:#7a3a00;color:#fca;border:1px solid #b06010;font-family:'Cinzel',serif;font-size:0.65rem;font-weight:700;padding:1px 5px;border-radius:99px;pointer-events:none;z-index:3}
 
-    /* ── CARD CONTEXT MENU ── */
-    #ctx-menu {
-      position:fixed; display:none; z-index:200;
-      background:rgba(10,8,5,0.97); border:1px solid var(--gold-dark);
-      border-radius:6px; padding:0.4rem 0; min-width:150px;
-      box-shadow:0 8px 32px rgba(0,0,0,0.8);
+    /* ══ RIGHT PANEL ══ */
+    #right-panel{
+      grid-column:3;grid-row:2/4;
+      display:flex;flex-direction:column;gap:6px;
+      padding:8px 6px;position:relative;z-index:10;overflow-y:auto;
     }
-    .ctx-item {
-      padding:0.45rem 1rem; font-family:'Cinzel',serif; font-size:0.7rem;
-      color:var(--text); cursor:pointer; letter-spacing:0.05em;
-      transition:background 0.1s;
-    }
-    .ctx-item:hover { background:rgba(201,168,76,0.1); color:var(--gold); }
-    .ctx-item.danger:hover { background:rgba(138,42,42,0.2); color:#ca8a8a; }
-    .ctx-sep { height:1px; background:rgba(201,168,76,0.15); margin:0.2rem 0; }
+    .rp-label{font-family:'Cinzel',serif;font-size:0.58rem;color:var(--gold-dark);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:3px}
+    .action-btn{width:100%;padding:5px;border:1px solid var(--gold-dark);border-radius:3px;background:rgba(201,168,76,0.06);color:var(--text-muted);font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;margin-bottom:3px;text-align:left}
+    .action-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.1)}
+    .log-box{background:rgba(0,0,0,0.3);border:1px solid rgba(201,168,76,0.12);border-radius:4px;padding:5px;font-size:0.72rem;color:var(--text-muted);line-height:1.5;overflow-y:auto;flex:1;max-height:180px}
+    .log-box p{margin:0;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .log-gold{color:var(--gold-light)}
+    .log-red{color:#e08060}
+    .log-green{color:#80c080}
 
-    /* ── CARD ZOOM MODAL ── */
-    #zoom-modal {
-      position:fixed; inset:0; z-index:300;
-      display:none; align-items:center; justify-content:center;
-      background:rgba(0,0,0,0.85); cursor:pointer;
+    /* Phase banner */
+    #phase-banner{
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      background:rgba(0,0,0,0.85);border:1px solid var(--gold);border-radius:8px;
+      padding:12px 24px;text-align:center;z-index:100;pointer-events:none;
+      opacity:0;transition:opacity 0.3s;
     }
-    #zoom-modal.visible { display:flex; }
-    #zoom-modal img { max-height:85vh; max-width:90vw; border-radius:12px; box-shadow:0 0 60px rgba(0,0,0,0.9); pointer-events:none; }
-    #zoom-modal .zoom-name { position:absolute; bottom:5vh; color:var(--gold); font-family:'Cinzel',serif; font-size:1rem; letter-spacing:0.1em; }
+    #phase-banner.show{opacity:1}
+    #phase-banner h3{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem}
+    #phase-banner p{font-size:0.8rem;color:var(--text-muted);margin-top:4px}
 
-    /* ── MULLIGAN OVERLAY ── */
-    #mull-overlay {
-      position:fixed; inset:0; z-index:250; display:none;
-      align-items:center; justify-content:center;
-      background:rgba(0,0,0,0.85);
+    /* ══ HAND ══ */
+    #hand-area{
+      grid-column:1/-1;grid-row:4;
+      position:relative;z-index:20;
+      background:linear-gradient(0deg,rgba(0,0,0,0.65) 0%,transparent 100%);
+      border-top:1px solid rgba(201,168,76,0.15);
+      display:flex;align-items:flex-end;justify-content:center;
+      padding:0 80px 8px;overflow:visible;
     }
-    #mull-overlay.visible { display:flex; }
-    .mull-box { background:#100d08; border:1px solid var(--gold-dark); border-radius:8px; padding:2rem; text-align:center; max-width:380px; width:90%; }
-    .mull-box h3 { font-family:'Cinzel',serif; color:var(--gold); margin-bottom:0.75rem; font-size:1.1rem; }
-    .mull-box p { color:var(--text-muted); font-size:0.9rem; line-height:1.5; margin-bottom:1rem; }
-    .mull-n-row { display:flex; align-items:center; justify-content:center; gap:1rem; margin:1rem 0; }
-    .mull-n { font-family:'Cinzel',serif; font-size:2.5rem; color:var(--gold); min-width:2ch; text-align:center; }
-    .mull-n-btn { width:32px; height:32px; border-radius:50%; border:1px solid var(--gold-dark); background:transparent; color:var(--gold); font-size:1.2rem; cursor:pointer; }
-    .mull-n-btn:hover { background:rgba(201,168,76,0.15); }
-    .mull-actions { display:flex; gap:0.75rem; justify-content:center; margin-top:1rem; }
+    #hand-cards{display:flex;align-items:flex-end;justify-content:center;position:relative;height:160px;width:100%}
+    .hand-label{position:absolute;left:10px;bottom:10px;font-family:'Cinzel',serif;font-size:0.62rem;color:var(--text-muted);z-index:5}
+    .land-play-indicator{position:absolute;right:10px;bottom:10px;font-family:'Cinzel',serif;font-size:0.62rem;z-index:5}
+    .lpi-ok{color:#80c080}.lpi-used{color:#e08060}
 
-    /* ── START SCREEN ── */
-    #start-screen {
-      position:fixed; inset:0; z-index:400;
-      display:flex; align-items:center; justify-content:center;
-      background:radial-gradient(ellipse at 50% 50%, #0f1a0f 0%, #060c06 100%);
+    .hand-card{
+      position:absolute;width:var(--hand-card-w);height:var(--hand-card-h);
+      border-radius:8px;cursor:pointer;transform-origin:bottom center;
+      border:2px solid transparent;
+      filter:drop-shadow(0 4px 10px rgba(0,0,0,0.8));
+      transition:transform 0.18s,border-color 0.15s,filter 0.15s;
     }
-    .start-box { background:#13100a; border:1px solid var(--gold-dark); border-radius:8px; padding:2.5rem; max-width:420px; width:90%; text-align:center; }
-    .start-box h2 { font-family:'Cinzel',serif; color:var(--gold); margin-bottom:0.5rem; font-size:1.3rem; }
-    .start-box p { color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem; line-height:1.5; }
-    .start-select { width:100%; padding:0.7rem 1rem; background:#0a0806; border:1px solid #5a4520; border-radius:4px; color:var(--text); font-family:'EB Garamond',serif; font-size:1rem; margin-bottom:1rem; }
-    .start-btn {
-      width:100%; padding:0.85rem; background:linear-gradient(135deg,#3a2a0a,#5a4015,#3a2a0a);
-      border:1px solid var(--gold-dark); border-radius:4px; color:var(--gold);
-      font-family:'Cinzel',serif; font-size:0.85rem; font-weight:700; letter-spacing:0.15em;
-      text-transform:uppercase; cursor:pointer; transition:all 0.2s;
-    }
-    .start-btn:hover { border-color:var(--gold); box-shadow:0 0 20px rgba(201,168,76,0.2); }
+    .hand-card:hover{z-index:100!important;transform:translateY(-38px) scale(1.12)!important;filter:drop-shadow(0 12px 20px rgba(0,0,0,0.9));border-color:rgba(201,168,76,0.5)}
+    .hand-card.selected{z-index:90!important;transform:translateY(-25px) scale(1.08)!important;border-color:var(--gold)!important;filter:drop-shadow(0 0 14px rgba(201,168,76,0.7))}
+    .hand-card.playable{border-color:rgba(80,180,80,0.5)}
+    .hand-card img{width:100%;height:100%;object-fit:cover;border-radius:7px;pointer-events:none;display:block}
+    .hand-card .card-fb{width:100%;height:100%;border-radius:7px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:0.62rem;color:var(--text);padding:5px;pointer-events:none}
+    .hand-card.type-land .card-fb{background:linear-gradient(135deg,#0a2a0a,#1a4a1a)}
+    .hand-card.type-creature .card-fb{background:linear-gradient(135deg,#0d0d30,#1a1a50)}
+    .hand-card.type-instant .card-fb{background:linear-gradient(135deg,#0a1a3a,#102850)}
+    .hand-card.type-sorcery .card-fb{background:linear-gradient(135deg,#2a0a0a,#401010)}
+    .hand-card .card-fb{background:linear-gradient(135deg,#0d1020,#1a1535)}
 
-    /* ── TOKEN DIALOG ── */
-    #token-dialog {
-      position:fixed; inset:0; z-index:250; display:none;
-      align-items:center; justify-content:center; background:rgba(0,0,0,0.7);
-    }
-    #token-dialog.visible { display:flex; }
-    .token-box { background:#100d08; border:1px solid var(--gold-dark); border-radius:8px; padding:1.5rem; width:280px; text-align:center; }
-    .token-box h4 { font-family:'Cinzel',serif; color:var(--gold); margin-bottom:1rem; font-size:0.9rem; }
-    .token-row { display:flex; align-items:center; justify-content:center; gap:0.75rem; margin:0.5rem 0; }
-    .token-label { font-size:0.8rem; color:var(--text-muted); width:80px; text-align:right; font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:0.05em; text-transform:uppercase; }
-    .token-val { font-family:'Cinzel',serif; font-size:1.3rem; color:var(--gold); min-width:2ch; text-align:center; }
-    .token-btn { width:24px; height:24px; border-radius:50%; border:1px solid var(--gold-dark); background:transparent; color:var(--gold); font-size:0.9rem; cursor:pointer; }
+    /* Card type tag */
+    .card-type-tag{position:absolute;top:3px;left:3px;font-family:'Cinzel',serif;font-size:0.48rem;letter-spacing:0.05em;text-transform:uppercase;padding:1px 4px;border-radius:2px;pointer-events:none}
+    .tag-land{background:rgba(0,100,0,0.8);color:#8fa}
+    .tag-creature{background:rgba(0,0,80,0.8);color:#aaf}
+    .tag-instant{background:rgba(0,40,100,0.8);color:#adf}
+    .tag-sorcery{background:rgba(80,0,0,0.8);color:#faa}
+    .tag-artifact{background:rgba(60,60,60,0.8);color:#ddd}
+    .tag-enchantment{background:rgba(60,0,80,0.8);color:#daf}
+    .tag-planeswalker{background:rgba(80,40,0,0.8);color:#fca}
+
+    /* ══ CONTEXT MENU ══ */
+    #ctx{position:fixed;z-index:500;display:none;background:rgba(8,6,3,0.97);border:1px solid var(--gold-dark);border-radius:6px;padding:4px 0;min-width:170px;box-shadow:0 8px 32px rgba(0,0,0,0.9)}
+    .ctx-title{padding:4px 12px;font-family:'Cinzel',serif;font-size:0.6rem;color:var(--gold-dark);letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid rgba(201,168,76,0.15);margin-bottom:2px}
+    .ctx-item{padding:5px 12px;font-family:'Cinzel',serif;font-size:0.68rem;color:var(--text);cursor:pointer;letter-spacing:0.04em;transition:background 0.1s}
+    .ctx-item:hover{background:rgba(201,168,76,0.1);color:var(--gold)}
+    .ctx-item.red:hover{background:rgba(138,40,40,0.2);color:#e08080}
+    .ctx-sep{height:1px;background:rgba(201,168,76,0.12);margin:3px 0}
+
+    /* ══ ZOOM MODAL ══ */
+    #zoom{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.88);cursor:pointer}
+    #zoom.on{display:flex}
+    #zoom img{max-height:88vh;max-width:92vw;border-radius:12px;box-shadow:0 0 60px rgba(0,0,0,1);pointer-events:none}
+    #zoom .zoom-name{position:absolute;bottom:4vh;color:var(--gold);font-family:'Cinzel',serif;font-size:0.9rem;letter-spacing:0.1em}
+
+    /* ══ MULLIGAN ══ */
+    #mull-modal{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.88)}
+    #mull-modal.on{display:flex}
+    .mull-box{background:#100d08;border:1px solid var(--gold-dark);border-radius:8px;padding:24px;max-width:380px;width:92%;text-align:center}
+    .mull-box h3{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;margin-bottom:8px}
+    .mull-box p{color:var(--text-muted);font-size:0.88rem;line-height:1.5;margin-bottom:12px}
+    .mull-n-row{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0}
+    .mull-n{font-family:'Cinzel',serif;font-size:2.2rem;color:var(--gold);min-width:2ch;text-align:center}
+    .mull-n-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--gold-dark);background:transparent;color:var(--gold);font-size:1.1rem;cursor:pointer;transition:background 0.12s}
+    .mull-n-btn:hover{background:rgba(201,168,76,0.15)}
+    .mull-actions{display:flex;gap:8px;justify-content:center;margin-top:12px}
+    .mull-go{background:rgba(42,80,42,0.4);border:1px solid #4a8a4a;border-radius:4px;color:#8aca8a;font-family:'Cinzel',serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:6px 16px;cursor:pointer;transition:all 0.15s}
+    .mull-go:hover{background:rgba(42,80,42,0.7)}
+    .mull-cancel{background:transparent;border:1px solid var(--gold-dark);border-radius:4px;color:var(--text-muted);font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:6px 16px;cursor:pointer}
+
+    /* ══ TOKEN MODAL ══ */
+    #token-modal{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8)}
+    #token-modal.on{display:flex}
+    .token-box{background:#100d08;border:1px solid var(--gold-dark);border-radius:8px;padding:20px;max-width:320px;width:92%}
+    .token-box h4{font-family:'Cinzel',serif;color:var(--gold);margin-bottom:12px;font-size:0.9rem}
+    .token-row{display:flex;align-items:center;gap:8px;margin:6px 0}
+    .token-row label{font-family:'Cinzel',serif;font-size:0.65rem;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;width:90px}
+    .token-row input,.token-row select{flex:1;padding:4px 8px;background:#0a0806;border:1px solid var(--border,#5a4520);border-radius:3px;color:var(--text);font-family:'EB Garamond',serif;font-size:0.9rem}
+
+    /* ══ DISCARD MODAL ══ */
+    #discard-modal{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.88)}
+    #discard-modal.on{display:flex}
+    .discard-box{background:#100d08;border:2px solid #8a2a2a;border-radius:8px;padding:20px;max-width:480px;width:92%;text-align:center}
+    .discard-box h3{font-family:'Cinzel',serif;color:#ca8080;margin-bottom:8px}
+    .discard-box p{color:var(--text-muted);font-size:0.85rem;margin-bottom:12px}
+    #discard-hand{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0}
+    .discard-card{width:60px;height:84px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:all 0.15s;overflow:hidden}
+    .discard-card:hover{border-color:#e05050;transform:scale(1.05)}
+    .discard-card.selected{border-color:#e05050;opacity:0.5}
+    .discard-card img{width:100%;height:100%;object-fit:cover}
+    .discard-card .card-fb-sm{width:100%;height:100%;background:#1a0808;display:flex;align-items:center;justify-content:center;text-align:center;font-size:0.5rem;color:#faa;padding:3px}
+
+    /* ══ START SCREEN ══ */
+    #start{position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 50%,#0f180f 0%,#060c06 100%)}
+    .start-box{background:#13100a;border:1px solid var(--gold-dark);border-radius:8px;padding:28px;max-width:440px;width:92%;text-align:center}
+    .start-box h2{font-family:'Cinzel',serif;color:var(--gold);font-size:1.2rem;margin-bottom:6px}
+    .start-box p{color:var(--text-muted);font-size:0.88rem;line-height:1.5;margin-bottom:16px}
+    .start-select{width:100%;padding:8px 10px;background:#0a0806;border:1px solid #5a4520;border-radius:4px;color:var(--text);font-family:'EB Garamond',serif;font-size:0.95rem;margin-bottom:10px}
+    .start-go{width:100%;padding:10px;background:linear-gradient(135deg,#3a2a0a,#5a4015,#3a2a0a);border:1px solid var(--gold-dark);border-radius:4px;color:var(--gold);font-family:'Cinzel',serif;font-size:0.82rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+    .start-go:hover{border-color:var(--gold);box-shadow:0 0 16px rgba(201,168,76,0.2)}
+    .back-link{display:block;margin-top:12px;color:#7a6a4a;font-size:0.82rem;text-decoration:none}
+    .back-link:hover{color:var(--gold)}
+
+    /* Combat declare hint */
+    #combat-hint{display:none;position:absolute;bottom:6px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);border:1px solid #e05030;border-radius:4px;padding:4px 12px;font-family:'Cinzel',serif;font-size:0.65rem;color:#fca;z-index:30;white-space:nowrap}
+
+    /* Scrollbar global */
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:rgba(0,0,0,0.2)}
+    ::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:2px}
+
+    /* Keyboard shortcut hints */
+    .kb{font-size:0.5rem;opacity:0.5;margin-left:4px;background:rgba(255,255,255,0.08);padding:0 2px;border-radius:1px}
   </style>
 </head>
 <body>
 
-<!-- START SCREEN -->
-<div id="start-screen">
+<!-- ══ START SCREEN ══ -->
+<div id="start">
   <div class="start-box">
-    <h2>⚔ Mesa de Juego</h2>
-    <p>Selecciona el mazo que quieres probar y comienza la partida.</p>
-    <select class="start-select" id="start-deck-select">
-      <option value="">Cargando mazos...</option>
-    </select>
-    <button class="start-btn" onclick="startGame()">✦ Comenzar Partida ✦</button>
-    <p style="margin-top:1rem;font-size:0.8rem;color:#5a4a3a">
-      <a href="/" style="color:#7a6a4a;text-decoration:none">← Volver al Grimorio</a>
-    </p>
+    <h2>⚔ Mesa de Juego Commander</h2>
+    <p>Selecciona el mazo y comienza la partida. Las cartas se roban automáticamente al empezar.</p>
+    <select class="start-select" id="start-select"><option value="">Cargando mazos...</option></select>
+    <button class="start-go" onclick="startGame()">✦ Comenzar Partida ✦</button>
+    <a href="/" class="back-link">← Volver al Grimorio</a>
   </div>
 </div>
 
-<!-- GAME TABLE -->
-<div id="table">
+<!-- ══ GAME TABLE ══ -->
+<div id="app">
 
   <!-- TOP BAR -->
   <div id="topbar">
-    <span class="tb-title" id="tb-commander">⚔ Mesa</span>
+    <span class="tb-title" id="tb-cmd">⚔</span>
     <div class="tb-sep"></div>
 
-    <div class="phases" id="phases">
-      <span class="phase active" onclick="setPhase(this)">Inicio</span>
-      <span class="phase" onclick="setPhase(this)">Mantenim.</span>
-      <span class="phase" onclick="setPhase(this)">Robar</span>
-      <span class="phase" onclick="setPhase(this)">Principal I</span>
-      <span class="phase" onclick="setPhase(this)">Combate</span>
-      <span class="phase" onclick="setPhase(this)">Principal II</span>
-      <span class="phase" onclick="setPhase(this)">Final</span>
+    <!-- Phase strip -->
+    <div id="phase-strip">
+      <button class="phase-btn action-phase" data-phase="untap" onclick="goPhase('untap')">⟳ Destapear<span class="kb">U</span></button>
+      <button class="phase-btn" data-phase="upkeep" onclick="goPhase('upkeep')">Mantenim.</button>
+      <button class="phase-btn action-phase" data-phase="draw" onclick="goPhase('draw')">↓ Robar<span class="kb">D</span></button>
+      <button class="phase-btn" data-phase="main1" onclick="goPhase('main1')">Principal I</button>
+      <button class="phase-btn" data-phase="combat" onclick="goPhase('combat')">⚔ Combate</button>
+      <button class="phase-btn" data-phase="attackers" onclick="goPhase('attackers')">Atacantes</button>
+      <button class="phase-btn" data-phase="damage" onclick="goPhase('damage')">Daño</button>
+      <button class="phase-btn" data-phase="main2" onclick="goPhase('main2')">Principal II</button>
+      <button class="phase-btn action-phase" data-phase="end" onclick="goPhase('end')">Final<span class="kb">E</span></button>
     </div>
 
     <div class="tb-sep"></div>
-    <span class="tb-stat">Turno <b id="tb-turn">1</b></span>
-    <button class="tb-btn" onclick="nextTurn()">→ Sig. Turno</button>
-    <button class="tb-btn" onclick="untapAll()">⟳ Destapear Todo</button>
-    <button class="tb-btn danger" onclick="confirmReset()">↺ Nueva Partida</button>
+    <span class="tb-stat">T<b id="tb-turn">1</b></span>
+    <span class="tb-stat">Mano:<b id="tb-hand">7</b></span>
+    <span class="tb-stat">Bib:<b id="tb-lib">99</b></span>
 
-    <div class="life-counter">
-      <div class="life-label">Vida</div>
-      <button class="life-btn" onclick="changeLife(-1)">−</button>
-      <div class="life-val" id="life-val" onclick="editLife()">40</div>
-      <button class="life-btn" onclick="changeLife(+1)">+</button>
-      <button class="life-btn" onclick="changeLife(-5)" style="font-size:0.65rem;width:30px;border-radius:4px">−5</button>
-      <button class="life-btn" onclick="changeLife(+5)" style="font-size:0.65rem;width:30px;border-radius:4px">+5</button>
+    <!-- Mana pool -->
+    <div id="mana-pool">
+      <span style="font-family:'Cinzel',serif;font-size:0.55rem;color:var(--text-muted)">MANÁ:</span>
+      <div class="mana-pip mana-W" data-color="W" data-count="0" title="Maná Blanco" onclick="spendMana('W')">W<div class="pip-count">0</div></div>
+      <div class="mana-pip mana-U" data-color="U" data-count="0" title="Maná Azul" onclick="spendMana('U')">U<div class="pip-count">0</div></div>
+      <div class="mana-pip mana-B" data-color="B" data-count="0" title="Maná Negro" onclick="spendMana('B')">B<div class="pip-count">0</div></div>
+      <div class="mana-pip mana-R" data-color="R" data-count="0" title="Maná Rojo" onclick="spendMana('R')">R<div class="pip-count">0</div></div>
+      <div class="mana-pip mana-G" data-color="G" data-count="0" title="Maná Verde" onclick="spendMana('G')">G<div class="pip-count">0</div></div>
+      <div class="mana-pip mana-C" data-color="C" data-count="0" title="Maná Incoloro" onclick="spendMana('C')">C<div class="pip-count">0</div></div>
     </div>
+
+    <div class="life-area">
+      <span class="life-label">Vida</span>
+      <button class="life-btn" onclick="life(-5)" title="-5">−5</button>
+      <button class="life-btn" onclick="life(-1)">−</button>
+      <div class="life-num" id="life-num" onclick="editLife()">40</div>
+      <button class="life-btn" onclick="life(+1)">+</button>
+      <button class="life-btn" onclick="life(+5)" title="+5">+5</button>
+    </div>
+
+    <div class="tb-sep"></div>
+    <button class="tb-btn" onclick="openMull()">↩ Mulligan</button>
+    <button class="tb-btn" onclick="shuffleLib()">🔀 Barajar</button>
+    <button class="tb-btn" onclick="scry()">👁 Scry 1</button>
+    <button class="tb-btn" onclick="openTokenModal()">✦ Token</button>
+    <button class="tb-btn red" onclick="confirmReset()">↺ Reset</button>
   </div>
 
   <!-- LEFT STACKS -->
-  <div id="stacks">
-    <div class="stack-zone" onclick="drawCard()">
-      <div class="stack-pile" id="library-pile">
-        <div class="card-back">🂠</div>
-        <div class="pile-count" id="library-count">99</div>
-      </div>
+  <div id="left-panel">
+    <!-- Commander -->
+    <div class="cmd-zone" onclick="castCommander()" title="Click para lanzar el Comandante">
+      <div class="stack-card" id="cmd-card-pile"><div class="card-back">⚔</div></div>
+      <div class="stack-label" style="text-align:center">Comandante</div>
+      <div class="cmd-tax" id="cmd-tax-label">Impuesto: 0</div>
+    </div>
+
+    <!-- Library -->
+    <div class="stack" onclick="drawCard()" title="Click para robar (D)">
+      <div class="stack-card"><div class="card-back">🂠</div><div class="stack-badge" id="lib-count">99</div></div>
       <div class="stack-label">Biblioteca</div>
     </div>
 
-    <div class="stack-zone" onclick="showZone('gy')">
-      <div class="stack-pile" id="gy-pile">
-        <div class="pile-empty-icon">💀</div>
-        <div class="pile-count" id="gy-count" style="display:none">0</div>
-      </div>
-      <div class="stack-label">Cementerio</div>
+    <!-- Graveyard -->
+    <div class="stack" onclick="openZone('gy')" title="Ver cementerio">
+      <div class="stack-card" id="gy-top"><div class="card-back" style="font-size:1.2rem">💀</div></div>
+      <div class="stack-label">Cementerio (<span id="gy-count">0</span>)</div>
     </div>
 
-    <div class="stack-zone" onclick="showZone('exile')">
-      <div class="stack-pile" id="exile-pile">
-        <div class="pile-empty-icon">✦</div>
-        <div class="pile-count" id="exile-count" style="display:none">0</div>
-      </div>
-      <div class="stack-label">Exilio</div>
-    </div>
-
-    <div class="stack-zone" onclick="showZone('cmd')">
-      <div class="stack-pile" id="cmd-pile">
-        <div class="pile-empty-icon">⚔</div>
-      </div>
-      <div class="stack-label">Comandante</div>
+    <!-- Exile -->
+    <div class="stack" onclick="openZone('exile')" title="Ver exilio">
+      <div class="stack-card" id="exile-top"><div class="card-back" style="font-size:1.2rem">✦</div></div>
+      <div class="stack-label">Exilio (<span id="exile-count">0</span>)</div>
     </div>
   </div>
 
   <!-- BATTLEFIELD -->
   <div id="battlefield">
-    <div class="bf-label">Campo de Batalla — haz click derecho en una carta para opciones</div>
-    <div id="bf-cards"></div>
+    <!-- Lands -->
+    <div id="lands-zone">
+      <div class="zone-tag">Tierras</div>
+    </div>
+    <!-- Permanents -->
+    <div id="permanents-zone">
+      <div id="perm-cards"></div>
+      <div id="combat-hint">⚔ Combate: haz click en tus criaturas para declararlas atacantes</div>
+    </div>
+    <!-- Phase banner overlay -->
+    <div id="phase-banner"><h3 id="pb-title"></h3><p id="pb-sub"></p></div>
   </div>
 
   <!-- RIGHT PANEL -->
   <div id="right-panel">
-    <div class="rp-section">Registro</div>
-    <div class="log-box" id="log-box"></div>
+    <div class="rp-label">Acciones</div>
+    <button class="action-btn" onclick="drawCard()">↓ Robar carta <span class="kb">D</span></button>
+    <button class="action-btn" onclick="mill(1)">⬇ Mill 1</button>
+    <button class="action-btn" onclick="untapAll()">⟳ Destapear todo <span class="kb">U</span></button>
+    <button class="action-btn" onclick="clearMana()">× Limpiar maná</button>
+    <button class="action-btn" onclick="goPhase('end')">→ Fase Final</button>
 
-    <div class="rp-section" style="margin-top:0.5rem">Acciones</div>
-    <button class="tb-btn" onclick="showMulligan()" style="width:100%;margin-bottom:4px">↩ Mulligan</button>
-    <button class="tb-btn" onclick="shuffleLibrary()" style="width:100%;margin-bottom:4px">🔀 Barajar</button>
-    <button class="tb-btn" onclick="scry(1)" style="width:100%;margin-bottom:4px">👁 Scry 1</button>
-    <button class="tb-btn" onclick="mill(1)" style="width:100%">⬇ Mill 1</button>
+    <div class="rp-label" style="margin-top:6px">Registro</div>
+    <div class="log-box" id="log-box"></div>
   </div>
 
   <!-- HAND -->
   <div id="hand-area">
     <div class="hand-label" id="hand-label">Mano: 0</div>
+    <div class="land-play-indicator" id="lpi">
+      <span class="lpi-ok" id="lpi-ok">⬛ Tierra disponible</span>
+    </div>
     <div id="hand-cards"></div>
   </div>
 </div>
 
 <!-- CONTEXT MENU -->
-<div id="ctx-menu">
-  <div class="ctx-item" id="ctx-play" onclick="ctxAction('play')">▶ Jugar al campo</div>
-  <div class="ctx-item" id="ctx-tap" onclick="ctxAction('tap')">↻ Tapear / Destapear</div>
-  <div class="ctx-item" onclick="ctxAction('counter+')">⬆ Añadir contador +1/+1</div>
-  <div class="ctx-item" onclick="ctxAction('counter-')">⬇ Quitar contador +1/+1</div>
-  <div class="ctx-sep"></div>
-  <div class="ctx-item" onclick="ctxAction('discard')">🗑 Al cementerio</div>
-  <div class="ctx-item" onclick="ctxAction('exile')">✦ Exiliar</div>
-  <div class="ctx-item" onclick="ctxAction('tohand')">↩ A la mano</div>
-  <div class="ctx-item" onclick="ctxAction('tolib')">📚 Al fondo del mazo</div>
-  <div class="ctx-sep"></div>
-  <div class="ctx-item" onclick="ctxAction('zoom')">🔍 Ver carta</div>
+<div id="ctx">
+  <div class="ctx-title" id="ctx-card-name">Carta</div>
 </div>
 
 <!-- ZOOM MODAL -->
-<div id="zoom-modal" onclick="closeZoom()">
+<div id="zoom" onclick="closeZoom()">
   <img id="zoom-img" src="" alt=""/>
   <div class="zoom-name" id="zoom-name"></div>
 </div>
 
-<!-- MULLIGAN OVERLAY -->
-<div id="mull-overlay">
+<!-- MULLIGAN MODAL -->
+<div id="mull-modal">
   <div class="mull-box">
     <h3>Mulligan de Londres</h3>
-    <p>Robas 7 cartas nuevas y devuelves <b id="mull-return">1</b> al fondo del mazo.</p>
+    <p>Devuelves <b id="mull-n-label">1</b> carta al fondo del mazo. Robas 7 nuevas.</p>
     <div class="mull-n-row">
-      <button class="mull-n-btn" onclick="changeMullN(-1)">−</button>
-      <div class="mull-n" id="mull-n">1</div>
-      <button class="mull-n-btn" onclick="changeMullN(+1)">+</button>
+      <button class="mull-n-btn" onclick="adjMull(-1)">−</button>
+      <div class="mull-n" id="mull-n-disp">1</div>
+      <button class="mull-n-btn" onclick="adjMull(+1)">+</button>
     </div>
-    <p style="font-size:0.8rem;color:#7a5a3a">Cartas a devolver al mazo</p>
+    <p style="font-size:0.75rem;color:#7a5a3a">Cartas a devolver</p>
     <div class="mull-actions">
-      <button class="tb-btn" onclick="doMulligan()" style="background:rgba(42,90,42,0.3);border-color:#4a8a4a;color:#8aca8a">✦ Hacer Mulligan</button>
-      <button class="tb-btn" onclick="closeMulligan()">Cancelar</button>
+      <button class="mull-go" onclick="doMull()">✦ Hacer Mulligan</button>
+      <button class="mull-cancel" onclick="closeMull()">Cancelar</button>
     </div>
   </div>
 </div>
 
-<!-- TOKEN DIALOG -->
-<div id="token-dialog">
+<!-- TOKEN MODAL -->
+<div id="token-modal">
   <div class="token-box">
-    <h4 id="token-card-name">Carta</h4>
-    <div class="token-row">
-      <span class="token-label">+1/+1</span>
-      <button class="token-btn" onclick="adjustCounter('plus',-1)">−</button>
-      <span class="token-val" id="tc-plus">0</span>
-      <button class="token-btn" onclick="adjustCounter('plus',+1)">+</button>
+    <h4>Crear Token</h4>
+    <div class="token-row"><label>Nombre</label><input type="text" id="tk-name" value="Token 1/1" placeholder="Nombre"/></div>
+    <div class="token-row"><label>P/T</label><input type="text" id="tk-pt" value="1/1" placeholder="1/1"/></div>
+    <div class="token-row"><label>Color</label>
+      <select id="tk-color">
+        <option value="W">Blanco</option><option value="U">Azul</option><option value="B">Negro</option>
+        <option value="R">Rojo</option><option value="G" selected>Verde</option><option value="C">Incoloro</option>
+      </select>
     </div>
-    <div class="token-row">
-      <span class="token-label">−1/−1</span>
-      <button class="token-btn" onclick="adjustCounter('minus',-1)">−</button>
-      <span class="token-val" id="tc-minus">0</span>
-      <button class="token-btn" onclick="adjustCounter('minus',+1)">+</button>
+    <div class="token-row"><label>Cantidad</label><input type="number" id="tk-qty" value="1" min="1" max="20"/></div>
+    <div class="mull-actions" style="margin-top:10px">
+      <button class="mull-go" onclick="createToken()">✦ Crear</button>
+      <button class="mull-cancel" onclick="closeTokenModal()">Cancelar</button>
     </div>
-    <div class="mull-actions">
-      <button class="tb-btn" onclick="closeTokenDialog()">Cerrar</button>
+  </div>
+</div>
+
+<!-- DISCARD MODAL -->
+<div id="discard-modal">
+  <div class="discard-box">
+    <h3>Límite de mano — Descarta</h3>
+    <p id="discard-msg">Tienes más de 7 cartas. Selecciona las que quieres descartar.</p>
+    <div id="discard-hand"></div>
+    <div class="mull-actions" style="margin-top:8px">
+      <button class="mull-go" id="discard-confirm" onclick="confirmDiscard()">Descartar seleccionadas</button>
     </div>
   </div>
 </div>
 
 <script>
 // ══════════════════════════════════════════════════════════
-// STATE
+// GAME STATE
 // ══════════════════════════════════════════════════════════
 const G = {
-  library: [], hand: [], graveyard: [], exile: [],
-  battlefield: [],   // {card, id, x, y, tapped, counters:{plus,minus}}
-  commander: null,
+  library:[], hand:[], graveyard:[], exile:[],
+  lands:[], permanents:[], // separate battlefield zones
+  commander: null, commanderInZone: true,
+  commanderCasts: 0,
   turn: 1, life: 40,
-  mulligans: 0, mullN: 1,
+  phase: 'main1',
+  mana: {W:0, U:0, B:0, R:0, G:0, C:0},
+  landPlayedThisTurn: false,
+  mullN: 1, mulligans: 0,
   nextId: 1,
-  ctx: { zone: null, idx: null, bfId: null },
+  declareAttackers: false,
+  attackers: new Set(), // bf ids
+  selectedHandIdx: null,
+  discardSelected: new Set(),
 };
+
+// Card type detection
+function cardType(card) {
+  const t = (card.type_line||'').toLowerCase();
+  if (t.includes('land')) return 'land';
+  if (t.includes('creature')) return 'creature';
+  if (t.includes('instant')) return 'instant';
+  if (t.includes('sorcery')) return 'sorcery';
+  if (t.includes('planeswalker')) return 'planeswalker';
+  if (t.includes('artifact')) return 'artifact';
+  if (t.includes('enchantment')) return 'enchantment';
+  return 'other';
+}
+
+function isLand(card) { return cardType(card) === 'land'; }
+function isInstantOrSorcery(card) { const t=cardType(card); return t==='instant'||t==='sorcery'; }
+function isPermanent(card) { const t=cardType(card); return !['instant','sorcery'].includes(t); }
+
+// Mana color from land
+function landManaColor(card) {
+  const n = (card.name||'').toLowerCase();
+  const pm = card.produced_mana||[];
+  if (pm.length) return pm[0];
+  if (n.includes('plains')) return 'W';
+  if (n.includes('island')) return 'U';
+  if (n.includes('swamp')) return 'B';
+  if (n.includes('mountain')) return 'R';
+  if (n.includes('forest')) return 'G';
+  // Dual/multi lands: use color identity
+  const ci = card.color_identity||card.colors||[];
+  if (ci.length===1) return ci[0];
+  return 'C';
+}
+
+function cardImg(card) {
+  return card.img
+    ? `<img src="${card.img}" alt="${card.name||''}" loading="lazy" onerror="this.style.display='none'">`
+    : `<div class="card-fb">${card.name||''}</div>`;
+}
+
+function typeTag(card) {
+  const t = cardType(card);
+  const labels = {land:'Tierra',creature:'Criatura',instant:'Instante',sorcery:'Conjuro',artifact:'Artefacto',enchantment:'Encantamiento',planeswalker:'Planeswalker',other:'Permanente'};
+  return `<div class="card-type-tag tag-${t}">${labels[t]||t}</div>`;
+}
 
 // ══════════════════════════════════════════════════════════
 // INIT
@@ -480,408 +582,770 @@ const G = {
 async function init() {
   const res = await fetch('/api/decks').catch(()=>({json:()=>({decks:[]})}));
   const data = await res.json();
-  const decks = data.decks || [];
-  const sel = document.getElementById('start-deck-select');
-  sel.innerHTML = decks.length
-    ? '<option value="">— Selecciona un mazo —</option>' + decks.map(d=>
-        `<option value="${d.key}">${d.commander} · ${d.archetype} · Bracket ${d.bracket}</option>`
-      ).join('')
-    : '<option value="">No hay mazos — forja uno primero</option>';
+  const decks = data.decks||[];
+  const sel = document.getElementById('start-select');
+  if (decks.length) {
+    sel.innerHTML = '<option value="">— Selecciona un mazo —</option>' +
+      decks.map(d=>`<option value="${d.key}">${d.commander} · ${d.archetype} · Bracket ${d.bracket}</option>`).join('');
+  } else {
+    sel.innerHTML = '<option value="">No hay mazos — forja uno primero</option>';
+  }
 }
 
 async function startGame() {
-  const key = document.getElementById('start-deck-select').value;
+  const key = document.getElementById('start-select').value;
   if (!key) { alert('Selecciona un mazo.'); return; }
-
   const res = await fetch(`/api/decks/${key}/cards`);
   const data = await res.json();
+  const allCards = data.cards||[];
 
-  G.library = shuffle([...data.cards]);
-  G.hand = []; G.graveyard = []; G.exile = []; G.battlefield = [];
-  G.turn = 1; G.life = 40; G.mulligans = 0; G.nextId = 1;
-  G.commander = { name: data.commander };
-
-  // Guardar comandante separado
-  const cmdIdx = G.library.findIndex(c => c.name === data.commander);
-  if (cmdIdx >= 0) {
-    G.commander = G.library.splice(cmdIdx, 1)[0];
+  // Separate commander
+  const cmdIdx = allCards.findIndex(c=>c.name===data.commander);
+  if (cmdIdx>=0) {
+    G.commander = allCards.splice(cmdIdx,1)[0];
+  } else if (allCards.length) {
+    G.commander = allCards.splice(0,1)[0];
   }
 
-  // Mano inicial
-  for (let i=0; i<7; i++) if (G.library.length) G.hand.push(G.library.pop());
+  G.library = shuffle([...allCards]);
+  G.hand=[]; G.graveyard=[]; G.exile=[];
+  G.lands=[]; G.permanents=[];
+  G.commanderInZone=true; G.commanderCasts=0;
+  G.turn=1; G.life=40; G.phase='upkeep';
+  G.mana={W:0,U:0,B:0,R:0,G:0,C:0};
+  G.landPlayedThisTurn=false; G.mulligans=0; G.nextId=1;
+  G.attackers=new Set(); G.declareAttackers=false;
 
-  document.getElementById('tb-commander').textContent = `⚔ ${data.commander}`;
-  document.getElementById('start-screen').style.display = 'none';
+  // Draw opening hand
+  for(let i=0;i<7;i++) if(G.library.length) G.hand.push(G.library.pop());
+
+  document.getElementById('tb-cmd').textContent='⚔ '+data.commander;
+  document.getElementById('start').style.display='none';
+  renderAll();
   updateCmdPile();
-  render();
-  log(`Partida iniciada · <span class="log-gold">${data.commander}</span> · Mano de 7`);
+  log(`✦ Partida iniciada · <span class="log-gold">${data.commander}</span> · ${G.library.length} cartas en biblioteca`);
+  showBanner('¡Partida iniciada!',`Mano de 7 · Turno ${G.turn}`);
+  goPhase('upkeep');
 }
 
-function shuffle(arr) {
-  for (let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
-  return arr;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+// ══════════════════════════════════════════════════════════
+// PHASES
+// ══════════════════════════════════════════════════════════
+const PHASE_ORDER = ['untap','upkeep','draw','main1','combat','attackers','damage','main2','end','cleanup'];
+const PHASE_LABELS = {
+  untap:'⟳ Destapear',upkeep:'Mantenimiento',draw:'↓ Robar',
+  main1:'Principal I',combat:'Inicio de Combate',attackers:'Declarar Atacantes',
+  damage:'Daño de Combate',main2:'Principal II',end:'Fase Final',cleanup:'Limpieza'
+};
+
+function goPhase(ph) {
+  G.phase = ph;
+  document.querySelectorAll('.phase-btn').forEach(b=>{
+    b.classList.remove('active','done');
+    const bp = b.dataset.phase;
+    const pi = PHASE_ORDER.indexOf(ph), bi = PHASE_ORDER.indexOf(bp);
+    if (bp===ph) b.classList.add('active');
+    else if (bi<pi) b.classList.add('done');
+  });
+
+  switch(ph) {
+    case 'untap':
+      untapAll(true);
+      G.landPlayedThisTurn=false;
+      G.mana={W:0,U:0,B:0,R:0,G:0,C:0};
+      updateManaDisplay();
+      log(`— <span class="log-gold">Turno ${G.turn}</span> · Destapear todo`);
+      showBanner('Fase de Destapear',`Turno ${G.turn} — todos los permanentes destapados`);
+      setTimeout(()=>goPhase('upkeep'),800);
+      break;
+    case 'upkeep':
+      showBanner('Mantenimiento','Resuelve triggers de upkeep');
+      log('Mantenimiento · resuelve tus triggers');
+      break;
+    case 'draw':
+      if (G.turn>1||G.mulligans>0) {
+        drawCard(true);
+        showBanner('Fase de Robar','Carta robada');
+        setTimeout(()=>goPhase('main1'),600);
+      } else {
+        showBanner('Robar','No robas en tu primer turno como primer jugador');
+        setTimeout(()=>goPhase('main1'),1000);
+      }
+      break;
+    case 'main1':
+      showBanner('Principal I','Juega tierras, lanza hechizos');
+      log('Principal I · juega tierras y lanza hechizos');
+      break;
+    case 'combat':
+      showBanner('Inicio de Combate','Haz click en criaturas para atacar');
+      log('⚔ Combate · declara atacantes');
+      document.getElementById('combat-hint').style.display='block';
+      G.declareAttackers=true;
+      break;
+    case 'attackers':
+      if (G.attackers.size===0) {
+        showBanner('Sin atacantes','Saltando combate');
+        setTimeout(()=>goPhase('main2'),600);
+      } else {
+        showBanner(`${G.attackers.size} atacante(s) declarado(s)`,'Declara bloqueadores del oponente si los hay');
+      }
+      break;
+    case 'damage':
+      resolveCombat();
+      break;
+    case 'main2':
+      document.getElementById('combat-hint').style.display='none';
+      G.declareAttackers=false;
+      G.attackers.clear();
+      renderPermanents();
+      showBanner('Principal II','Lanza más hechizos');
+      log('Principal II · puedes lanzar más hechizos');
+      break;
+    case 'end':
+      showBanner('Fase Final','Descarta si tienes más de 7 cartas');
+      log('Fase final · '+G.hand.length+' cartas en mano');
+      if (G.hand.length>7) openDiscardModal();
+      break;
+    case 'cleanup':
+      G.turn++;
+      G.landPlayedThisTurn=false;
+      G.mana={W:0,U:0,B:0,R:0,G:0,C:0};
+      updateManaDisplay();
+      log(`— Fin del turno ${G.turn-1} → <span class="log-gold">Turno ${G.turn}</span>`);
+      goPhase('untap');
+      break;
+  }
+  renderHand(); updateStacks();
+}
+
+function nextPhase() {
+  const i = PHASE_ORDER.indexOf(G.phase);
+  goPhase(PHASE_ORDER[Math.min(i+1,PHASE_ORDER.length-1)]);
+}
+
+function resolveCombat() {
+  const atk = [...G.attackers];
+  if (!atk.length) { goPhase('main2'); return; }
+  const names = atk.map(id=>{
+    const bf=[...G.lands,...G.permanents].find(b=>b.id===id);
+    return bf?bf.card.name:'?';
+  });
+  log(`⚔ Daño declarado: <span class="log-red">${names.join(', ')}</span>`);
+  showBanner('Daño de Combate','Resuelve el daño y las habilidades de combate');
+  // Tap attackers
+  atk.forEach(id=>{
+    const bf=[...G.permanents].find(b=>b.id===id);
+    if(bf) bf.tapped=true;
+  });
+  G.attackers.clear();
+  G.declareAttackers=false;
+  document.getElementById('combat-hint').style.display='none';
+  renderPermanents();
+  setTimeout(()=>goPhase('main2'),1200);
+}
+
+// ══════════════════════════════════════════════════════════
+// BANNER
+// ══════════════════════════════════════════════════════════
+let _bannerTimer;
+function showBanner(title,sub='') {
+  const b=document.getElementById('phase-banner');
+  document.getElementById('pb-title').textContent=title;
+  document.getElementById('pb-sub').textContent=sub;
+  b.classList.add('show');
+  clearTimeout(_bannerTimer);
+  _bannerTimer=setTimeout(()=>b.classList.remove('show'),1800);
+}
+
+// ══════════════════════════════════════════════════════════
+// DRAW / LIBRARY
+// ══════════════════════════════════════════════════════════
+function drawCard(silent=false) {
+  if(!G.library.length){log('⚠ <span class="log-red">¡Biblioteca vacía!</span>');return}
+  const card=G.library.pop();
+  G.hand.push(card);
+  if(!silent) log(`↓ Roba: <span class="log-gold">${card.name}</span>`);
+  renderHand(); updateStacks();
+}
+
+function mill(n) {
+  for(let i=0;i<n&&G.library.length;i++){
+    const c=G.library.pop();
+    G.graveyard.push(c);
+    log(`⬇ Mill: <span class="log-gold">${c.name}</span>`);
+  }
+  updateStacks();
+}
+
+function shuffleLib(){shuffle(G.library);log('🔀 Biblioteca barajada');updateStacks()}
+
+function scry(){
+  if(!G.library.length){log('Biblioteca vacía');return}
+  const top=G.library[G.library.length-1];
+  zoomCard(top);
+  log(`👁 Scry: <span class="log-gold">${top.name}</span> en el tope — cierra el zoom y decide`);
+}
+
+// ══════════════════════════════════════════════════════════
+// PLAY FROM HAND
+// ══════════════════════════════════════════════════════════
+function playFromHand(idx, zone='auto') {
+  if(idx<0||idx>=G.hand.length) return;
+  const card=G.hand.splice(idx,1)[0];
+  G.selectedHandIdx=null;
+  const t=cardType(card);
+
+  if (t==='land') {
+    if (G.landPlayedThisTurn) {
+      G.hand.splice(idx,0,card);
+      log('⚠ Ya jugaste una tierra este turno');
+      renderHand(); return;
+    }
+    G.landPlayedThisTurn=true;
+    addToLands(card);
+    log(`🌿 Tierra: <span class="log-gold">${card.name}</span>`);
+  } else if (isInstantOrSorcery(card)) {
+    G.graveyard.push(card);
+    log(`✨ Lanza: <span class="log-gold">${card.name}</span> → cementerio`);
+    updateStacks();
+  } else {
+    addToPermanents(card);
+    log(`▶ Permanente: <span class="log-gold">${card.name}</span>`);
+  }
+  renderHand(); renderLands();
+}
+
+// ══════════════════════════════════════════════════════════
+// BATTLEFIELD
+// ══════════════════════════════════════════════════════════
+function newBfEntry(card,x,y) {
+  const counters={plus:0,minus:0,loyalty:null};
+  if(cardType(card)==='planeswalker'){
+    // Try to extract loyalty from oracle_text
+    const m=(card.oracle_text||'').match(/\[(\d+)\]/);
+    counters.loyalty=m?parseInt(m[1]):3;
+  }
+  return {card,id:G.nextId++,x,y,tapped:false,counters,attacking:false};
+}
+
+function addToLands(card){
+  const idx=G.lands.length;
+  G.lands.push({card,id:G.nextId++,x:0,y:0,tapped:false,counters:{plus:0,minus:0}});
+  renderLands();
+}
+
+function addToPermanents(card,x,y){
+  const zone=document.getElementById('perm-cards');
+  const rect=zone.getBoundingClientRect();
+  if(x===undefined) x=20+(G.permanents.length%8)*96;
+  if(y===undefined) y=10+Math.floor(G.permanents.length/8)*130;
+  x=Math.max(0,Math.min(x,rect.width-100));
+  y=Math.max(0,Math.min(y,rect.height-140));
+  G.permanents.push(newBfEntry(card,x,y));
+  renderPermanents();
 }
 
 // ══════════════════════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════════════════════
-function render() {
-  renderHand();
-  renderBattlefield();
-  renderStacks();
-  document.getElementById('tb-turn').textContent = G.turn;
-  document.getElementById('life-val').textContent = G.life;
-}
+function renderAll(){renderHand();renderLands();renderPermanents();updateStacks();updateManaDisplay()}
 
-function cardImg(card) {
-  return card.img
-    ? `<img src="${card.img}" alt="${card.name}" loading="lazy" onerror="this.style.display='none'">`
-    : `<div class="card-name-fb">${card.name}</div>`;
-}
+function renderHand(){
+  const cont=document.getElementById('hand-cards');
+  const n=G.hand.length;
+  document.getElementById('hand-label').textContent=`Mano: ${n}`;
+  document.getElementById('tb-hand').textContent=n;
 
-// ── Hand ──
-function renderHand() {
-  const container = document.getElementById('hand-cards');
-  const n = G.hand.length;
-  document.getElementById('hand-label').textContent = `Mano: ${n}`;
+  const lpi=document.getElementById('lpi-ok');
+  lpi.className=G.landPlayedThisTurn?'lpi-used':'lpi-ok';
+  lpi.textContent=G.landPlayedThisTurn?'⬛ Tierra jugada':'⬜ Tierra disponible';
 
-  if (!n) { container.innerHTML=''; return; }
+  if(!n){cont.innerHTML='';return}
+  const W=cont.offsetWidth||600;
+  const spread=Math.min(80,(W-120)/(Math.max(n-1,1)));
+  const totalW=(n-1)*spread+100;
+  const startX=(W-totalW)/2;
+  const maxAngle=Math.min(2.5,25/n);
 
-  const totalW = Math.min(container.offsetWidth * 0.9, n * 70 + 30);
-  const spread = n > 1 ? Math.min(70, (totalW - 100) / (n-1)) : 0;
-  const startX = (container.offsetWidth - ((n-1)*spread + 100)) / 2;
-  const fanAngle = Math.min(3, 30/n);
-
-  container.innerHTML = G.hand.map((card, i) => {
-    const x = startX + i * spread;
-    const angle = (i - (n-1)/2) * fanAngle;
-    const zIndex = i + 1;
-    return `<div class="hand-card"
-      style="left:${x}px;bottom:0;transform:rotate(${angle}deg);z-index:${zIndex}"
-      oncontextmenu="showCtx(event,'hand',${i})"
-      onclick="handCardClick(event,${i})"
+  cont.innerHTML=G.hand.map((card,i)=>{
+    const x=startX+i*spread;
+    const angle=(i-(n-1)/2)*maxAngle;
+    const t=cardType(card);
+    const sel=G.selectedHandIdx===i?'selected':'';
+    const playable=!isInstantOrSorcery(card)||true; // all playable conceptually
+    return `<div class="hand-card type-${t} ${sel}"
+      style="left:${x}px;bottom:0;transform:rotate(${angle}deg);z-index:${i+1}"
+      data-idx="${i}"
+      onclick="handClick(event,${i})"
       ondblclick="playFromHand(${i})"
+      oncontextmenu="showCtx(event,'hand',${i})"
       title="${card.name} — doble click para jugar"
-    >${cardImg(card)}</div>`;
+    >${typeTag(card)}${cardImg(card)}</div>`;
   }).join('');
 }
 
-function handCardClick(e, idx) {
-  e.stopPropagation();
-  const cards = document.querySelectorAll('.hand-card');
-  cards.forEach((c,i) => i===idx ? c.classList.toggle('selected') : c.classList.remove('selected'));
-}
+function renderLands(){
+  const zone=document.getElementById('lands-zone');
+  // Keep zone-tag
+  const existing=zone.querySelector('.zone-tag');
+  zone.innerHTML='';
+  if(existing) zone.appendChild(existing);
 
-function playFromHand(idx) {
-  const card = G.hand.splice(idx, 1)[0];
-  const bf = document.getElementById('bf-cards');
-  const bfRect = bf.getBoundingClientRect();
-  const x = Math.random() * (bfRect.width - 120) + 10;
-  const y = Math.random() * (bfRect.height - 160) + 10;
-  addToBattlefield(card, x, y);
-  render();
-  log(`Juega: <span class="log-gold">${card.name}</span>`);
-}
-
-// ── Battlefield ──
-function addToBattlefield(card, x, y) {
-  G.battlefield.push({ card, id: G.nextId++, x, y, tapped: false, counters:{plus:0,minus:0} });
-}
-
-function renderBattlefield() {
-  const container = document.getElementById('bf-cards');
-  container.innerHTML = G.battlefield.map(bf => {
-    const counterHtml = bf.counters.plus > 0
-      ? `<div class="counter-badge pos">+${bf.counters.plus}/+${bf.counters.plus}</div>`
-      : bf.counters.minus > 0
-      ? `<div class="counter-badge">-${bf.counters.minus}/-${bf.counters.minus}</div>`
-      : '';
-    return `<div class="bf-card ${bf.tapped?'tapped':''}"
-      style="left:${bf.x}px;top:${bf.y}px;z-index:${bf.tapped?1:2}"
-      data-bfid="${bf.id}"
-      oncontextmenu="showCtx(event,'bf',null,${bf.id})"
-      ondblclick="tapCard(${bf.id})"
-      title="${bf.card.name} — doble click para tapear"
-    >${counterHtml}${cardImg(bf.card)}</div>`;
-  }).join('');
-
-  // Drag to move
-  document.querySelectorAll('.bf-card').forEach(el => makeDraggable(el));
-}
-
-function tapCard(bfId) {
-  const bf = G.battlefield.find(b=>b.id===bfId);
-  if (bf) { bf.tapped = !bf.tapped; render(); }
-}
-
-function untapAll() {
-  G.battlefield.forEach(b=>b.tapped=false);
-  render();
-  log('⟳ Todo destapeado');
-}
-
-function makeDraggable(el) {
-  let startX, startY, bfX, bfY, bfId;
-  el.addEventListener('mousedown', e => {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    bfId = parseInt(el.dataset.bfid);
-    const bf = G.battlefield.find(b=>b.id===bfId);
-    if (!bf) return;
-    startX = e.clientX; startY = e.clientY;
-    bfX = bf.x; bfY = bf.y;
-    el.style.zIndex = 999;
-
-    const onMove = ev => {
-      const dx = ev.clientX - startX, dy = ev.clientY - startY;
-      bf.x = Math.max(0, bfX + dx);
-      bf.y = Math.max(0, bfY + dy);
-      el.style.left = bf.x + 'px';
-      el.style.top  = bf.y + 'px';
-    };
-    const onUp = () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-      renderBattlefield();
-    };
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+  G.lands.forEach((bf,i)=>{
+    const el=document.createElement('div');
+    el.className='land-card'+(bf.tapped?' tapped':'');
+    el.dataset.bfid=bf.id;
+    el.title=bf.card.name+(bf.tapped?' (tapeada)':'');
+    el.innerHTML=cardImg(bf.card);
+    el.onclick=e=>{ e.stopPropagation(); if(e.detail===2) return; tapLand(bf.id); };
+    el.ondblclick=e=>{ e.stopPropagation(); showCtx(e,'land',i,bf.id); };
+    el.oncontextmenu=e=>showCtx(e,'land',i,bf.id);
+    zone.appendChild(el);
   });
 }
 
-// ── Stacks ──
-function renderStacks() {
-  document.getElementById('library-count').textContent = G.library.length;
+function renderPermanents(){
+  const cont=document.getElementById('perm-cards');
+  cont.innerHTML=G.permanents.map(bf=>{
+    const isAtk=G.attackers.has(bf.id);
+    const cls=['bf-card',bf.tapped?'tapped':'',isAtk?'attacking':''].filter(Boolean).join(' ');
+    let badges='';
+    if(bf.counters.plus>0) badges+=`<div class="counter pos">+${bf.counters.plus}/+${bf.counters.plus}</div>`;
+    else if(bf.counters.minus>0) badges+=`<div class="counter">−${bf.counters.minus}/−${bf.counters.minus}</div>`;
+    if(bf.counters.loyalty!==null) badges+=`<div class="loyalty-counter">${bf.counters.loyalty}</div>`;
 
-  const gyPile = document.getElementById('gy-pile');
-  const gyCount = document.getElementById('gy-count');
-  if (G.graveyard.length) {
-    const top = G.graveyard[G.graveyard.length-1];
-    gyPile.innerHTML = top.img ? `<img src="${top.img}" alt="${top.name}">` : `<div class="pile-empty-icon">💀</div>`;
-    gyPile.innerHTML += `<div class="pile-count">${G.graveyard.length}</div>`;
+    return `<div class="${cls}" style="left:${bf.x}px;top:${bf.y}px;z-index:${bf.tapped?1:2}"
+      data-bfid="${bf.id}"
+      onclick="bfClick(event,${bf.id})"
+      ondblclick="bfDblClick(event,${bf.id})"
+      oncontextmenu="showCtx(event,'bf',null,${bf.id})"
+      title="${bf.card.name} — doble click para tapear/destapear"
+    >${badges}${cardImg(bf.card)}</div>`;
+  }).join('');
+  document.querySelectorAll('.bf-card').forEach(el=>makeDraggable(el));
+}
+
+function updateStacks(){
+  document.getElementById('lib-count').textContent=G.library.length;
+  document.getElementById('tb-lib').textContent=G.library.length;
+  document.getElementById('gy-count').textContent=G.graveyard.length;
+  document.getElementById('exile-count').textContent=G.exile.length;
+
+  // GY top card
+  const gyTop=document.getElementById('gy-top');
+  if(G.graveyard.length){
+    const top=G.graveyard[G.graveyard.length-1];
+    gyTop.innerHTML=top.img?`<img src="${top.img}" alt="${top.name}" style="width:100%;height:100%;object-fit:cover;border-radius:4px"><div class="stack-badge">${G.graveyard.length}</div>`:
+      `<div class="card-back" style="font-size:0.6rem;color:var(--text-muted)">${top.name.slice(0,15)}</div><div class="stack-badge">${G.graveyard.length}</div>`;
   } else {
-    gyPile.innerHTML = '<div class="pile-empty-icon">💀</div>';
+    gyTop.innerHTML='<div class="card-back" style="font-size:1.2rem">💀</div>';
   }
-
-  const exPile = document.getElementById('exile-pile');
-  if (G.exile.length) {
-    const top = G.exile[G.exile.length-1];
-    exPile.innerHTML = top.img ? `<img src="${top.img}" alt="${top.name}">` : `<div class="pile-empty-icon">✦</div>`;
-    exPile.innerHTML += `<div class="pile-count">${G.exile.length}</div>`;
+  const exTop=document.getElementById('exile-top');
+  if(G.exile.length){
+    const top=G.exile[G.exile.length-1];
+    exTop.innerHTML=top.img?`<img src="${top.img}" alt="${top.name}" style="width:100%;height:100%;object-fit:cover;border-radius:4px"><div class="stack-badge">${G.exile.length}</div>`:
+      `<div class="card-back" style="font-size:0.6rem;color:var(--text-muted)">${top.name.slice(0,15)}</div><div class="stack-badge">${G.exile.length}</div>`;
   } else {
-    exPile.innerHTML = '<div class="pile-empty-icon">✦</div>';
+    exTop.innerHTML='<div class="card-back" style="font-size:1.2rem">✦</div>';
   }
 }
 
-function updateCmdPile() {
-  const pile = document.getElementById('cmd-pile');
-  if (!G.commander) return;
-  pile.innerHTML = G.commander.img
-    ? `<img src="${G.commander.img}" alt="${G.commander.name}">`
-    : `<div class="pile-empty-icon">⚔</div>`;
+function updateCmdPile(){
+  const pile=document.getElementById('cmd-card-pile');
+  if(G.commander&&G.commanderInZone){
+    pile.innerHTML=G.commander.img?`<img src="${G.commander.img}" alt="${G.commander.name}" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`:`<div class="card-back" style="font-size:0.8rem;color:var(--text)">⚔</div>`;
+  } else if(!G.commanderInZone){
+    pile.innerHTML='<div class="card-back" style="font-size:0.7rem;color:var(--text-muted)">En campo</div>';
+  }
+  document.getElementById('cmd-tax-label').textContent=`Impuesto: ${G.commanderCasts*2}`;
 }
 
 // ══════════════════════════════════════════════════════════
-// ACTIONS
+// MANA
 // ══════════════════════════════════════════════════════════
-function drawCard() {
-  if (!G.library.length) { log('⚠ <span class="log-gold">¡Biblioteca vacía!</span>'); return; }
-  const card = G.library.pop();
-  G.hand.push(card);
-  render();
-  log(`Roba: <span class="log-gold">${card.name}</span>`);
-}
-
-function nextTurn() {
-  G.turn++;
-  drawCard();
-  untapAll();
-  setPhase(document.querySelector('.phase'));
-  log(`— <span class="log-gold">Turno ${G.turn}</span> —`);
-}
-
-function changeLife(delta) {
-  G.life += delta;
-  document.getElementById('life-val').textContent = G.life;
-  log(`Vida: <span class="log-gold">${G.life}</span> (${delta>0?'+':''}${delta})`);
-}
-
-function editLife() {
-  const v = prompt('Nueva vida:', G.life);
-  if (v !== null && !isNaN(+v)) { G.life = +v; document.getElementById('life-val').textContent = G.life; }
-}
-
-function shuffleLibrary() {
-  shuffle(G.library);
-  log('🔀 Biblioteca barajada');
-}
-
-function mill(n) {
-  for (let i=0; i<n && G.library.length; i++) {
-    const card = G.library.pop();
-    G.graveyard.push(card);
-    log(`Mill: <span class="log-gold">${card.name}</span>`);
+function tapLand(id){
+  const bf=G.lands.find(b=>b.id===id);
+  if(!bf) return;
+  if(bf.tapped){
+    log(`⚠ <span class="log-gold">${bf.card.name}</span> ya está tapeada`);
+    return;
   }
-  render();
-}
-
-function scry(n) {
-  if (!G.library.length) return;
-  const top = G.library[G.library.length-1];
-  const keep = confirm(`Scry ${n}: La carta superior es "${top.name}"\n\n¿La mantienes arriba? (Cancelar = al fondo)`);
-  if (!keep) {
-    G.library.unshift(G.library.pop());
-    log(`Scry: <span class="log-gold">${top.name}</span> → al fondo`);
+  bf.tapped=true;
+  const color=landManaColor(bf.card);
+  // Multi-color lands produce 1 of each color
+  const colors_produced = bf.card.produced_mana||[];
+  if(colors_produced.length>1){
+    // Let user pick which color
+    const choice=colors_produced.find(c=>['W','U','B','R','G'].includes(c))||'C';
+    // Simple: add 1 of first color for now
+    G.mana[choice]=(G.mana[choice]||0)+1;
+    log(`🌿 <span class="log-gold">${bf.card.name}</span> tapeada → +1 ${choice}`);
   } else {
-    log(`Scry: <span class="log-gold">${top.name}</span> → mantiene`);
+    const c=color in G.mana ? color : 'C';
+    G.mana[c]=(G.mana[c]||0)+1;
+    log(`🌿 <span class="log-gold">${bf.card.name}</span> tapeada → +1 ${c}`);
+  }
+  updateManaDisplay(); renderLands();
+}
+
+function updateManaDisplay(){
+  document.querySelectorAll('.mana-pip').forEach(pip=>{
+    const c=pip.dataset.color;
+    const n=G.mana[c]||0;
+    pip.dataset.count=n;
+    pip.querySelector('.pip-count').textContent=n;
+  });
+}
+
+function spendMana(c){
+  if(G.mana[c]>0){G.mana[c]--;updateManaDisplay();log(`× Maná ${c} gastado`)}
+}
+
+function clearMana(){
+  G.mana={W:0,U:0,B:0,R:0,G:0,C:0};
+  updateManaDisplay(); log('× Maná limpiado (fin de turno)');
+}
+
+// ══════════════════════════════════════════════════════════
+// COMMANDER
+// ══════════════════════════════════════════════════════════
+function castCommander(){
+  if(!G.commander) return;
+  if(!G.commanderInZone){log('El comandante ya está en el campo');return}
+  G.commanderCasts++;
+  G.commanderInZone=false;
+  addToPermanents(G.commander);
+  log(`⚔ <span class="log-gold">${G.commander.name}</span> lanzado (impuesto total: ${(G.commanderCasts-1)*2} maná extra)`);
+  updateCmdPile();
+}
+
+function returnCmdToZone(bfId){
+  const idx=G.permanents.findIndex(b=>b.id===bfId);
+  if(idx<0) return;
+  G.permanents.splice(idx,1);
+  G.commanderInZone=true;
+  renderPermanents(); updateCmdPile();
+  log(`⚔ <span class="log-gold">${G.commander.name}</span> vuelve a la zona de comandante`);
+}
+
+// ══════════════════════════════════════════════════════════
+// UNTAP
+// ══════════════════════════════════════════════════════════
+function untapAll(silent=false){
+  let n=0;
+  G.lands.forEach(b=>{if(b.tapped){b.tapped=false;n++}});
+  G.permanents.forEach(b=>{if(b.tapped){b.tapped=false;n++}});
+  if(!silent) log(`⟳ ${n} permanentes destapados`);
+  renderLands(); renderPermanents();
+}
+
+// ══════════════════════════════════════════════════════════
+// LIFE
+// ══════════════════════════════════════════════════════════
+function life(d){
+  G.life+=d;
+  document.getElementById('life-num').textContent=G.life;
+  log(`Vida: <span class="${d<0?'log-red':'log-green'}">${G.life}</span> (${d>0?'+':''}${d})`);
+  if(G.life<=0) showBanner('¡Vida en 0!','Has perdido la partida');
+}
+function editLife(){
+  const v=prompt('Nueva vida:',G.life);
+  if(v!==null&&!isNaN(+v)){G.life=+v;document.getElementById('life-num').textContent=G.life}
+}
+
+// ══════════════════════════════════════════════════════════
+// CARD INTERACTIONS
+// ══════════════════════════════════════════════════════════
+function handClick(e,idx){
+  e.stopPropagation();
+  G.selectedHandIdx=G.selectedHandIdx===idx?null:idx;
+  renderHand();
+}
+
+function bfClick(e,bfId){
+  e.stopPropagation();
+  if(G.declareAttackers){
+    const bf=G.permanents.find(b=>b.id===bfId);
+    if(!bf) return;
+    if(cardType(bf.card)!=='creature'&&cardType(bf.card)!=='other') return;
+    if(G.attackers.has(bfId)){
+      G.attackers.delete(bfId);
+      log(`Retira atacante: <span class="log-gold">${bf.card.name}</span>`);
+    } else {
+      G.attackers.add(bfId);
+      log(`⚔ Ataca: <span class="log-gold">${bf.card.name}</span>`);
+    }
+    renderPermanents();
   }
 }
 
-function setPhase(el) {
-  document.querySelectorAll('.phase').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
+function bfDblClick(e,bfId){
+  e.stopPropagation();
+  const bf=G.permanents.find(b=>b.id===bfId);
+  if(!bf) return;
+  bf.tapped=!bf.tapped;
+  renderPermanents();
+  log(`${bf.tapped?'⟲':'⟳'} ${bf.card.name}`);
+}
+
+// ══════════════════════════════════════════════════════════
+// DRAG & DROP (battlefield)
+// ══════════════════════════════════════════════════════════
+function makeDraggable(el){
+  let sx,sy,bfx,bfy,id;
+  el.addEventListener('mousedown',e=>{
+    if(e.button!==0) return;
+    if(G.declareAttackers) return; // no drag during combat
+    e.preventDefault();
+    id=parseInt(el.dataset.bfid);
+    const bf=G.permanents.find(b=>b.id===id);
+    if(!bf) return;
+    sx=e.clientX;sy=e.clientY;bfx=bf.x;bfy=bf.y;
+    el.style.zIndex=999;
+    const mv=ev=>{
+      bf.x=Math.max(0,bfx+(ev.clientX-sx));
+      bf.y=Math.max(0,bfy+(ev.clientY-sy));
+      el.style.left=bf.x+'px';el.style.top=bf.y+'px';
+    };
+    const up=()=>{
+      document.removeEventListener('mousemove',mv);
+      document.removeEventListener('mouseup',up);
+      el.style.zIndex='';
+    };
+    document.addEventListener('mousemove',mv);
+    document.addEventListener('mouseup',up);
+  });
 }
 
 // ══════════════════════════════════════════════════════════
 // CONTEXT MENU
 // ══════════════════════════════════════════════════════════
-let _ctxZone=null, _ctxIdx=null, _ctxBfId=null;
+let _ctx={zone:null,idx:null,bfId:null,card:null};
 
-function showCtx(e, zone, idx, bfId) {
-  e.preventDefault(); e.stopPropagation();
-  _ctxZone=zone; _ctxIdx=idx; _ctxBfId=bfId;
+function showCtx(e,zone,idx,bfId){
+  e.preventDefault();e.stopPropagation();
+  _ctx={zone,idx,bfId,card:null};
 
-  const menu = document.getElementById('ctx-menu');
-  document.getElementById('ctx-play').style.display = zone==='hand' ? '' : 'none';
-  document.getElementById('ctx-tap').style.display  = zone==='bf'   ? '' : 'none';
+  let card=null;
+  if(zone==='hand'&&idx!==null) card=G.hand[idx];
+  else if(zone==='bf'&&bfId!==null) card=G.permanents.find(b=>b.id===bfId)?.card;
+  else if(zone==='land'&&bfId!==null) card=G.lands.find(b=>b.id===bfId)?.card;
+  _ctx.card=card;
+
+  const menu=document.getElementById('ctx');
+  menu.innerHTML=`<div class="ctx-title">${card?card.name:'Carta'}</div>`;
+
+  const add=(label,fn,red=false)=>{
+    const d=document.createElement('div');
+    d.className='ctx-item'+(red?' red':'');
+    d.textContent=label;
+    d.onclick=()=>{hideCtx();fn()};
+    menu.appendChild(d);
+  };
+  const sep=()=>{const d=document.createElement('div');d.className='ctx-sep';menu.appendChild(d)};
+
+  if(zone==='hand'){
+    add('▶ Jugar al campo',()=>playFromHand(idx));
+    if(card&&isInstantOrSorcery(card)) add('✨ Lanzar (→ cementerio)',()=>playFromHand(idx));
+    sep();
+    add('🗑 Descartar',()=>{const c=G.hand.splice(idx,1)[0];G.graveyard.push(c);renderHand();updateStacks();log(`🗑 Descarta: <span class="log-gold">${c.name}</span>`)});
+    add('✦ Exiliar',()=>{const c=G.hand.splice(idx,1)[0];G.exile.push(c);renderHand();updateStacks();log(`✦ Exilia: <span class="log-gold">${c.name}</span>`)});
+    add('📚 Al fondo del mazo',()=>{const c=G.hand.splice(idx,1)[0];G.library.unshift(c);renderHand();updateStacks();log(`📚 ${c.name} → fondo`)});
+    sep();
+    add('🔍 Ver carta',()=>zoomCard(card));
+  } else if(zone==='land'){
+    const bf=G.lands.find(b=>b.id===bfId);
+    add(bf?.tapped?'⟳ Destapear':'⟲ Tapear (producir maná)',()=>tapLand(bfId));
+    add('⟳ Destapear',()=>{if(bf){bf.tapped=false;renderLands();log(`⟳ ${bf.card.name}`)}});
+    sep();
+    add('🗑 Al cementerio',()=>{const i2=G.lands.findIndex(b=>b.id===bfId);if(i2>=0){const c=G.lands.splice(i2,1)[0];G.graveyard.push(c.card);renderLands();updateStacks();log(`🗑 ${c.card.name} → cementerio`)}});
+    add('✦ Exiliar',()=>{const i2=G.lands.findIndex(b=>b.id===bfId);if(i2>=0){const c=G.lands.splice(i2,1)[0];G.exile.push(c.card);renderLands();updateStacks();log(`✦ ${c.card.name} → exilio`)}});
+    add('↩ A la mano',()=>{const i2=G.lands.findIndex(b=>b.id===bfId);if(i2>=0){const c=G.lands.splice(i2,1)[0];G.hand.push(c.card);renderLands();renderHand();log(`↩ ${c.card.name} → mano`)}});
+    sep();
+    add('🔍 Ver carta',()=>zoomCard(card));
+  } else if(zone==='bf'){
+    const bf=G.permanents.find(b=>b.id===bfId);
+    if(!bf) return;
+    const t=cardType(bf.card);
+    add(bf.tapped?'⟳ Destapear':'⟲ Tapear',()=>{bf.tapped=!bf.tapped;renderPermanents();log(`${bf.tapped?'⟲':'⟳'} ${bf.card.name}`)});
+    if(t==='creature'){
+      add('⚔ Declarar atacante',()=>{G.attackers.add(bf.id);renderPermanents();log(`⚔ ${bf.card.name} ataca`)});
+    }
+    if(t==='planeswalker'){
+      add('+ Lealtad (+1)',()=>{bf.counters.loyalty=(bf.counters.loyalty||0)+1;renderPermanents()});
+      add('− Lealtad (−1)',()=>{bf.counters.loyalty=Math.max(0,(bf.counters.loyalty||0)-1);renderPermanents()});
+      add('−− Lealtad (−2)',()=>{bf.counters.loyalty=Math.max(0,(bf.counters.loyalty||0)-2);renderPermanents()});
+    }
+    sep();
+    add('⬆ Añadir +1/+1',()=>{bf.counters.plus++;renderPermanents();log(`⬆ +1/+1 en ${bf.card.name}`)});
+    add('⬇ Quitar +1/+1',()=>{bf.counters.plus=Math.max(0,bf.counters.plus-1);renderPermanents()});
+    add('⬇ Añadir −1/−1',()=>{bf.counters.minus++;renderPermanents()});
+    sep();
+    add('🗑 Al cementerio',()=>{const i2=G.permanents.findIndex(b=>b.id===bfId);if(i2>=0){const r=G.permanents.splice(i2,1)[0];G.graveyard.push(r.card);if(r.card.name===G.commander?.name){G.commanderInZone=true;updateCmdPile()}renderPermanents();updateStacks();log(`🗑 ${r.card.name} → cementerio`)}});
+    add('✦ Exiliar',()=>{const i2=G.permanents.findIndex(b=>b.id===bfId);if(i2>=0){const r=G.permanents.splice(i2,1)[0];G.exile.push(r.card);renderPermanents();updateStacks();log(`✦ ${r.card.name} → exilio`)}});
+    add('↩ A la mano',()=>{const i2=G.permanents.findIndex(b=>b.id===bfId);if(i2>=0){const r=G.permanents.splice(i2,1)[0];G.hand.push(r.card);if(r.card.name===G.commander?.name){G.commanderInZone=true;updateCmdPile()}renderPermanents();renderHand();log(`↩ ${r.card.name} → mano`)}});
+    if(bf.card.name===G.commander?.name){
+      add('⚔ Devolver a zona de comandante',()=>returnCmdToZone(bfId));
+    }
+    sep();
+    add('🔍 Ver carta',()=>zoomCard(bf.card));
+  }
 
   menu.style.display='block';
-  menu.style.left = Math.min(e.clientX, window.innerWidth-160) + 'px';
-  menu.style.top  = Math.min(e.clientY, window.innerHeight-220) + 'px';
+  const x=Math.min(e.clientX,window.innerWidth-180);
+  const y=Math.min(e.clientY,window.innerHeight-menu.offsetHeight-10);
+  menu.style.left=x+'px';menu.style.top=y+'px';
 }
-
-function hideCtx() { document.getElementById('ctx-menu').style.display='none'; }
-
-function ctxAction(action) {
-  hideCtx();
-  if (_ctxZone==='hand' && _ctxIdx!==null) {
-    const card = G.hand[_ctxIdx];
-    if (action==='play')    { playFromHand(_ctxIdx); return; }
-    if (action==='discard') { G.graveyard.push(...G.hand.splice(_ctxIdx,1)); log(`🗑 <span class="log-gold">${card.name}</span> → cementerio`); }
-    if (action==='exile')   { G.exile.push(...G.hand.splice(_ctxIdx,1));     log(`✦ <span class="log-gold">${card.name}</span> → exilio`); }
-    if (action==='tolib')   { G.library.unshift(...G.hand.splice(_ctxIdx,1));log(`📚 <span class="log-gold">${card.name}</span> → fondo del mazo`); }
-    if (action==='zoom')    { zoomCard(card); return; }
-    render(); return;
-  }
-  if (_ctxZone==='bf' && _ctxBfId!==null) {
-    const bfIdx = G.battlefield.findIndex(b=>b.id===_ctxBfId);
-    if (bfIdx<0) return;
-    const bf = G.battlefield[bfIdx];
-    if (action==='tap')      { bf.tapped=!bf.tapped; render(); return; }
-    if (action==='counter+') { bf.counters.plus++; render(); log(`⬆ +1/+1 en <span class="log-gold">${bf.card.name}</span>`); return; }
-    if (action==='counter-') { bf.counters.plus=Math.max(0,bf.counters.plus-1); render(); return; }
-    if (action==='zoom')     { zoomCard(bf.card); return; }
-    const card = bf.card;
-    G.battlefield.splice(bfIdx,1);
-    if (action==='discard') { G.graveyard.push(card); log(`🗑 <span class="log-gold">${card.name}</span> → cementerio`); }
-    if (action==='exile')   { G.exile.push(card);     log(`✦ <span class="log-gold">${card.name}</span> → exilio`); }
-    if (action==='tohand')  { G.hand.push(card);      log(`↩ <span class="log-gold">${card.name}</span> → mano`); }
-    if (action==='tolib')   { G.library.unshift(card);log(`📚 <span class="log-gold">${card.name}</span> → fondo del mazo`); }
-    render();
-  }
-}
+function hideCtx(){document.getElementById('ctx').style.display='none'}
 
 // ══════════════════════════════════════════════════════════
-// ZONE VIEWER
+// ZONES (GY / EXILE viewer)
 // ══════════════════════════════════════════════════════════
-function showZone(zone) {
-  const cards = zone==='gy' ? G.graveyard : zone==='exile' ? G.exile : [];
-  if (!cards.length && zone!=='cmd') { log(`${zone==='gy'?'Cementerio':'Exilio'} vacío`); return; }
-  if (zone==='cmd' && G.commander) { zoomCard(G.commander); return; }
-  if (!cards.length) return;
-  const top = cards[cards.length-1];
-  const name = zone==='gy' ? 'Cementerio' : 'Exilio';
-  const ok = confirm(`${name} (${cards.length} cartas)\nÚltima: "${top.name}"\n\n¿Recuperar a la mano?`);
-  if (ok) { G.hand.push(cards.pop()); render(); log(`↩ <span class="log-gold">${top.name}</span> → mano`); }
+function openZone(zone){
+  const cards=zone==='gy'?G.graveyard:G.exile;
+  const name=zone==='gy'?'Cementerio':'Exilio';
+  if(!cards.length){log(`${name} vacío`);return}
+  const top=cards[cards.length-1];
+  const opts=['Quedar en '+name,'↩ A la mano','⟳ A la biblioteca (arriba)','✦ Al otro exilio/cementerio'];
+  const choice=confirm(`${name} (${cards.length} cartas)\nÚltima: "${top.name}"\n\n¿Recuperar "${top.name}" a la mano?`);
+  if(choice){
+    G.hand.push(cards.pop());
+    renderHand();updateStacks();
+    log(`↩ <span class="log-gold">${top.name}</span> → mano`);
+  } else {
+    zoomCard(top);
+  }
 }
 
 // ══════════════════════════════════════════════════════════
 // ZOOM
 // ══════════════════════════════════════════════════════════
-function zoomCard(card) {
-  const modal = document.getElementById('zoom-modal');
-  const img = document.getElementById('zoom-img');
-  if (card.img) { img.src=card.img; img.style.display='block'; }
-  else { img.style.display='none'; }
-  document.getElementById('zoom-name').textContent = card.name;
-  modal.classList.add('visible');
+function zoomCard(card){
+  if(!card) return;
+  const m=document.getElementById('zoom');
+  const img=document.getElementById('zoom-img');
+  if(card.img){img.src=card.img;img.style.display='block'}
+  else{img.style.display='none'}
+  document.getElementById('zoom-name').textContent=card.name||'';
+  m.classList.add('on');
 }
-function closeZoom() { document.getElementById('zoom-modal').classList.remove('visible'); }
+function closeZoom(){document.getElementById('zoom').classList.remove('on')}
 
 // ══════════════════════════════════════════════════════════
 // MULLIGAN
 // ══════════════════════════════════════════════════════════
-function showMulligan() {
-  G.mullN = G.mulligans + 1;
-  document.getElementById('mull-n').textContent = G.mullN;
-  document.getElementById('mull-return').textContent = G.mullN;
-  document.getElementById('mull-overlay').classList.add('visible');
+function openMull(){G.mullN=G.mulligans+1;updMullDisplay();document.getElementById('mull-modal').classList.add('on')}
+function closeMull(){document.getElementById('mull-modal').classList.remove('on')}
+function adjMull(d){G.mullN=Math.max(0,Math.min(7,G.mullN+d));updMullDisplay()}
+function updMullDisplay(){
+  document.getElementById('mull-n-disp').textContent=G.mullN;
+  document.getElementById('mull-n-label').textContent=G.mullN;
 }
-function closeMulligan() { document.getElementById('mull-overlay').classList.remove('visible'); }
-function changeMullN(d) {
-  G.mullN = Math.max(0, Math.min(7, G.mullN+d));
-  document.getElementById('mull-n').textContent = G.mullN;
-  document.getElementById('mull-return').textContent = G.mullN;
-}
-function doMulligan() {
-  G.library = shuffle([...G.hand, ...G.library]);
-  G.hand = [];
-  for (let i=0;i<7;i++) if(G.library.length) G.hand.push(G.library.pop());
-  for (let i=0;i<G.mullN;i++) if(G.hand.length) G.library.unshift(G.hand.shift());
+function doMull(){
+  G.library=[...G.hand,...G.library];
+  G.hand=[];
+  shuffle(G.library);
+  for(let i=0;i<7;i++) if(G.library.length) G.hand.push(G.library.pop());
+  for(let i=0;i<G.mullN&&G.hand.length;i++) G.library.unshift(G.hand.shift());
   G.mulligans++;
-  closeMulligan(); render();
-  log(`↩ Mulligan #${G.mulligans} → mano de ${G.hand.length}`);
+  closeMull();renderHand();updateStacks();
+  log(`↩ Mulligan #${G.mulligans} · mano de ${G.hand.length}`);
+}
+
+// ══════════════════════════════════════════════════════════
+// TOKEN
+// ══════════════════════════════════════════════════════════
+function openTokenModal(){document.getElementById('token-modal').classList.add('on')}
+function closeTokenModal(){document.getElementById('token-modal').classList.remove('on')}
+function createToken(){
+  const name=document.getElementById('tk-name').value||'Token';
+  const pt=document.getElementById('tk-pt').value||'1/1';
+  const color=document.getElementById('tk-color').value;
+  const qty=Math.min(20,Math.max(1,parseInt(document.getElementById('tk-qty').value)||1));
+  const tokenCard={name:`${name} (${pt})`,type_line:'Token Creature',img:'',color_identity:[color],is_creature:true,cmc:0};
+  for(let i=0;i<qty;i++) addToPermanents(tokenCard);
+  closeTokenModal();
+  log(`✦ ${qty}× token ${name} (${pt}) creado`);
+}
+
+// ══════════════════════════════════════════════════════════
+// DISCARD TO 7
+// ══════════════════════════════════════════════════════════
+function openDiscardModal(){
+  G.discardSelected=new Set();
+  const need=G.hand.length-7;
+  document.getElementById('discard-msg').textContent=`Tienes ${G.hand.length} cartas. Descarta ${need}.`;
+  const cont=document.getElementById('discard-hand');
+  cont.innerHTML=G.hand.map((card,i)=>`
+    <div class="discard-card" data-idx="${i}" onclick="toggleDiscard(${i},this)">
+      ${card.img?`<img src="${card.img}" alt="${card.name}">`:`<div class="card-fb-sm">${card.name}</div>`}
+    </div>`).join('');
+  document.getElementById('discard-modal').classList.add('on');
+}
+function toggleDiscard(idx,el){
+  if(G.discardSelected.has(idx)){G.discardSelected.delete(idx);el.classList.remove('selected')}
+  else{G.discardSelected.add(idx);el.classList.add('selected')}
+  const need=G.hand.length-7;
+  document.getElementById('discard-confirm').textContent=`Descartar ${G.discardSelected.size}/${need} seleccionadas`;
+}
+function confirmDiscard(){
+  const need=G.hand.length-7;
+  if(G.discardSelected.size<need){alert(`Selecciona ${need} cartas para descartar`);return}
+  const toDiscard=[...G.discardSelected].sort((a,b)=>b-a);
+  toDiscard.forEach(idx=>{
+    const c=G.hand.splice(idx,1)[0];
+    G.graveyard.push(c);
+    log(`🗑 Descarta: <span class="log-gold">${c.name}</span>`);
+  });
+  document.getElementById('discard-modal').classList.remove('on');
+  renderHand();updateStacks();
+  goPhase('cleanup');
 }
 
 // ══════════════════════════════════════════════════════════
 // RESET
 // ══════════════════════════════════════════════════════════
-function confirmReset() {
-  if (confirm('¿Empezar una nueva partida con el mismo mazo?')) {
-    const key = document.getElementById('start-deck-select')?.value;
-    startGame();
-  }
-}
-
-// ══════════════════════════════════════════════════════════
-// TOKEN DIALOG (placeholder)
-// ══════════════════════════════════════════════════════════
-function closeTokenDialog() { document.getElementById('token-dialog').classList.remove('visible'); }
-function adjustCounter(type, d) {
-  // Placeholder: integrated via context menu
+function confirmReset(){
+  if(confirm('¿Nueva partida con el mismo mazo?')) startGame();
 }
 
 // ══════════════════════════════════════════════════════════
 // LOG
 // ══════════════════════════════════════════════════════════
-function log(text) {
-  const box = document.getElementById('log-box');
-  box.innerHTML = `<p>${text}</p>` + box.innerHTML;
+function log(txt){
+  const b=document.getElementById('log-box');
+  const p=document.createElement('p');
+  p.innerHTML=txt;
+  b.insertBefore(p,b.firstChild);
+  if(b.children.length>80) b.removeChild(b.lastChild);
 }
 
 // ══════════════════════════════════════════════════════════
-// EVENTS
+// KEYBOARD SHORTCUTS
 // ══════════════════════════════════════════════════════════
-document.addEventListener('click', hideCtx);
-document.addEventListener('keydown', e => {
-  if (e.key==='Escape') { closeZoom(); closeMulligan(); hideCtx(); }
-  if (e.key==='d' || e.key==='D') drawCard();
-  if (e.key==='t' || e.key==='T') nextTurn();
-  if (e.key==='u' || e.key==='U') untapAll();
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  switch(e.key){
+    case 'd': case 'D': drawCard(); break;
+    case 'u': case 'U': untapAll(); break;
+    case 'e': case 'E': goPhase('end'); break;
+    case 'n': case 'N': nextPhase(); break;
+    case 'Escape': closeZoom();closeMull();hideCtx();document.getElementById('token-modal').classList.remove('on');document.getElementById('discard-modal').classList.remove('on'); break;
+    case 'm': case 'M': openMull(); break;
+    case 'c': case 'C': castCommander(); break;
+    case 't': case 'T': openTokenModal(); break;
+  }
 });
+document.addEventListener('click',e=>{
+  if(!document.getElementById('ctx').contains(e.target)) hideCtx();
+});
+window.addEventListener('resize',renderHand);
 
-window.addEventListener('resize', render);
-
+// ══════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════
 init();
 </script>
 </body>
