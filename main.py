@@ -46,14 +46,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Directorio temporal compartido por sesión del servidor
+# Directorio temporal para archivos de trabajo por sesión
 _WORK_DIR = Path(tempfile.mkdtemp(prefix="deck_forge_"))
 _DECKS_DIR = _WORK_DIR / "decks"
 _DECKS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Directorio de colecciones guardadas (persiste en la sesión del servidor)
-_COLLECTIONS_DIR = _WORK_DIR / "collections"
+# Directorio PERSISTENTE para colecciones con PIN
+# En Railway: /data (volumen montado). En local: ~/.deck_forge_cache/collections
+_PERSISTENT_BASE = Path(os.environ.get("DECK_FORGE_CACHE", str(Path.home() / ".deck_forge_cache")))
+_COLLECTIONS_DIR = _PERSISTENT_BASE / "collections"
 _COLLECTIONS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Directorio temporal de colecciones en sesión (para las no guardadas con PIN)
+_SESSION_COLLECTIONS_DIR = _WORK_DIR / "collections"
+_SESSION_COLLECTIONS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # ---------------------------------------------------------------------------
@@ -163,16 +169,36 @@ async def index():
 
 
 # ---------------------------------------------------------------------------
-# GET /api/collections — lista colecciones guardadas
+# Helpers de PIN
+# ---------------------------------------------------------------------------
+
+def _generate_pin() -> str:
+    import random
+    while True:
+        pin = str(random.randint(100000, 999999))
+        if not (_COLLECTIONS_DIR / f"{pin}.json").exists():
+            return pin
+
+
+def _pin_path(pin: str) -> Path:
+    return _COLLECTIONS_DIR / f"{pin}.json"
+
+
+def _pin_meta_path(pin: str) -> Path:
+    return _COLLECTIONS_DIR / f"{pin}.meta.json"
+
+
+# ---------------------------------------------------------------------------
+# GET /api/collections — lista colecciones de la sesión actual
 # ---------------------------------------------------------------------------
 
 @app.get("/api/collections")
 async def list_collections():
-    """Lista todas las colecciones guardadas en esta sesión."""
+    """Lista colecciones de la sesión (no persistentes sin PIN)."""
     cols = []
-    for f in sorted(_COLLECTIONS_DIR.glob("*.json"), key=lambda x: x.stat().st_mtime, reverse=True):
+    for f in sorted(_SESSION_COLLECTIONS_DIR.glob("*.json"), key=lambda x: x.stat().st_mtime, reverse=True):
         try:
-            meta = json.loads((f.parent / f.stem).with_suffix(".meta.json").read_text())
+            meta = json.loads((_SESSION_COLLECTIONS_DIR / f"{f.stem}.meta.json").read_text())
         except Exception:
             meta = {}
         cols.append({
@@ -180,12 +206,13 @@ async def list_collections():
             "name": meta.get("name", f.stem),
             "real_count": meta.get("real_count", 0),
             "uploaded_at": meta.get("uploaded_at", ""),
+            "pin": meta.get("pin"),
         })
     return {"collections": cols}
 
 
 # ---------------------------------------------------------------------------
-# POST /api/collections/save — guarda una colección con nombre
+# POST /api/collections/save — guarda colección con PIN persistente
 # ---------------------------------------------------------------------------
 
 @app.post("/api/collections/save")
@@ -193,38 +220,84 @@ async def save_collection(
     collection: str = Form(...),
     name: str = Form(...),
 ):
-    """Guarda una colección JSON con un nombre amigable."""
+    """Guarda una colección con PIN persistente y en la sesión actual."""
     import time
     try:
         coll = json.loads(collection)
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    pin = _generate_pin()
     col_id = _safe_filename(name) or f"col_{int(time.time())}"
-    col_path = _COLLECTIONS_DIR / f"{col_id}.json"
-    meta_path = _COLLECTIONS_DIR / f"{col_id}.meta.json"
-
-    col_path.write_text(json.dumps(coll, ensure_ascii=False), encoding="utf-8")
-    meta_path.write_text(json.dumps({
+    meta = {
         "name": name,
         "id": col_id,
+        "pin": pin,
         "real_count": len(coll.get("real", [])),
         "uploaded_at": time.strftime("%Y-%m-%d %H:%M"),
-    }), encoding="utf-8")
+    }
 
-    return {"ok": True, "id": col_id, "name": name}
+    # Guardar con PIN en almacenamiento PERSISTENTE
+    _pin_path(pin).write_text(json.dumps(coll, ensure_ascii=False), encoding="utf-8")
+    _pin_meta_path(pin).write_text(json.dumps(meta), encoding="utf-8")
+
+    # También en sesión para acceso rápido
+    (_SESSION_COLLECTIONS_DIR / f"{col_id}.json").write_text(
+        json.dumps(coll, ensure_ascii=False), encoding="utf-8"
+    )
+    (_SESSION_COLLECTIONS_DIR / f"{col_id}.meta.json").write_text(
+        json.dumps(meta), encoding="utf-8"
+    )
+
+    return {"ok": True, "id": col_id, "name": name, "pin": pin}
 
 
 # ---------------------------------------------------------------------------
-# GET /api/collections/{id} — carga una colección guardada
+# POST /api/sessions/restore — restaura colección por PIN
+# ---------------------------------------------------------------------------
+
+@app.post("/api/sessions/restore")
+async def restore_session(pin: str = Form(...)):
+    """Restaura una colección a partir de su PIN."""
+    pin = pin.strip()
+    path = _pin_path(pin)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="PIN no encontrado. Comprueba que es correcto.")
+
+    meta_path = _pin_meta_path(pin)
+    meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
+    coll = json.loads(path.read_text(encoding="utf-8"))
+    col_id = meta.get("id", f"pin_{pin}")
+
+    # Registrar en sesión actual
+    (_SESSION_COLLECTIONS_DIR / f"{col_id}.json").write_text(
+        json.dumps(coll, ensure_ascii=False), encoding="utf-8"
+    )
+    (_SESSION_COLLECTIONS_DIR / f"{col_id}.meta.json").write_text(
+        json.dumps(meta), encoding="utf-8"
+    )
+
+    return {
+        "ok": True,
+        "id": col_id,
+        "name": meta.get("name", "Mi Colección"),
+        "real_count": len(coll.get("real", [])),
+        "pin": pin,
+        "collection": coll,
+    }
+
+
+# ---------------------------------------------------------------------------
+# GET /api/collections/{id} — carga una colección de la sesión
 # ---------------------------------------------------------------------------
 
 @app.get("/api/collections/{col_id}")
 async def get_collection(col_id: str):
-    col_path = _COLLECTIONS_DIR / f"{col_id}.json"
-    if not col_path.exists():
-        raise HTTPException(status_code=404, detail="Colección no encontrada")
-    return json.loads(col_path.read_text(encoding="utf-8"))
+    # Buscar primero en sesión, luego por PIN
+    session_path = _SESSION_COLLECTIONS_DIR / f"{col_id}.json"
+    if session_path.exists():
+        return json.loads(session_path.read_text(encoding="utf-8"))
+    raise HTTPException(status_code=404, detail="Colección no encontrada")
 
 
 # ---------------------------------------------------------------------------

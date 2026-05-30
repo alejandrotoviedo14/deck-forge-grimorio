@@ -175,6 +175,17 @@
     .c-W { background:#f8f6e3; color:#333; } .c-U { background:#1a4a8a; color:#9cc; }
     .c-B { background:#2a1a2a; color:#c0a0c8; border:1px solid #5a3a5a; } .c-R { background:#7a1a0a; color:#fca; } .c-G { background:#0a3a0a; color:#8fa; }
 
+    /* PIN DISPLAY */
+    .pin-box {
+      margin-top:1.2rem; background:var(--bg2); border:2px solid var(--gold-dark);
+      border-radius:8px; padding:1.5rem; text-align:center;
+    }
+    .pin-box p { font-family:'Cinzel',serif; font-size:0.7rem; color:var(--text-muted); letter-spacing:0.2em; text-transform:uppercase; margin-bottom:0.5rem; }
+    .pin-number { font-family:'Cinzel Decorative',serif; font-size:2.8rem; color:var(--gold); letter-spacing:0.4em; display:block; margin:0.3rem 0; cursor:pointer; transition:color 0.15s; }
+    .pin-number:hover { color:var(--gold-light); }
+    .pin-copy-hint { font-size:0.8rem; color:var(--text-muted); }
+    .pin-warning { margin-top:0.75rem; font-size:0.82rem; color:#ca8a8a; }
+
     /* COMMANDER SELECT HINT */
     .hint { font-size:0.85rem; color:var(--text-muted); font-style:italic; margin-top:0.5rem; }
 
@@ -334,9 +345,21 @@
       <div id="ingest-result"></div>
     </div>
 
+    <!-- Restaurar por PIN -->
+    <div class="card">
+      <div class="card-title">Restaurar Sesión con PIN</div>
+      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;margin-bottom:1rem">
+        Si ya tienes un PIN de una colección anterior, introdúcelo aquí para restaurarla en cualquier dispositivo.
+      </p>
+      <label>Tu PIN de 6 dígitos</label>
+      <input type="text" id="pin-input" placeholder="ej. 482931" maxlength="6" style="font-family:'Cinzel',serif;font-size:1.4rem;letter-spacing:0.3em;text-align:center" />
+      <button class="primary" onclick="doRestorePin()">✦ Restaurar Colección ✦</button>
+      <div id="restore-result"></div>
+    </div>
+
     <div class="card" id="saved-collections-card">
-      <div class="card-title">Colecciones Guardadas</div>
-      <div id="saved-collections-list"><div class="col-empty">Ninguna colección guardada aún.</div></div>
+      <div class="card-title">Colecciones en esta Sesión</div>
+      <div id="saved-collections-list"><div class="col-empty">Ninguna colección cargada aún.</div></div>
     </div>
   </div>
 
@@ -678,6 +701,7 @@ async function doIngest() {
     const saveData = await saveRes.json();
 
     const colId = saveData.id;
+    const pin = saveData.pin;
     _collections[colId] = { name: colName, real_count: data.real_count, collection: data.collection };
     _activeColId = colId;
 
@@ -691,11 +715,54 @@ async function doIngest() {
         <div class="stat"><span class="val">${data.real_count}</span><span class="lbl">Cartas reales</span></div>
         <div class="stat"><span class="val">${data.fake_count}</span><span class="lbl">Proxies excluidas</span></div>
       </div>
-      <p style="margin-top:1rem;color:var(--text-muted);font-size:0.9rem">
-        Ahora puedes <b style="color:var(--gold-light)">Analizar</b> o <b style="color:var(--gold-light)">Forjar</b>.
-      </p>`;
+      <div class="pin-box">
+        <p>Tu PIN — guárdalo para restaurar desde cualquier dispositivo</p>
+        <span class="pin-number" onclick="copyPin('${pin}')" title="Haz click para copiar">${pin}</span>
+        <span class="pin-copy-hint">Haz click para copiar</span>
+        <p class="pin-warning">⚠ Anota este PIN — no se puede recuperar si lo pierdes</p>
+      </div>`;
   } catch(e) {
     msg(result, 'err', '✗ El ritual ha fallado: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+// ── PIN helpers ──
+function copyPin(pin) {
+  navigator.clipboard.writeText(pin).then(() => {
+    const el = document.querySelector('.pin-number');
+    if (el) { el.textContent = '✓ Copiado'; setTimeout(() => el.textContent = pin, 1500); }
+  });
+}
+
+async function doRestorePin() {
+  const pin = document.getElementById('pin-input').value.trim();
+  if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+    msg('restore-result', 'err', 'El PIN debe ser exactamente 6 dígitos.');
+    return;
+  }
+  const btn = event.target;
+  setLoading(btn, true, 'Buscando en los archivos...');
+  msg('restore-result', 'info', '<span class="spinner"></span> Restaurando colección...');
+
+  const fd = new FormData();
+  fd.append('pin', pin);
+
+  try {
+    const res = await fetch('/api/sessions/restore', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail);
+
+    _collections[data.id] = { name: data.name, real_count: data.real_count, collection: data.collection };
+    _activeColId = data.id;
+    renderSavedCollections();
+    refreshCollectionSelects();
+
+    msg('restore-result', 'ok', `✦ Colección "<b>${data.name}</b>" restaurada — ${data.real_count} cartas listas.`);
+    document.getElementById('pin-input').value = '';
+  } catch(e) {
+    msg('restore-result', 'err', '✗ ' + e.message);
   } finally {
     btn.disabled = false; btn.innerHTML = btn.dataset.orig;
   }
