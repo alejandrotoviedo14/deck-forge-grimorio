@@ -169,23 +169,64 @@ async def index():
 
 
 # ---------------------------------------------------------------------------
-# Helpers de PIN
+# Supabase helpers para PINs persistentes
 # ---------------------------------------------------------------------------
 
+_SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+_SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+
+def _supa_headers() -> dict:
+    return {
+        "apikey": _SUPABASE_KEY,
+        "Authorization": f"Bearer {_SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal",
+    }
+
+def _supa_available() -> bool:
+    return bool(_SUPABASE_URL and _SUPABASE_KEY)
+
 def _generate_pin() -> str:
-    import random
-    while True:
+    import random, requests as req
+    for _ in range(20):
         pin = str(random.randint(100000, 999999))
-        if not (_COLLECTIONS_DIR / f"{pin}.json").exists():
-            return pin
+        if _supa_available():
+            r = req.get(f"{_SUPABASE_URL}/rest/v1/pins?pin=eq.{pin}&select=pin",
+                        headers=_supa_headers(), timeout=5)
+            if r.status_code == 200 and not r.json():
+                return pin
+        else:
+            if not (_COLLECTIONS_DIR / f"{pin}.json").exists():
+                return pin
+    return str(random.randint(100000, 999999))
 
+def _supa_save_pin(pin: str, name: str, real_count: int, uploaded_at: str, collection: dict) -> bool:
+    """Guarda colección en Supabase. Devuelve True si OK."""
+    if not _supa_available():
+        return False
+    import requests as req
+    payload = {
+        "pin": pin,
+        "name": name,
+        "real_count": real_count,
+        "uploaded_at": uploaded_at,
+        "collection": collection,
+    }
+    r = req.post(f"{_SUPABASE_URL}/rest/v1/pins",
+                 headers={**_supa_headers(), "Prefer": "return=minimal"},
+                 json=payload, timeout=30)
+    return r.status_code in (200, 201)
 
-def _pin_path(pin: str) -> Path:
-    return _COLLECTIONS_DIR / f"{pin}.json"
-
-
-def _pin_meta_path(pin: str) -> Path:
-    return _COLLECTIONS_DIR / f"{pin}.meta.json"
+def _supa_load_pin(pin: str) -> dict | None:
+    """Carga colección desde Supabase por PIN."""
+    if not _supa_available():
+        return None
+    import requests as req
+    r = req.get(f"{_SUPABASE_URL}/rest/v1/pins?pin=eq.{pin}&select=*",
+                headers=_supa_headers(), timeout=15)
+    if r.status_code == 200 and r.json():
+        return r.json()[0]
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -229,27 +270,29 @@ async def save_collection(
 
     pin = _generate_pin()
     col_id = _safe_filename(name) or f"col_{int(time.time())}"
-    meta = {
-        "name": name,
-        "id": col_id,
-        "pin": pin,
-        "real_count": len(coll.get("real", [])),
-        "uploaded_at": time.strftime("%Y-%m-%d %H:%M"),
-    }
+    real_count = len(coll.get("real", []))
+    uploaded_at = time.strftime("%Y-%m-%d %H:%M")
+    meta = {"name": name, "id": col_id, "pin": pin,
+            "real_count": real_count, "uploaded_at": uploaded_at}
 
-    # Guardar con PIN en almacenamiento PERSISTENTE
-    _pin_path(pin).write_text(json.dumps(coll, ensure_ascii=False), encoding="utf-8")
-    _pin_meta_path(pin).write_text(json.dumps(meta), encoding="utf-8")
+    # Guardar en Supabase (persistente) + sesión local
+    supa_ok = _supa_save_pin(pin, name, real_count, uploaded_at, coll)
 
-    # También en sesión para acceso rápido
+    # Fallback: archivo local si Supabase no disponible
+    if not supa_ok:
+        (_COLLECTIONS_DIR / f"{pin}.json").write_text(
+            json.dumps(coll, ensure_ascii=False), encoding="utf-8")
+        (_COLLECTIONS_DIR / f"{pin}.meta.json").write_text(
+            json.dumps(meta), encoding="utf-8")
+
+    # Sesión local para acceso rápido sin re-consultar Supabase
     (_SESSION_COLLECTIONS_DIR / f"{col_id}.json").write_text(
-        json.dumps(coll, ensure_ascii=False), encoding="utf-8"
-    )
+        json.dumps(coll, ensure_ascii=False), encoding="utf-8")
     (_SESSION_COLLECTIONS_DIR / f"{col_id}.meta.json").write_text(
-        json.dumps(meta), encoding="utf-8"
-    )
+        json.dumps(meta), encoding="utf-8")
 
-    return {"ok": True, "id": col_id, "name": name, "pin": pin}
+    return {"ok": True, "id": col_id, "name": name, "pin": pin,
+            "persistent": supa_ok}
 
 
 # ---------------------------------------------------------------------------
@@ -260,13 +303,22 @@ async def save_collection(
 async def restore_session(pin: str = Form(...)):
     """Restaura una colección a partir de su PIN."""
     pin = pin.strip()
-    path = _pin_path(pin)
-    if not path.exists():
-        raise HTTPException(status_code=404, detail="PIN no encontrado. Comprueba que es correcto.")
 
-    meta_path = _pin_meta_path(pin)
-    meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
-    coll = json.loads(path.read_text(encoding="utf-8"))
+    # Buscar en Supabase primero
+    row = _supa_load_pin(pin)
+    if row:
+        coll = row["collection"]
+        meta = {"name": row["name"], "id": _safe_filename(row["name"]) or f"pin_{pin}",
+                "pin": pin, "real_count": row["real_count"]}
+    else:
+        # Fallback: archivo local
+        path = _COLLECTIONS_DIR / f"{pin}.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="PIN no encontrado. Comprueba que es correcto.")
+        meta_path = _COLLECTIONS_DIR / f"{pin}.meta.json"
+        meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
+        coll = json.loads(path.read_text(encoding="utf-8"))
+
     col_id = meta.get("id", f"pin_{pin}")
 
     # Registrar en sesión actual
