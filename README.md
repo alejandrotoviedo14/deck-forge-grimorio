@@ -182,3 +182,7 @@ Consulta EDHREC para el comandante específico y enriquece el scoring. Falla gra
 | v22 | **Conflictos entre mazos**: detecta cartas compartidas entre mazos del mismo PIN, elige la siguiente mejor alternativa automáticamente. |
 | v23 | **Importar mazo de ManaBox** (Tab IV): sube CSV de tu mazo existente, detecta comandante, estima bracket, muestra conflictos con otros mazos del PIN. |
 | v24 | **Versionado de mazos** (vorel → vorel_v2), fix color identity en fill del critic, tooltips ricos en grimorio (por qué está + impacto), sección de conflictos por mazo. |
+| v25 | **Inteligencia superior (P1)**: fix doble invocación del Critic, review con Claude Sonnet, prompt con razonamiento paso a paso + reservas + razón/impacto por carta, scoring rebalanceado (40% sinergia comandante). |
+| v26 | **Usabilidad (P2)**: forjar sin re-subir CSV (se sintetiza), barra de progreso por etapas, borrar mazos, PIN persistente con auto-restauración al recargar. |
+| v27 | **Look & feel (P3)**: grimorio unificado con la estética pergamino/oro de la web. |
+| v28 | **Simulador (P4)**: selector de color en tierras multicolor, persistencia de partida (reanudar al recargar). |

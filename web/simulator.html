@@ -453,6 +453,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--dim);font-fami
 <!-- ZOOM -->
 <div id="zoom" onclick="closeZoom()"><img id="zoom-img" src="" alt=""/></div>
 
+<!-- MANA COLOR CHOOSER (tierras multicolor) -->
+<div class="modal" id="mana-chooser">
+  <div class="mbox" id="mana-chooser-box" style="max-width:300px;text-align:center"></div>
+</div>
+
 <!-- MULLIGAN MODAL -->
 <div class="modal" id="mull-modal">
   <div class="mbox">
@@ -576,6 +581,8 @@ function lg(txt,cls=''){
 // ══════════════════════════════
 // INIT
 // ══════════════════════════════
+const SIM_KEY='deckforge_sim_state';
+
 async function init(){
   const res=await fetch('/api/decks').catch(()=>({json:()=>({decks:[]})}));
   const data=await res.json();
@@ -584,6 +591,50 @@ async function init(){
   sel.innerHTML=decks.length
     ?'<option value="">— Selecciona un mazo —</option>'+decks.map(d=>`<option value="${d.key}">${d.commander} · ${d.archetype}</option>`).join('')
     :'<option value="">No hay mazos — forja uno primero</option>';
+
+  // Si hay una partida guardada, ofrecer reanudar
+  const saved=loadSaved();
+  if(saved){
+    const box=document.querySelector('.sbox');
+    const btn=document.createElement('button');
+    btn.textContent='↻ Reanudar última partida';
+    btn.style.cssText='margin-top:10px;background:linear-gradient(135deg,#1a3a1a,#2a5a2a);border-color:#4a8a4a;color:#8aca8a';
+    btn.onclick=resumeGame;
+    box.insertBefore(btn, box.querySelector('.sback'));
+  }
+}
+
+// ── Persistencia de estado ──
+let _autosaveTimer=null;
+function startAutosave(){
+  if(_autosaveTimer)clearInterval(_autosaveTimer);
+  _autosaveTimer=setInterval(persist,3000);
+}
+function persist(){
+  try{
+    const snap={...G, attackers:[...G.attackers]};  // Set → array
+    localStorage.setItem(SIM_KEY, JSON.stringify(snap));
+  }catch(e){}
+}
+function loadSaved(){
+  try{
+    const raw=localStorage.getItem(SIM_KEY);
+    if(!raw)return null;
+    const s=JSON.parse(raw);
+    return (s&&s.cmd)?s:null;
+  }catch(e){return null}
+}
+function resumeGame(){
+  const s=loadSaved();
+  if(!s){alert('No hay partida guardada');return}
+  Object.assign(G, s);
+  G.attackers=new Set(s.attackers||[]);
+  $('top-cmd').textContent='⚔ '+(G.cmdName||'');
+  $('start').style.display='none';
+  renderAll();updateCmdPile();setPhaseUI(G.phase||'main1');
+  $('t-turn').textContent=G.turn; $('t-life').textContent=G.life;
+  lg('↻ Partida reanudada','lg');
+  startAutosave();
 }
 
 async function startGame(){
@@ -595,6 +646,7 @@ async function startGame(){
 
   const ci=all.findIndex(c=>c.name===data.commander);
   G.cmd=ci>=0?all.splice(ci,1)[0]:null;
+  G.deckKey=key; G.cmdName=data.commander;
 
   G.lib=shuffle([...all]);
   G.hand=[];G.gy=[];G.exile=[];G.lands=[];G.perms=[];
@@ -612,6 +664,8 @@ async function startGame(){
   lg(`✦ Partida iniciada · ${data.commander}`,'lg');
   banner('¡Partida iniciada!','Mano de 7 · Turno 1');
   setPhaseUI('main1');
+  startAutosave();
+  persist();
 }
 
 // ══════════════════════════════
@@ -804,20 +858,44 @@ function tapLand(id){
   const bf=G.lands.find(b=>b.id===id);
   if(!bf)return;
   if(bf.tapped){lg('⚠ '+bf.card.name+' ya tapeada','lr');return}
-  bf.tapped=true;
-  const pm=bf.card.produced_mana||[];
-  if(pm.length>1){
-    // Pick color dialog - simplified: pick first valid
-    const c=pm.find(x=>x in G.mana)||'C';
-    G.mana[c]=(G.mana[c]||0)+1;
-    lg(`🌿 ${bf.card.name} → +1 ${c}`,'lgreen');
-  } else {
+  // Colores que produce esta tierra
+  let pm=(bf.card.produced_mana||[]).filter(x=>['W','U','B','R','G','C'].includes(x));
+  if(!pm.length){
     const c=manaColor(bf.card);
-    const mc=c in G.mana?c:'C';
-    G.mana[mc]=(G.mana[mc]||0)+1;
-    lg(`🌿 ${bf.card.name} → +1 ${mc}`,'lgreen');
+    pm=[c in G.mana ? c : 'C'];
   }
-  updateMana();renderLands();
+  if(pm.length>1){
+    // Tierra multicolor → dejar elegir color
+    openManaChooser(bf, pm);
+  } else {
+    bf.tapped=true;
+    G.mana[pm[0]]=(G.mana[pm[0]]||0)+1;
+    lg(`🌿 ${bf.card.name} → +1 ${pm[0]}`,'lgreen');
+    updateMana();renderLands();persist();
+  }
+}
+
+// Selector de color para tierras multicolor
+function openManaChooser(bf, colors){
+  const names={W:'Blanco',U:'Azul',B:'Negro',R:'Rojo',G:'Verde',C:'Incoloro'};
+  const ov=document.getElementById('mana-chooser');
+  const box=document.getElementById('mana-chooser-box');
+  box.innerHTML=`<h4 style="font-family:'Cinzel',serif;color:var(--gold);margin-bottom:12px;font-size:0.85rem">
+      ${bf.card.name}<br><span style="font-size:0.7rem;color:var(--muted);font-weight:400">Elige el color de maná</span></h4>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      ${colors.map(c=>`<button class="mp mp-${c}" style="width:48px;height:48px;font-size:1rem"
+        onclick="pickMana(${bf.id},'${c}')">${c}</button>`).join('')}
+    </div>`;
+  ov.classList.add('on');
+}
+function pickMana(id, color){
+  const bf=G.lands.find(b=>b.id===id);
+  document.getElementById('mana-chooser').classList.remove('on');
+  if(!bf||bf.tapped)return;
+  bf.tapped=true;
+  G.mana[color]=(G.mana[color]||0)+1;
+  lg(`🌿 ${bf.card.name} → +1 ${color}`,'lgreen');
+  updateMana();renderLands();persist();
 }
 function updateMana(){
   document.querySelectorAll('.mp').forEach(p=>{
@@ -1157,7 +1235,12 @@ function doToken(){
 // ══════════════════════════════
 // RESET
 // ══════════════════════════════
-function confirmReset(){if(confirm('¿Nueva partida?'))startGame()}
+function confirmReset(){
+  if(confirm('¿Nueva partida? Se perderá la partida actual.')){
+    try{localStorage.removeItem(SIM_KEY)}catch(e){}
+    startGame();
+  }
+}
 
 // ══════════════════════════════
 // KEYBOARD
