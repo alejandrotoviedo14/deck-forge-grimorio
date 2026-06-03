@@ -453,7 +453,11 @@ def build_deck(
             selected_names.add(c["name"])
             _track_cmc(c)
 
-    # 7. Tierras de utilidad
+    # 7. Tierras de utilidad (objetivo: 12)
+    TARGET_UTILITY_LANDS = 12
+    TARGET_BASICS         = 26   # básicas objetivo (~38 tierras totales)
+    TARGET_NON_LANDS      = 99 - TARGET_UTILITY_LANDS - TARGET_BASICS  # = 61
+
     utility_lands = [
         c for c in pool
         if c.get("is_land")
@@ -467,8 +471,10 @@ def build_deck(
         return -len(wubrg) * 100_000 + (land.get("edhrec_rank") or 999_999)
 
     utility_lands.sort(key=land_score)
-    util_count = min(12, len(utility_lands))
-    for land in utility_lands[:util_count]:
+    util_added = 0
+    for land in utility_lands:
+        if util_added >= TARGET_UTILITY_LANDS:
+            break
         if land["name"] in selected_names:
             continue
         deck.cards.append(DeckCard(
@@ -478,6 +484,48 @@ def build_deck(
             justification="Tierra de utilidad / dual.",
         ))
         selected_names.add(land["name"])
+        util_added += 1
+
+    # 7b. Relleno inteligente — si los slots no llenaron TARGET_NON_LANDS,
+    #     completamos con las mejores cartas disponibles del pool (sin tierras).
+    #     Esto evita mazos con 40-50 básicas por predicados demasiado exigentes.
+    non_land_count = sum(1 for dc in deck.cards if not dc.card.get("is_land"))
+    remaining_slots = TARGET_NON_LANDS - non_land_count
+
+    if remaining_slots > 0:
+        # Candidatos: todo el pool no-tierra, no seleccionado, en identidad
+        fill_candidates = [
+            c for c in in_identity
+            if c["name"] not in selected_names
+            and not c.get("is_land")
+        ]
+        # Ordenar por score compuesto descendente (las mejores primero)
+        fill_candidates.sort(
+            key=lambda c: -composite_score(
+                c,
+                roles_by_card.get(c["name"], set()),
+                archetype,
+                deck_ci,
+                cmc_distribution,
+            )
+        )
+        filled = 0
+        for c in fill_candidates:
+            if filled >= remaining_slots:
+                break
+            deck.cards.append(DeckCard(
+                c,
+                category="Soporte General",
+                role="Support",
+                justification="Mejor carta disponible para completar el cupo del mazo.",
+            ))
+            selected_names.add(c["name"])
+            _track_cmc(c)
+            filled += 1
+
+        if filled:
+            print(f"  [BUILD] Relleno inteligente: {filled} cartas añadidas "
+                  f"(slots insuficientes en arquetipos específicos)")
 
     # 8. LLM Critic — revisa y mejora el mazo si hay API key
     if use_edhrec:  # mismo flag que EDHREC — solo cuando hay conectividad
@@ -523,7 +571,28 @@ def build_deck(
               f"{', '.join(illegal)}")
         deck.cards = legal_cards
 
-    # 10. Básicas para llegar a 100
-    deck.needed_basics = max(0, 99 - len(deck.cards))
+    # 10. Básicas: siempre exactamente 99 - len(deck.cards)
+    #     Garantía matemática de 100 cartas totales (cmd + 99).
+    #     Si por alguna razón tenemos > 99 cartas, recortamos las de menor score.
+    if len(deck.cards) > 99:
+        # Separar tierras y no-tierras
+        lands = [dc for dc in deck.cards if dc.card.get("is_land")]
+        non_lands = [dc for dc in deck.cards if not dc.card.get("is_land")]
+        # Ordenar no-tierras por score desc y recortar las peores
+        non_lands.sort(
+            key=lambda dc: -composite_score(
+                dc.card,
+                roles_by_card.get(dc.card.get("name",""), set()),
+                archetype, deck_ci, {},
+            )
+        )
+        excess = len(deck.cards) - 99
+        non_lands = non_lands[:-excess] if excess <= len(non_lands) else non_lands
+        deck.cards = non_lands + lands
+        print(f"  [BUILD] Recortadas {excess} cartas excedentes (mantenemos las {len(deck.cards)} mejores)")
+
+    deck.needed_basics = 99 - len(deck.cards)  # siempre ≥ 0 tras el recorte
+    print(f"  [BUILD] Total: {len(deck.cards)} cartas reales + {deck.needed_basics} básicas "
+          f"+ 1 comandante = 100")
 
     return deck

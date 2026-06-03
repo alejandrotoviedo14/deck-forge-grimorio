@@ -488,6 +488,41 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
         if self.verbose and lands_preserved:
             print(f"  [CRITIC] {lands_preserved} tierras no-básicas preservadas.")
 
+        # Relleno de seguridad: si el Critic devolvió pocas cartas,
+        # completar con las mejores cartas del pool disponible (no-tierras).
+        TARGET_REAL_CARDS = 73  # 62 no-tierras + 11 tierras utilidad ≈ 99-26 básicas
+        if len(deck.cards) < TARGET_REAL_CARDS:
+            all_pool = {c["name"].lower(): c for c in full_pool if not c.get("is_land")}
+            # añadir también las del draft original (no-tierras)
+            for dc in deck.cards:
+                all_pool[dc.card["name"].lower()] = dc.card
+
+            remaining = [
+                c for name, c in all_pool.items()
+                if name not in seen_names
+                and not c.get("is_land")
+            ]
+            # Ordenar por edhrec_rank (menor = más popular)
+            remaining.sort(key=lambda c: (c.get("edhrec_rank") or 999999))
+            needed = TARGET_REAL_CARDS - len(deck.cards)
+            filled = 0
+            for c in remaining:
+                if filled >= needed:
+                    break
+                from . import classifier as cls2
+                roles = cls2.classify(c)
+                deck.cards.append(DC2(
+                    card=c,
+                    category="Soporte General",
+                    role="Support",
+                    justification="[CRITIC FILL] Mejor carta disponible para completar el mazo.",
+                ))
+                seen_names.add(c["name"].lower())
+                filled += 1
+            if self.verbose and filled:
+                print(f"  [CRITIC] Relleno post-critic: {filled} cartas añadidas "
+                      f"para alcanzar {len(deck.cards)} total.")
+
         return deck
 
     # ------------------------------------------------------------------
