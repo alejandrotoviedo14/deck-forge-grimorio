@@ -1382,7 +1382,7 @@ function renderCardGroup(groupName, cards, conflictsMap) {{
 function renderDeckPanel(key, deck) {{
   const gaps = renderGaps(deck);
 
-  // Mapa de conflictos: card_name → {reserved_by, alternative}
+  // Mapa de conflictos: card_name → {{reserved_by, alternative}}
   const conflictsMap = {{}};
   (deck.conflicts || []).forEach(c => {{
     conflictsMap[c.card] = {{ reserved_by: c.reserved_by, alternative: c.alternative }};
