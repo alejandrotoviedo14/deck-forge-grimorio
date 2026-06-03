@@ -181,3 +181,4 @@ Consulta EDHREC para el comandante específico y enriquece el scoring. Falla gra
 | v21 | **Siempre 100 cartas**: relleno inteligente por composite score cuando slots no llenan. Overflow guard. |
 | v22 | **Conflictos entre mazos**: detecta cartas compartidas entre mazos del mismo PIN, elige la siguiente mejor alternativa automáticamente. |
 | v23 | **Importar mazo de ManaBox** (Tab IV): sube CSV de tu mazo existente, detecta comandante, estima bracket, muestra conflictos con otros mazos del PIN. |
+| v24 | **Versionado de mazos** (vorel → vorel_v2), fix color identity en fill del critic, tooltips ricos en grimorio (por qué está + impacto), sección de conflictos por mazo. |
