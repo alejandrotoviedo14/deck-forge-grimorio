@@ -178,3 +178,6 @@ Consulta EDHREC para el comandante específico y enriquece el scoring. Falla gra
 | v18 | **Simulador completo**: fases de turno, pool de maná, tierras separadas, drag & drop, combate, tokens, commander zone. Mobile-first con Action Sheet. |
 | v19 | **Grimorio mejorado**: agrupación por categoría/tipo/color/plano, filtro por color, sort por color. Fix: cartas visibles tras restaurar PIN. |
 | v20 | **Color identity estricto**: 3 capas de validación — pool filter + LLM Critic validation + final safety filter. |
+| v21 | **Siempre 100 cartas**: relleno inteligente por composite score cuando slots no llenan. Overflow guard. |
+| v22 | **Conflictos entre mazos**: detecta cartas compartidas entre mazos del mismo PIN, elige la siguiente mejor alternativa automáticamente. |
+| v23 | **Importar mazo de ManaBox** (Tab IV): sube CSV de tu mazo existente, detecta comandante, estima bracket, muestra conflictos con otros mazos del PIN. |
