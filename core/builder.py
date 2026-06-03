@@ -372,8 +372,13 @@ def build_deck(
             )
         archetype = ARCHETYPES[detected]
 
-    deck_ci = set(commander["color_identity"])
+    # Identidad de color — fallback a colors si color_identity está vacío
+    deck_ci = set(commander.get("color_identity") or commander.get("colors") or [])
+    if not deck_ci and colors:
+        deck_ci = set(colors.upper())
     colors_str = "".join(sorted(deck_ci)) or "C"
+
+    print(f"  [BUILD] Comandante: {commander['name']} | Identidad: {colors_str}")
 
     # 3. Pool en identidad (sin tierras, sin comandante)
     in_identity = [c for c in pool
@@ -501,7 +506,24 @@ def build_deck(
         except Exception as e:
             print(f"  [CRITIC] Saltando revisión: {e}")
 
-    # 9. Básicas para llegar a 100
+    # 9. Filtro de seguridad FINAL — eliminar cualquier carta fuera de identidad de color
+    #    (puede ocurrir si el LLM Critic o EDHREC introdujeron cartas incorrectas)
+    illegal = []
+    legal_cards = []
+    for dc in deck.cards:
+        card_ci = set(dc.card.get("color_identity") or [])
+        # Las tierras básicas y cartas sin color identity siempre son legales
+        if not card_ci or card_ci.issubset(deck_ci) or is_basic_land(dc.card):
+            legal_cards.append(dc)
+        else:
+            illegal.append(dc.card.get("name", "?"))
+
+    if illegal:
+        print(f"  [BUILD] ⚠ Eliminadas {len(illegal)} cartas con identidad ilegal: "
+              f"{', '.join(illegal)}")
+        deck.cards = legal_cards
+
+    # 10. Básicas para llegar a 100
     deck.needed_basics = max(0, 99 - len(deck.cards))
 
     return deck

@@ -385,6 +385,9 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
         for c in pool_not_included:
             all_available[c["name"].lower()] = c
 
+        # Identidad de color del comandante — filtro de seguridad
+        commander_ci = set(deck.commander.get("color_identity") or [])
+
         # Validar cada carta de la lista de Claude
         validated: list[dict] = []
         seen_names: set[str] = set()
@@ -402,6 +405,15 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
             if not card:
                 if self.verbose:
                     print(f"  [CRITIC] SKIP no en pool: '{card_name}'")
+                skipped += 1
+                continue
+
+            # ── VALIDACIÓN DE IDENTIDAD DE COLOR ──
+            card_ci = set(card.get("color_identity") or [])
+            if commander_ci and not card_ci.issubset(commander_ci):
+                if self.verbose:
+                    print(f"  [CRITIC] SKIP color ilegal: '{card_name}' "
+                          f"({card_ci} ⊄ {commander_ci})")
                 skipped += 1
                 continue
 
