@@ -207,7 +207,8 @@ def _build_deck_data_json(deck: BuiltDeck, bracket: BracketReport) -> dict:
     """Convierte un BuiltDeck en dict JSON serializable para el HTML."""
     from . import classifier as cls
 
-    def card_record(card: dict, role: str = "", justification: str = "") -> dict:
+    def card_record(card: dict, role: str = "", justification: str = "",
+                    impact: str = "") -> dict:
         scryfall_id = card.get("scryfall_id") or card.get("id") or ""
         roles = list(cls.classify(card))
         return {
@@ -221,6 +222,7 @@ def _build_deck_data_json(deck: BuiltDeck, bracket: BracketReport) -> dict:
             "rank": card.get("edhrec_rank"),
             "role": role,
             "justification": justification,
+            "impact": impact,
             "roles": roles,
             "role_icons": [ROLE_ICONS.get(r, "") for r in roles if ROLE_ICONS.get(r)],
             "is_land": card.get("is_land", False),
@@ -229,11 +231,16 @@ def _build_deck_data_json(deck: BuiltDeck, bracket: BracketReport) -> dict:
         }
 
     categories = {}
-    cmd_record = card_record(deck.commander, "Commander", "El motor del mazo.")
+    cmd_record = card_record(deck.commander, "Commander",
+                             "El comandante: el motor central de todo el mazo.",
+                             "Todo el deck está construido alrededor de sus habilidades.")
     categories["Comandante"] = [cmd_record]
 
     for cat, cards in deck.categorized().items():
-        categories[cat] = [card_record(dc.card, dc.role, dc.justification) for dc in cards]
+        categories[cat] = [
+            card_record(dc.card, dc.role, dc.justification, getattr(dc, "impact", ""))
+            for dc in cards
+        ]
 
     archetype_key = deck.archetype.key
     return {
@@ -1327,7 +1334,7 @@ function renderCardItem(c, deckConflictsMap) {{
   // Buscar conflicto para esta carta
   const conflict = deckConflictsMap && deckConflictsMap[c.name];
 
-  const cardData = `data-name="${{esc(c.name)}}" data-type="${{esc(c.type)}}" data-oracle="${{esc(c.oracle)}}" data-role="${{esc(c.role)}}" data-just="${{esc(c.justification)}}"
+  const cardData = `data-name="${{esc(c.name)}}" data-type="${{esc(c.type)}}" data-oracle="${{esc(c.oracle)}}" data-role="${{esc(c.role)}}" data-just="${{esc(c.justification)}}" data-impact="${{esc(c.impact||'')}}"
     ${{conflict ? `data-conflict="1" data-confowner="${{esc(conflict.reserved_by)}}" data-confalt="${{esc(conflict.alternative||'')}}"` : ''}}`;
 
   const conflictBadge = conflict
@@ -1619,6 +1626,7 @@ function showTooltip(e, el) {{
   const oracle = el.dataset.oracle || '';
   const role  = el.dataset.role  || '';
   const just  = el.dataset.just  || '';
+  const cardImpact = el.dataset.impact || '';
   const conf  = el.dataset.conflict || '';
   const confAlt = el.dataset.confalt || '';
   const confOwner = el.dataset.confowner || '';
@@ -1626,7 +1634,8 @@ function showTooltip(e, el) {{
   document.getElementById('tt-name').textContent = name;
   document.getElementById('tt-type').textContent = type;
 
-  const impact = ROLE_IMPACT[role] || ROLE_IMPACT['Support'];
+  // Impacto específico del LLM si existe, si no genérico por rol
+  const impact = cardImpact || ROLE_IMPACT[role] || ROLE_IMPACT['Support'];
   const justClean = JUST_CLEAN[just] || just;
 
   let body = '';

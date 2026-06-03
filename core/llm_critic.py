@@ -77,7 +77,13 @@ class LLMCritic:
     # Claude API call
     # ------------------------------------------------------------------
 
-    def _call_claude(self, prompt: str, max_tokens: int = 2000) -> str | None:
+    # Modelos: Sonnet para razonamiento de construcción (calidad superior),
+    # Haiku para la guía de juego (texto, más barato).
+    MODEL_REVIEW = "claude-sonnet-4-5"
+    MODEL_GUIDE  = "claude-haiku-4-5"
+
+    def _call_claude(self, prompt: str, max_tokens: int = 2000,
+                     model: str | None = None) -> str | None:
         if not self.api_key:
             if self.verbose:
                 print("  [CRITIC] Sin ANTHROPIC_API_KEY — saltando revisión LLM.")
@@ -88,7 +94,7 @@ class LLMCritic:
             import urllib.request
 
             payload = {
-                "model": "claude-haiku-4-5",
+                "model": model or self.MODEL_GUIDE,
                 "max_tokens": max_tokens,
                 "messages": [{"role": "user", "content": prompt}],
             }
@@ -119,45 +125,40 @@ class LLMCritic:
         deck: "BuiltDeck",
         pool_not_included: list[dict],
         edhrec_recs: list[str],
+        reserved_cards: dict[str, str] | None = None,
     ) -> str:
         """
-        Nuevo approach: Claude devuelve la lista de cartas que QUIERE en el mazo.
-        No hace swaps posicionales — piensa holísticamente sobre el plan completo.
-        El builder valida disponibilidad y reasigna categorías con el classifier.
+        Claude devuelve la lista óptima de cartas CON razón e impacto por carta.
+        Piensa holísticamente sobre el plan completo y evita cartas reservadas
+        por otros mazos de la colección.
         """
-        commander_oracle = (deck.commander.get("oracle_text") or "")[:500].replace("\n", " ")
+        commander_oracle = (deck.commander.get("oracle_text") or "")[:600].replace("\n", " ")
 
-        # Todas las cartas disponibles: en el mazo + pool no incluido
-        # ordenadas por edhrec_score + rank
+        # Cartas actuales del draft (no tierras)
         current_deck_cards = []
         for cat, cards in deck.categorized().items():
             if cat == "Tierras No-Básicas":
                 continue
             for dc in cards:
-                oracle = (dc.card.get("oracle_text") or "")[:180].replace("\n", " ")
+                oracle = (dc.card.get("oracle_text") or "")[:160].replace("\n", " ")
                 synergy = " ★" if (dc.card.get("edhrec_score") or 0) > 0.4 else ""
                 current_deck_cards.append(
                     f"  {dc.card['name']}{synergy} "
-                    f"(CMC {dc.card.get('cmc','?')}, "
-                    f"rank {dc.card.get('edhrec_rank','?')}): {oracle}"
+                    f"(CMC {dc.card.get('cmc','?')}, rank {dc.card.get('edhrec_rank','?')}): {oracle}"
                 )
 
         pool_sorted = sorted(
             [c for c in pool_not_included if not c.get("is_land")],
-            key=lambda c: (
-                -(c.get("edhrec_score") or 0.3),
-                c.get("edhrec_rank") or 999999,
-            )
-        )[:80]
+            key=lambda c: (-(c.get("edhrec_score") or 0.3), c.get("edhrec_rank") or 999999)
+        )[:90]
 
         pool_lines = []
         for c in pool_sorted:
-            oracle = (c.get("oracle_text") or "")[:180].replace("\n", " ")
+            oracle = (c.get("oracle_text") or "")[:160].replace("\n", " ")
             synergy = " ★" if (c.get("edhrec_score") or 0) > 0.4 else ""
             pool_lines.append(
                 f"  {c['name']}{synergy} "
-                f"(CMC {c.get('cmc','?')}, "
-                f"rank {c.get('edhrec_rank','?')}): {oracle}"
+                f"(CMC {c.get('cmc','?')}, rank {c.get('edhrec_rank','?')}): {oracle}"
             )
 
         edhrec_block = (
@@ -165,49 +166,65 @@ class LLMCritic:
             if edhrec_recs else "  (no data)"
         )
 
-        return f"""You are the world's best Magic: The Gathering Commander deck builder. Build the OPTIMAL 99-card deck for this commander from the available card pool.
+        # Bloque de cartas reservadas por otros mazos de la colección
+        reserved = reserved_cards or {}
+        if reserved:
+            reserved_block = "\n".join(
+                f"  - {name} (en uso por: {owner})"
+                for name, owner in list(reserved.items())[:60]
+            )
+            reserved_section = f"""
+## CARDS ALREADY USED IN OTHER DECKS — DO NOT USE THESE (physical collection, singleton):
+{reserved_block}
+"""
+        else:
+            reserved_section = ""
+
+        return f"""You are a world-class Magic: The Gathering Commander deck builder with deep knowledge of synergies, the metagame, and optimal deck construction. Build the OPTIMAL 99-card deck for this commander from the available card pool.
 
 ## COMMANDER
 Name: {deck.commander['name']}
-Colors: {deck.colors}
-Ability: {commander_oracle}
+Color identity: {deck.colors}
+Full ability text: {commander_oracle}
 
 ## ARCHETYPE: {deck.archetype.name}
 Strategy: {deck.archetype.description}
 
-## CARDS CURRENTLY IN DRAFT (you may keep or replace any of these):
+## CARDS CURRENTLY IN DRAFT (heuristic build — improve on it):
 {"".join(current_deck_cards)}
 
-## ADDITIONAL CARDS AVAILABLE IN COLLECTION (not yet in draft):
+## ADDITIONAL CARDS AVAILABLE IN COLLECTION (★ = proven EDHREC synergy):
 {"".join(pool_lines)}
 
-## EDHREC HIGH-SYNERGY CARDS FOR THIS COMMANDER (★ = proven synergy):
+## EDHREC HIGH-SYNERGY CARDS FOR THIS COMMANDER:
 {edhrec_block}
+{reserved_section}
+## YOUR REASONING PROCESS
+Think step by step about this specific commander:
+1. EARLY GAME (turns 1-4): What ramp and setup does it need to deploy the commander on curve?
+2. ENGINE: Which cards turn the commander's ability into repeatable card/board advantage?
+3. WIN CONDITIONS: Identify 2-3 concrete ways this deck closes games with the available cards.
+4. SYNERGY PACKAGES: Find cards with 1:N synergies — one card that powers up many others.
+5. INTERACTION: Ensure enough removal/protection to survive to the win.
+6. CURVE: Avoid clogging the curve; respect the ideal ramp/draw/removal/threat ratio.
+7. CUTS: Identify slow, conditional, or off-theme cards in the draft and replace them.
 
-## YOUR MISSION
-Think about the commander's game plan holistically. Consider:
-1. What does this commander need on turns 1-4 to function?
-2. What are the 3-4 best win conditions given the available cards?
-3. Which cards have 1:N synergies — one card that enables multiple others?
-4. What is the ideal ratio of ramp/draw/removal/threats/synergy for this strategy?
-5. Which cards are simply too slow, too conditional, or off-theme?
+## STRICT RULES
+- Every card must exist in "CARDS CURRENTLY IN DRAFT" or "ADDITIONAL CARDS AVAILABLE"
+- Respect {deck.colors} color identity strictly — every card's color identity MUST be a subset of {deck.colors}. NO EXCEPTIONS.
+- NEVER include any card from "CARDS ALREADY USED IN OTHER DECKS"
+- No duplicate card names. No basic lands. Not the commander itself.
+- Select exactly 60 non-land cards (deck = these 60 + commander + ~12 utility lands + ~27 basics = 100).
 
-Select exactly 50 non-land cards (the deck needs these + commander + 12 utility lands + ~37 basic lands = 100).
+## OUTPUT — per-card reasoning
+For EACH card, give a SPECIFIC reason (why THIS card in THIS deck — reference the commander or a synergy, not generic) and its impact. Write reason/impact in SPANISH, concise (max ~15 words each).
 
-STRICT RULES:
-- Every card must exist in either "CARDS CURRENTLY IN DRAFT" or "ADDITIONAL CARDS AVAILABLE"
-- Respect {deck.colors} color identity strictly — no exceptions
-- No duplicate card names
-- Do not include basic lands or the commander itself
-- ★ cards are proven synergies — prioritize them when they fit the strategy
-
-Respond ONLY with valid JSON, no markdown, no other text:
+Respond ONLY with valid JSON, no markdown fences, no other text:
 {{
-  "analysis": "4-5 sentences: the commander's optimal game plan, key synergy packages you identified, and why you made major changes from the draft",
+  "analysis": "4-5 sentences in Spanish: the optimal game plan, the synergy packages you built around, and the main changes you made vs the draft.",
   "cards": [
-    "Card Name 1",
-    "Card Name 2",
-    ... exactly 50 card names
+    {{"name": "Card Name", "reason": "razón específica con esta comandante", "impact": "qué aporta al plan"}},
+    ... exactly 60 cards
   ]
 }}"""
 
@@ -298,12 +315,15 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
         deck: "BuiltDeck",
         full_pool: list[dict],
         edhrec_recs: list[str] | None = None,
+        reserved_cards: dict[str, str] | None = None,
     ) -> "BuiltDeck":
         """
-        Claude devuelve la lista óptima de 62 cartas.
+        Claude (Sonnet) devuelve la lista óptima de cartas con razón e impacto por carta.
         El builder reconstruye el mazo con esas cartas, reclasificadas por el classifier.
+        reserved_cards: {nombre_lower: mazo_dueño} — cartas a evitar (singleton de colección).
         """
         commander_name = deck.commander["name"]
+        reserved = reserved_cards or {}
 
         deck_names = {dc.card["name"] for dc in deck.cards} | {commander_name}
         pool_not_included = [
@@ -311,7 +331,10 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
             if c["name"] not in deck_names and not c.get("is_land")
         ]
 
-        cache_key = _cache_key(commander_name, [c["name"] for c in pool_not_included])
+        # Cache key incluye estado de reservas (distintas reservas → distinto mazo)
+        reserve_sig = ",".join(sorted(reserved.keys())[:30])
+        cache_key = _cache_key(commander_name,
+                               [c["name"] for c in pool_not_included] + [reserve_sig])
         cached = _load_cache(cache_key)
 
         if cached:
@@ -320,10 +343,12 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
             result = cached
         else:
             if self.verbose:
-                print(f"  [CRITIC] Reconstruyendo '{commander_name}' con Claude Haiku...")
+                print(f"  [CRITIC] Reconstruyendo '{commander_name}' con Claude Sonnet...")
 
-            prompt = self._build_critic_prompt(deck, pool_not_included, edhrec_recs or [])
-            response = self._call_claude(prompt, max_tokens=4000)
+            prompt = self._build_critic_prompt(deck, pool_not_included,
+                                               edhrec_recs or [], reserved)
+            response = self._call_claude(prompt, max_tokens=8000,
+                                         model=self.MODEL_REVIEW)
             if not response:
                 return deck
 
@@ -342,21 +367,26 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
                 try:
                     result = json.loads(clean.strip())
                 except json.JSONDecodeError:
-                    # Extract partial JSON — get cards array
+                    # Recuperación parcial: extraer objetos {name, reason, impact}
                     import re
                     analysis_match = re.search(r'"analysis"\s*:\s*"([^"]+)"', clean)
-                    # Extract card names from partial array
-                    card_matches = re.findall(r'"([^"]{3,60})"', clean)
-                    # Filter out JSON keys
-                    json_keys = {"analysis", "cards", "swaps", "remove", "add", "reason"}
-                    card_names = [c for c in card_matches
-                                  if c not in json_keys and len(c) > 3]
+                    # Buscar objetos de carta con name
+                    obj_matches = re.findall(
+                        r'\{\s*"name"\s*:\s*"([^"]+)"'
+                        r'(?:\s*,\s*"reason"\s*:\s*"([^"]*)")?'
+                        r'(?:\s*,\s*"impact"\s*:\s*"([^"]*)")?',
+                        clean,
+                    )
+                    cards_list = [
+                        {"name": m[0], "reason": m[1], "impact": m[2]}
+                        for m in obj_matches if m[0]
+                    ]
                     result = {
                         "analysis": analysis_match.group(1) if analysis_match else "",
-                        "cards": card_names,
+                        "cards": cards_list,
                     }
                     if self.verbose:
-                        print(f"  [CRITIC] JSON parcial — recuperadas {len(card_names)} cartas")
+                        print(f"  [CRITIC] JSON parcial — recuperadas {len(cards_list)} cartas")
 
                 _save_cache(cache_key, result)
 
@@ -375,6 +405,20 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
                 print("  [CRITIC] Sin lista de cartas — usando draft original.")
             return deck
 
+        # Normalizar: aceptar tanto strings (formato viejo) como objetos {name,reason,impact}
+        def _normalize(entry):
+            if isinstance(entry, str):
+                return {"name": entry, "reason": "", "impact": ""}
+            if isinstance(entry, dict):
+                return {
+                    "name": entry.get("name", ""),
+                    "reason": entry.get("reason", ""),
+                    "impact": entry.get("impact", ""),
+                }
+            return {"name": "", "reason": "", "impact": ""}
+
+        desired = [_normalize(e) for e in desired_cards]
+
         # Guardar tierras originales antes de reconstruir
         original_categories = deck.categorized()
 
@@ -388,16 +432,19 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
         # Identidad de color del comandante — filtro de seguridad
         commander_ci = set(deck.commander.get("color_identity") or [])
 
-        # Validar cada carta de la lista de Claude
+        # Validar cada carta de la lista de Claude — preservando razón/impacto
         validated: list[dict] = []
+        reasons: dict[str, str] = {}   # name_lower → reason
+        impacts: dict[str, str] = {}   # name_lower → impact
         seen_names: set[str] = set()
         skipped = 0
 
-        for card_name in desired_cards:
-            name_lower = card_name.lower().strip()
+        for entry in desired:
+            card_name = (entry.get("name") or "").strip()
+            if not card_name:
+                continue
+            name_lower = card_name.lower()
             if name_lower in seen_names:
-                if self.verbose:
-                    print(f"  [CRITIC] SKIP duplicado: '{card_name}'")
                 skipped += 1
                 continue
 
@@ -412,12 +459,20 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
             card_ci = set(card.get("color_identity") or [])
             if commander_ci and not card_ci.issubset(commander_ci):
                 if self.verbose:
-                    print(f"  [CRITIC] SKIP color ilegal: '{card_name}' "
-                          f"({card_ci} ⊄ {commander_ci})")
+                    print(f"  [CRITIC] SKIP color ilegal: '{card_name}'")
+                skipped += 1
+                continue
+
+            # ── VALIDACIÓN DE RESERVA (otro mazo de la colección) ──
+            if name_lower in reserved:
+                if self.verbose:
+                    print(f"  [CRITIC] SKIP reservada por '{reserved[name_lower]}': '{card_name}'")
                 skipped += 1
                 continue
 
             validated.append(card)
+            reasons[name_lower] = entry.get("reason", "")
+            impacts[name_lower] = entry.get("impact", "")
             seen_names.add(name_lower)
 
         if self.verbose:
@@ -459,11 +514,15 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
                 cat = "Soporte"
                 role = "Support"
 
+            nl = card["name"].lower()
+            reason = reasons.get(nl, "").strip()
+            impact = impacts.get(nl, "").strip()
             new_cards.append(DeckCard(
                 card=card,
                 category=cat,
                 role=role,
-                justification="[CRITIC] Seleccionada por análisis holístico.",
+                justification=reason or "Seleccionada por el análisis de Claude como óptima para este slot.",
+                impact=impact,
             ))
 
         deck.cards = new_cards
@@ -546,7 +605,7 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
             print(f"  [GUIDE] Generando guía para '{commander_name}'...")
 
         prompt = self._build_guide_prompt(deck)
-        response = self._call_claude(prompt, max_tokens=3000)
+        response = self._call_claude(prompt, max_tokens=3000, model=self.MODEL_GUIDE)
         if not response:
             return ""
 

@@ -61,6 +61,7 @@ class DeckCard:
     category: str
     role: str
     justification: str
+    impact: str = ""  # impacto esperado específico (generado por el LLM)
 
     @property
     def name(self) -> str:
@@ -288,21 +289,33 @@ def composite_score(
     else:
         cmc_factor = 0.20  # 7+ muy caro
 
-    # Score base: rank es el 70%, CMC el 30%
-    score = 0.70 * rank + 0.30 * cmc_factor
-
-    # Bonus si hay datos EDHREC específicos para este comandante
+    # Sinergia ESPECÍFICA con el comandante (EDHREC por comandante).
+    # Es la señal más fuerte: una carta que aparece mucho con ESTE comandante
+    # vale más que una carta genéricamente buena.
     edhrec_score = card.get("edhrec_score")
-    if edhrec_score is not None and edhrec_score > 0.3:
-        # Boost por sinergia específica con el comandante
-        score = score * (1.0 + 0.3 * (edhrec_score - 0.3))
+    synergy_commander = edhrec_score if edhrec_score is not None else 0.30
 
-    # Bonus mínimo por curva: premia rellenar huecos de CMC
+    # Sinergia con el ARQUETIPO (densidad de roles relevantes).
+    synergy_archetype = _synergy_score(card, card_roles, archetype)
+
+    # Nuevo peso: la sinergia domina, el rank general desempata, CMC ajusta curva.
+    #   40% sinergia con comandante
+    #   25% sinergia con arquetipo
+    #   25% rank general (calidad bruta)
+    #   10% curva (CMC)
+    score = (
+        0.40 * synergy_commander +
+        0.25 * synergy_archetype +
+        0.25 * rank +
+        0.10 * cmc_factor
+    )
+
+    # Ajuste de curva: premia rellenar huecos, penaliza saturar
     count_at_cmc = current_cmc_distribution.get(card_cmc, 0)
     if count_at_cmc == 0:
-        score *= 1.05  # +5% si este CMC no está representado
-    elif count_at_cmc >= 5:
-        score *= 0.95  # -5% si este CMC está saturado
+        score *= 1.06
+    elif count_at_cmc >= 6:
+        score *= 0.92
 
     return score
 
@@ -598,7 +611,8 @@ def build_deck(
                     pass
 
                 critic = LLMCritic(api_key=api_key, verbose=True)
-                deck = critic.review_and_improve(deck, in_identity, edhrec_recs)
+                deck = critic.review_and_improve(deck, in_identity, edhrec_recs,
+                                                 reserved_cards=reserved)
 
                 # Generar guía de juego
                 guide_html = critic.generate_gameplay_guide(deck)

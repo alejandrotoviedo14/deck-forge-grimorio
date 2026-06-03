@@ -566,17 +566,9 @@ async def build(
     except Exception as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-    # LLM Critic — mejora el mazo y genera guía de juego si hay API key
-    try:
-        from core.llm_critic import LLMCritic
-        critic = LLMCritic(verbose=False)
-        if critic.api_key:
-            deck = critic.review_and_improve(deck, pool)
-            deck.gameplay_guide = critic.generate_gameplay_guide(deck)
-        else:
-            deck.gameplay_guide = ""
-    except Exception:
-        deck.gameplay_guide = ""
+    # NOTA: El LLM Critic + guía de juego ya se ejecutan DENTRO de build_deck()
+    # con el contexto correcto (pool filtrado por color + EDHREC + reservas).
+    # No volver a llamarlo aquí (causaba doble coste y sobrescritura con peor contexto).
 
     full_list = deck.all_cards_with_basics(basics)
     bracket = estimate_bracket(full_list)
