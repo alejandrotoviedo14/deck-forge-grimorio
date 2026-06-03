@@ -501,6 +501,8 @@ Respond ONLY with the HTML content, no other text, no markdown fences."""
                 c for name, c in all_pool.items()
                 if name not in seen_names
                 and not c.get("is_land")
+                and (not commander_ci or
+                     set(c.get("color_identity") or []).issubset(commander_ci))
             ]
             # Ordenar por edhrec_rank (menor = más popular)
             remaining.sort(key=lambda c: (c.get("edhrec_rank") or 999999))

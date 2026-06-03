@@ -885,43 +885,89 @@ body {{
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 16px;
-  max-width: 300px;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.8);
+  padding: 0;
+  max-width: 320px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.9);
   pointer-events: none;
+  overflow: hidden;
 }}
 .card-tooltip.visible {{ display: block; }}
+.tt-header {{
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 100%);
+}}
 .tooltip-name {{
   font-family: 'Cinzel', serif;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--accent);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }}
 .tooltip-type {{
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text3);
-  margin-bottom: 8px;
+  letter-spacing: 0.05em;
 }}
-.tooltip-oracle {{
-  font-size: 12px;
+.tt-body {{ padding: 10px 14px 12px; }}
+.tt-section {{
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}}
+.tt-section:first-child {{ margin-top: 0; border-top: none; padding-top: 0; }}
+.tt-label {{
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent2);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}}
+.tt-text {{
+  font-size: 11.5px;
   color: var(--text2);
+  line-height: 1.55;
+}}
+.tt-impact {{
+  font-size: 11.5px;
+  color: var(--text);
+  line-height: 1.55;
+  font-weight: 500;
+}}
+.tt-oracle {{
+  font-size: 10.5px;
+  color: var(--text3);
   line-height: 1.5;
   font-style: italic;
-  border-top: 1px solid var(--border);
-  padding-top: 8px;
+}}
+.tt-conflict {{
+  background: rgba(201,168,76,0.08);
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 4px;
+  padding: 6px 8px;
   margin-top: 8px;
 }}
-.tooltip-role {{
-  font-size: 11px;
-  color: var(--accent2);
-  margin-top: 6px;
+.tt-conflict-title {{
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #e8a050;
+  margin-bottom: 3px;
 }}
-.tooltip-justification {{
+.tt-conflict-card {{
   font-size: 11px;
   color: var(--text3);
-  margin-top: 4px;
-  font-style: italic;
+  text-decoration: line-through;
+}}
+.tt-conflict-alt {{
+  font-size: 11px;
+  color: #8aca8a;
+  margin-top: 2px;
 }}
 
 /* UPGRADE SECTION */
@@ -1117,11 +1163,11 @@ body {{
 </main>
 
 <div class="card-tooltip" id="tooltip">
-  <div class="tooltip-name" id="tt-name"></div>
-  <div class="tooltip-type" id="tt-type"></div>
-  <div class="tooltip-oracle" id="tt-oracle"></div>
-  <div class="tooltip-role" id="tt-role"></div>
-  <div class="tooltip-justification" id="tt-just"></div>
+  <div class="tt-header">
+    <div class="tooltip-name" id="tt-name"></div>
+    <div class="tooltip-type" id="tt-type"></div>
+  </div>
+  <div class="tt-body" id="tt-body"></div>
 </div>
 
 <div class="card-modal" id="card-modal">
@@ -1274,21 +1320,32 @@ function setSort(sel) {{ currentSort = sel.value; applyAndRender(); }}
 function setGroup(sel) {{ currentGroup = sel.value; applyAndRender(); }}
 function setColorFilter(sel) {{ currentColorFilter = sel.value; applyAndRender(); }}
 
-function renderCardItem(c) {{
+function renderCardItem(c, deckConflictsMap) {{
   const icons = (c.role_icons || []).slice(0,3).join('');
-  const esc = s => (s||'').replace(/"/g,'&quot;');
-  const cardData = `data-name="${{esc(c.name)}}" data-type="${{esc(c.type)}}" data-oracle="${{esc(c.oracle)}}" data-role="${{esc(c.role)}}" data-just="${{esc(c.justification)}}"`;
+  const esc = s => (s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+  // Buscar conflicto para esta carta
+  const conflict = deckConflictsMap && deckConflictsMap[c.name];
+
+  const cardData = `data-name="${{esc(c.name)}}" data-type="${{esc(c.type)}}" data-oracle="${{esc(c.oracle)}}" data-role="${{esc(c.role)}}" data-just="${{esc(c.justification)}}"
+    ${{conflict ? `data-conflict="1" data-confowner="${{esc(conflict.reserved_by)}}" data-confalt="${{esc(conflict.alternative||'')}}"` : ''}}`;
+
+  const conflictBadge = conflict
+    ? `<div style="position:absolute;top:4px;left:4px;background:rgba(200,120,40,0.9);color:#fff;font-family:'Cinzel',serif;font-size:8px;padding:2px 5px;border-radius:3px;letter-spacing:0.05em;z-index:3">⚠ CONFLICTO</div>`
+    : '';
+
   const img = c.img
     ? `<img src="${{c.img}}" alt="${{esc(c.name)}}" loading="lazy" style="cursor:zoom-in"
          onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()"
          onclick="openCardModal(this);return false;"
          ontouchend="event.preventDefault();openCardModal(this);"
          ${{cardData}}>`
-    : `<div style="height:196px;background:#1a1a24;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#5a5468;border:1px solid #2a2a3a;padding:8px;text-align:center">${{c.name}}</div>`;
-  return `<div class="card-item">
-    ${{img}}
+    : `<div style="height:196px;background:#1a1a24;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#5a5468;border:1px solid #2a2a3a;padding:8px;text-align:center"
+         onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()" ${{cardData}}>${{c.name}}</div>`;
+  return `<div class="card-item" style="${{conflict?'outline:2px solid rgba(200,120,40,0.5);border-radius:10px;':''}}">
+    ${{conflictBadge}}${{img}}
     ${{icons?`<div class="card-roles">${{icons.split('').map(i=>`<span class="role-icon">${{i}}</span>`).join('')}}</div>`:''}}
-    <div class="card-name">${{c.name}}</div>
+    <div class="card-name">${{c.name}}${{conflict?` <span style="color:#e8a050;font-size:9px">→ ${{conflict.alternative||'?'}}</span>`:''}}</div>
   </div>`;
 }}
 
@@ -1309,11 +1366,11 @@ function renderCardRow(c) {{
   </div>`;
 }}
 
-function renderCardGroup(groupName, cards) {{
+function renderCardGroup(groupName, cards, conflictsMap) {{
   if (!cards || !cards.length) return '';
   const sorted   = sortCards(filterByColor(cards, currentColorFilter), currentSort);
   if (!sorted.length) return '';
-  const gridHtml = sorted.map(renderCardItem).join('');
+  const gridHtml = sorted.map(c => renderCardItem(c, conflictsMap)).join('');
   const listHtml = sorted.map(renderCardRow).join('');
   return `<div class="category-section ${{currentView==='list'?'list-mode':''}}">
     <div class="category-title">${{groupName}}<span class="category-count">${{sorted.length}}</span></div>
@@ -1325,21 +1382,26 @@ function renderCardGroup(groupName, cards) {{
 function renderDeckPanel(key, deck) {{
   const gaps = renderGaps(deck);
 
+  // Mapa de conflictos: card_name → {reserved_by, alternative}
+  const conflictsMap = {{}};
+  (deck.conflicts || []).forEach(c => {{
+    conflictsMap[c.card] = {{ reserved_by: c.reserved_by, alternative: c.alternative }};
+  }});
+
   // Build grouped display
   let categoriesHtml = '';
   if (currentGroup === 'flat') {{
     const all = getAllCards(deck);
-    categoriesHtml = renderCardGroup('Todas las cartas', all);
+    categoriesHtml = renderCardGroup('Todas las cartas', all, conflictsMap);
   }} else {{
     const all    = getAllCards(deck);
     const groups = groupCards(all, currentGroup === 'category' ? 'category' : currentGroup);
-    // Sort groups: Comandante first, Tierras last
     const groupOrder = Object.keys(groups).sort((a,b) => {{
       if (a === 'Comandante') return -1; if (b === 'Comandante') return 1;
       if (a === 'Tierras' || a === 'Tierra') return 1; if (b === 'Tierras' || b === 'Tierra') return -1;
       return a.localeCompare(b);
     }});
-    categoriesHtml = groupOrder.map(g => renderCardGroup(g, groups[g])).join('');
+    categoriesHtml = groupOrder.map(g => renderCardGroup(g, groups[g], conflictsMap)).join('');
   }}
 
   const wincons = (deck.wincons || []).map(w =>
@@ -1447,6 +1509,29 @@ function renderDeckPanel(key, deck) {{
         </div>
       </div>
 
+      ${{(deck.conflicts && deck.conflicts.length) ? `
+      <div class="section">
+        <div class="section-title">⚠ Conflictos de colección detectados</div>
+        <div style="background:var(--bg2);border:1px solid rgba(200,120,40,0.4);border-radius:8px;overflow:hidden">
+          <div style="padding:10px 16px;background:rgba(200,120,40,0.08);font-size:12px;color:#c8a060;font-style:italic">
+            Estas cartas también aparecen en otros mazos de tu colección. Se ha elegido la mejor alternativa disponible.
+          </div>
+          ${{deck.conflicts.map(c => `
+            <div style="display:grid;grid-template-columns:1fr 24px 1fr;align-items:center;gap:8px;padding:8px 16px;border-top:1px solid var(--border);font-size:12px">
+              <div>
+                <div style="color:#ca8a8a;text-decoration:line-through">${{c.card}}</div>
+                <div style="font-size:10px;color:var(--text3);margin-top:2px">En mazo de <b>${{c.reserved_by}}</b> · slot: ${{c.slot}}</div>
+              </div>
+              <div style="text-align:center;color:var(--accent2)">→</div>
+              <div>
+                ${{c.alternative
+                  ? `<div style="color:#8aca8a;font-weight:600">${{c.alternative}}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Mejor alternativa disponible</div>`
+                  : `<div style="color:var(--text3);font-style:italic">Sin alternativa — básica añadida</div>`}}
+              </div>
+            </div>`).join('')}}
+        </div>
+      </div>` : ''}}
+
       <div class="section">
         <div class="section-title">Cartas del mazo</div>
         <div class="view-controls">
@@ -1503,13 +1588,81 @@ function showDeck(key) {{
   if (nav)   nav.classList.add('active');
 }}
 
+// Mapas de rol → descripción de impacto en el mazo
+const ROLE_IMPACT = {{
+  'Ramp':        '⚡ Acelera tu plan — te permite jugar el comandante y amenazas antes que los rivales.',
+  'Draw':        '📚 Mantiene tu mano llena — la ventaja de cartas es el recurso más valioso en Commander.',
+  'Removal':     '🗡 Responde a amenazas clave — elimina permanentes que bloquean tu estrategia.',
+  'Interaction': '🗡 Interacción flexible — responde en el momento justo para mantener el control.',
+  'Wincon':      '🏆 Condición de victoria — puede cerrar partidas por sí sola si se le da tiempo.',
+  'Threat':      '⚔ Amenaza primaria — presiona a todos los rivales y fuerza respuestas.',
+  'Payoff':      '💎 Recompensa tu plan — multiplica el valor de tus otras cartas.',
+  'Synergy':     '🔗 Sinergia clave — potencia el plan del comandante de forma directa.',
+  'Land':        '🌿 Fuente de maná — garantiza que puedas jugar tus cartas cada turno.',
+  'Equipment':   '⚔ Equipo — arma o protege a tu comandante para atacar más eficazmente.',
+  'Support':     '🛡 Soporte — mejora la consistencia general y rellena huecos del mazo.',
+  'Staple':      '⭐ Pieza core — carta esencial que aparece en casi todos los mazos de este arquetipo.',
+  'Commander':   '👑 El motor del mazo — todo el deck está construido alrededor de sus habilidades.',
+}};
+
+const JUST_CLEAN = {{
+  '[CRITIC] Seleccionada por análisis holístico.': 'Elegida por el análisis inteligente como la mejor opción disponible para este slot.',
+  '[CRITIC FILL] Mejor carta disponible para completar el mazo.': 'Seleccionada para completar el cupo del mazo con el mejor score disponible.',
+  'Tierra de utilidad / dual.': 'Fuente de maná que produce dos o más colores, esencial para la consistencia.',
+  'Importada desde ManaBox.': 'Parte de tu mazo real importado desde ManaBox.',
+}};
+
 function showTooltip(e, el) {{
   const tt = document.getElementById('tooltip');
-  document.getElementById('tt-name').textContent  = el.dataset.name  || '';
-  document.getElementById('tt-type').textContent  = el.dataset.type  || '';
-  document.getElementById('tt-oracle').textContent= el.dataset.oracle|| '';
-  document.getElementById('tt-role').textContent  = el.dataset.role  ? '⚙ ' + el.dataset.role : '';
-  document.getElementById('tt-just').textContent  = el.dataset.just  || '';
+  const name  = el.dataset.name  || '';
+  const type  = el.dataset.type  || '';
+  const oracle = el.dataset.oracle || '';
+  const role  = el.dataset.role  || '';
+  const just  = el.dataset.just  || '';
+  const conf  = el.dataset.conflict || '';
+  const confAlt = el.dataset.confalt || '';
+  const confOwner = el.dataset.confowner || '';
+
+  document.getElementById('tt-name').textContent = name;
+  document.getElementById('tt-type').textContent = type;
+
+  const impact = ROLE_IMPACT[role] || ROLE_IMPACT['Support'];
+  const justClean = JUST_CLEAN[just] || just;
+
+  let body = '';
+
+  // Por qué está en el mazo
+  if (justClean) {{
+    body += `<div class="tt-section">
+      <div class="tt-label">⚙ Por qué está en el mazo</div>
+      <div class="tt-text">${{justClean}}</div>
+    </div>`;
+  }}
+
+  // Impacto esperado
+  body += `<div class="tt-section">
+    <div class="tt-label">🎯 Impacto esperado</div>
+    <div class="tt-impact">${{impact}}</div>
+  </div>`;
+
+  // Texto de la carta
+  if (oracle) {{
+    body += `<div class="tt-section">
+      <div class="tt-label">📜 Habilidad</div>
+      <div class="tt-oracle">${{oracle}}</div>
+    </div>`;
+  }}
+
+  // Conflicto con otro mazo
+  if (conf) {{
+    body += `<div class="tt-conflict">
+      <div class="tt-conflict-title">⚠ Conflicto de colección</div>
+      <div class="tt-conflict-card">Esta carta está reservada por el mazo de <b>${{confOwner}}</b></div>
+      ${{confAlt ? `<div class="tt-conflict-alt">→ Alternativa elegida: <b>${{confAlt}}</b></div>` : '<div style="font-size:11px;color:#ca8a8a;margin-top:2px">Sin alternativa disponible</div>'}}
+    </div>`;
+  }}
+
+  document.getElementById('tt-body').innerHTML = body;
   tt.classList.add('visible');
   positionTooltip(e);
 }}

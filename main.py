@@ -581,7 +581,15 @@ async def build(
     full_list = deck.all_cards_with_basics(basics)
     bracket = estimate_bracket(full_list)
 
-    safe = _safe_filename(deck.commander["name"])
+    # Generar key versionado — nunca sobrescribir un mazo existente del mismo comandante
+    base_key = _safe_filename(deck.commander["name"])
+    existing_index = load_index(_DECKS_DIR)
+    existing_decks = existing_index.get("decks", {})
+    safe = base_key
+    version = 1
+    while safe in existing_decks:
+        version += 1
+        safe = f"{base_key}_v{version}"
 
     # Guardar en directorio temporal del servidor
     deck_dir = _DECKS_DIR
@@ -597,6 +605,16 @@ async def build(
     csv_path.write_text(to_manabox_csv(deck, str(tmp_real), basics), encoding="utf-8")
 
     html_data = _build_deck_data_json(deck, bracket)
+    # Añadir conflictos al html_data para mostrarlos en el grimorio
+    html_data["conflicts"] = [
+        {
+            "card": c.card_name,
+            "reserved_by": c.reserved_by,
+            "alternative": c.alternative,
+            "slot": c.slot,
+        }
+        for c in deck.conflicts
+    ]
     register_deck(
         output_dir=deck_dir,
         deck_key=safe,
