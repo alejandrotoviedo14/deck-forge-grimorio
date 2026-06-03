@@ -302,6 +302,11 @@
     <span style="color:#f8f6e3">☀</span><span style="color:#4a90d9">💧</span>
     <span style="color:#c0a0c8">💀</span><span style="color:#e05030">🔥</span><span style="color:#40a840">🌿</span>
   </div>
+  <div id="active-pin-badge" style="display:none;margin-top:0.8rem;font-family:'Cinzel',serif;font-size:0.7rem;color:var(--gold);letter-spacing:0.1em">
+    🔑 PIN activo: <b id="active-pin-value"></b>
+    <button onclick="copyPin(_activePIN)" style="background:none;border:1px solid var(--border-gold);color:var(--gold);border-radius:3px;font-size:0.62rem;padding:1px 6px;margin-left:6px;cursor:pointer">copiar</button>
+    <button onclick="forgetPin()" style="background:none;border:1px solid var(--border);color:var(--text-muted);border-radius:3px;font-size:0.62rem;padding:1px 6px;margin-left:4px;cursor:pointer">salir</button>
+  </div>
 </header>
 
 <main>
@@ -565,10 +570,16 @@
     <div class="card">
       <div class="card-title">El Grimorio</div>
       <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6">
-        Todos los mazos forjados en esta sesión.
+        Todos los mazos forjados e importados en esta sesión.
       </p>
       <button class="primary" style="margin-top:1.2rem" onclick="loadGrimorio()">✦ Abrir el Grimorio ✦</button>
     </div>
+
+    <div class="card">
+      <div class="card-title">Gestionar Mazos</div>
+      <div id="deck-manage-list"><div class="col-empty">No hay mazos todavía.</div></div>
+    </div>
+
     <div class="grimorio-wrap">
       <iframe id="grimorio-frame" src="about:blank"></iframe>
     </div>
@@ -595,6 +606,7 @@ function showTab(name, btn) {
   btn.classList.add('active');
   if (name === 'analyze' || name === 'build') refreshCollectionSelects();
   if (name === 'sim') refreshSimDeckSelect();
+  if (name === 'grimorio') renderDeckManageList();
   if (name === 'import' && _activePIN) {
     // Mostrar hint del PIN activo
     const r = document.getElementById('import-result');
@@ -736,7 +748,7 @@ async function doIngest() {
     const pin = saveData.pin;
     _collections[colId] = { name: colName, real_count: data.real_count, collection: data.collection };
     _activeColId = colId;
-    _activePIN = pin;
+    setActivePin(pin);
 
     document.getElementById('step1').classList.add('step-done');
     renderSavedCollections();
@@ -789,7 +801,7 @@ async function doRestorePin() {
 
     _collections[data.id] = { name: data.name, real_count: data.real_count, collection: data.collection };
     _activeColId = data.id;
-    _activePIN = data.pin;
+    setActivePin(data.pin);
     renderSavedCollections();
     refreshCollectionSelects();
 
@@ -903,25 +915,18 @@ async function doBuild() {
   const collData = await getCollectionData(colId);
   if (!collData) { alert('No se pudo cargar la colección.'); return; }
 
-  // Necesitamos el CSV real — lo reconstruimos del collection o pedimos re-upload
-  // Usamos el archivo en memoria si está disponible, sino pedimos
-  const realFileInput = document.getElementById('real-csv');
-
   const btn = event.target;
   const result = document.getElementById('build-result');
   setLoading(btn, true, 'Forjando el Mazo...');
-  msg(result, 'info', '<span class="spinner"></span> El maestro artesano ensambla las cartas...');
+  startBuildProgress(result);
 
   const fd = new FormData();
   fd.append('collection', JSON.stringify(collData));
-
-  // CSV real: usar el último archivo subido si coincide la colección
-  if (realFileInput.files[0]) {
+  // El CSV ya no es necesario: el servidor lo sintetiza desde la colección.
+  // Si hay un archivo en memoria, lo enviamos (más fiel para la exportación).
+  const realFileInput = document.getElementById('real-csv');
+  if (realFileInput && realFileInput.files[0]) {
     fd.append('real_csv', realFileInput.files[0]);
-  } else {
-    // Crear un CSV mínimo a partir de la colección (solo para las básicas)
-    const minCsv = _buildMinimalCsv(collData);
-    fd.append('real_csv', new Blob([minCsv], {type:'text/csv'}), 'collection.csv');
   }
 
   const cmd = document.getElementById('commander').value.trim();
@@ -987,21 +992,46 @@ async function doBuild() {
         <button class="dl-btn" onclick="download('grimorio.html', _lastBuild.grimorio_html)">⬇ Grimorio HTML</button>
       </div>`;
 
+    stopBuildProgress();
     document.getElementById('grimorio-frame').srcdoc = data.grimorio_html;
   } catch(e) {
+    stopBuildProgress();
     msg(result, 'err', '✗ La forja ha fallado: ' + e.message);
   } finally {
     btn.disabled = false; btn.innerHTML = btn.dataset.orig;
   }
 }
 
-function _buildMinimalCsv(collData) {
-  // CSV mínimo con las cartas reales para extraer las básicas
-  const rows = ['Name,Quantity,Scryfall ID,Set code,Set name,Collector number,Foil,Rarity,ManaBox ID,Language,Condition'];
-  for (const card of (collData.real || [])) {
-    rows.push(`"${card.name}",${card.quantity || 1},"${card.scryfall_id || ''}","${card.set || ''}","${card.set_name || ''}","${card.collector_number || ''}","${card.foil || 'normal'}","${card.rarity || ''}","","${card.language || 'en'}","${card.condition || 'near_mint'}"`);
-  }
-  return rows.join('\n');
+// ── Indicador de progreso por etapas (el build tarda con EDHREC + Claude) ──
+let _buildProgressTimer = null;
+function startBuildProgress(resultEl) {
+  const stages = [
+    '🔍 Analizando tu colección...',
+    '📊 Consultando EDHREC para el comandante...',
+    '🃏 Seleccionando las mejores cartas por sinergia...',
+    '🧠 Claude (Sonnet) revisando y optimizando el mazo...',
+    '✍️ Generando la guía de juego...',
+    '📜 Ensamblando el grimorio...',
+  ];
+  let i = 0;
+  const render = () => {
+    resultEl.innerHTML = `<div class="msg info">
+      <span class="spinner"></span> ${stages[i]}
+      <div style="margin-top:0.5rem;height:4px;background:var(--bg2);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${Math.round((i+1)/stages.length*100)}%;background:linear-gradient(90deg,var(--gold-dark),var(--gold));transition:width 0.6s"></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.4rem;font-style:italic">
+        Esto puede tardar 20-40 segundos — Claude está construyendo un mazo de verdad.
+      </div>
+    </div>`;
+  };
+  render();
+  _buildProgressTimer = setInterval(() => {
+    if (i < stages.length - 1) { i++; render(); }
+  }, 5000);
+}
+function stopBuildProgress() {
+  if (_buildProgressTimer) { clearInterval(_buildProgressTimer); _buildProgressTimer = null; }
 }
 
 // ── GRIMORIO ──
@@ -1009,6 +1039,40 @@ async function loadGrimorio() {
   const frame = document.getElementById('grimorio-frame');
   const res = await fetch('/api/grimorio');
   frame.srcdoc = await res.text();
+  renderDeckManageList();
+}
+
+async function renderDeckManageList() {
+  const cont = document.getElementById('deck-manage-list');
+  if (!cont) return;
+  let decks = [];
+  try {
+    const res = await fetch('/api/decks');
+    const data = await res.json();
+    decks = data.decks || [];
+  } catch(e) {}
+  if (!decks.length) {
+    cont.innerHTML = '<div class="col-empty">No hay mazos todavía.</div>';
+    return;
+  }
+  cont.innerHTML = decks.map(d => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+      <span>
+        <b style="font-family:'Cinzel',serif;font-size:0.9rem">${d.commander}</b>
+        <span style="color:var(--text-muted);font-size:0.82rem;margin-left:0.5rem">${d.archetype||''} · B${d.bracket||'?'}</span>
+      </span>
+      <button class="dl-btn" style="border-color:#8a2a2a;color:#ca8a8a" onclick="deleteDeck('${d.key}','${(d.commander||'').replace(/'/g,'')}')">🗑 Borrar</button>
+    </div>`).join('');
+}
+
+async function deleteDeck(key, name) {
+  if (!confirm(`¿Borrar el mazo "${name}"? Esta acción no se puede deshacer.`)) return;
+  const url = '/api/decks/' + encodeURIComponent(key) + (_activePIN ? `?pin=${_activePIN}` : '');
+  try {
+    await fetch(url, { method: 'DELETE' });
+    await renderDeckManageList();
+    await loadGrimorio();
+  } catch(e) { alert('Error al borrar: ' + e.message); }
 }
 
 // ── SIMULADOR ──
@@ -1314,8 +1378,49 @@ function openSimulator() {
   window.open('/simulator', '_blank');
 }
 
+// ── PIN: persistencia en localStorage + auto-restauración ──
+function setActivePin(pin) {
+  _activePIN = pin;
+  try { localStorage.setItem('deckforge_pin', pin); } catch(e) {}
+  const badge = document.getElementById('active-pin-badge');
+  const val = document.getElementById('active-pin-value');
+  if (pin) { val.textContent = pin; badge.style.display = 'block'; }
+  else { badge.style.display = 'none'; }
+}
+
+function forgetPin() {
+  _activePIN = null;
+  try { localStorage.removeItem('deckforge_pin'); } catch(e) {}
+  document.getElementById('active-pin-badge').style.display = 'none';
+}
+
+async function autoRestorePin() {
+  let saved = null;
+  try { saved = localStorage.getItem('deckforge_pin'); } catch(e) {}
+  if (!saved) return;
+  // Restaurar silenciosamente la colección + mazos del PIN guardado
+  const fd = new FormData();
+  fd.append('pin', saved);
+  try {
+    const res = await fetch('/api/sessions/restore', { method: 'POST', body: fd });
+    if (!res.ok) { forgetPin(); return; }
+    const data = await res.json();
+    _collections[data.id] = { name: data.name, real_count: data.real_count, collection: data.collection };
+    _activeColId = data.id;
+    setActivePin(data.pin);
+    renderSavedCollections();
+    refreshCollectionSelects();
+    const r = document.getElementById('restore-result');
+    if (r) {
+      const nDecks = data.decks_restored?.length || 0;
+      msg(r, 'ok', `✦ Sesión restaurada automáticamente: <b>${data.name}</b>${nDecks?` y ${nDecks} mazo${nDecks>1?'s':''}`:''}.`);
+    }
+  } catch(e) { /* silencioso */ }
+}
+
 // ── Init ──
 loadCollections();
+autoRestorePin();
 </script>
 </body>
 </html>

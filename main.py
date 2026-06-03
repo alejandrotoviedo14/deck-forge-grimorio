@@ -35,7 +35,7 @@ from core.exporters import (
     _build_deck_data_json,
 )
 from core.archetypes import ARCHETYPES
-from core.deck_index import register_deck, load_index
+from core.deck_index import register_deck, load_index, save_index
 
 app = FastAPI(title="Deck Forge API", version="1.0")
 
@@ -132,6 +132,39 @@ def _build_sim_cards(deck) -> list[dict]:
             })
 
     return cards
+
+
+def _csv_from_collection(coll: dict) -> str:
+    """
+    Sintetiza un CSV en formato ManaBox a partir de la colección enriquecida.
+    Permite forjar/exportar sin necesidad de re-subir el CSV original
+    (la colección ya tiene scryfall_id, set, collector_number, etc.).
+    """
+    import csv as csv_mod
+    out = io.StringIO()
+    w = csv_mod.writer(out)
+    w.writerow([
+        "Name", "Set code", "Set name", "Collector number", "Foil", "Rarity",
+        "Quantity", "ManaBox ID", "Scryfall ID", "Purchase price",
+        "Misprint", "Altered", "Condition", "Language", "Purchase price currency",
+    ])
+    for card in coll.get("real", []):
+        w.writerow([
+            card.get("name", ""),
+            card.get("set", ""),
+            card.get("set_name", ""),
+            card.get("collector_number", ""),
+            card.get("foil", "normal"),
+            card.get("rarity", ""),
+            card.get("quantity", 1),
+            card.get("manabox_id", ""),
+            card.get("scryfall_id", ""),
+            "", "false", "false",
+            card.get("condition", "near_mint"),
+            card.get("language", "en"),
+            "EUR",
+        ])
+    return out.getvalue()
 
 
 def _load_basics_from_bytes(content: bytes) -> dict:
@@ -268,6 +301,21 @@ def _supa_load_decks(pin: str) -> list[dict]:
     if r.status_code == 200:
         return r.json()
     return []
+
+
+def _supa_delete_deck(pin: str, deck_key: str) -> bool:
+    """Borra un mazo concreto de un PIN en Supabase."""
+    if not _supa_available():
+        return False
+    try:
+        import requests as req
+        r = req.delete(
+            f"{_SUPABASE_URL}/rest/v1/decks?pin=eq.{pin}&deck_key=eq.{deck_key}",
+            headers=_supa_headers(), timeout=15,
+        )
+        return r.status_code in (200, 204)
+    except Exception:
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -517,7 +565,7 @@ async def analyze(
 @app.post("/api/build")
 async def build(
     collection: str = Form(..., description="JSON string de collection_enriched"),
-    real_csv: UploadFile = File(..., description="CSV original de ManaBox"),
+    real_csv: UploadFile = File(None, description="CSV original de ManaBox (opcional)"),
     commander: str | None = Form(None),
     colors: str | None = Form(None),
     archetype: str | None = Form(None),
@@ -531,10 +579,16 @@ async def build(
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=400, detail=f"collection JSON inválido: {e}")
 
-    try:
-        real_bytes = await real_csv.read()
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error leyendo CSV: {e}")
+    # CSV opcional: si no se sube, se sintetiza desde la colección enriquecida.
+    # Esto permite forjar desde una colección guardada/restaurada por PIN sin re-subir.
+    real_bytes = b""
+    if real_csv is not None:
+        try:
+            real_bytes = await real_csv.read()
+        except Exception:
+            real_bytes = b""
+    if not real_bytes:
+        real_bytes = _csv_from_collection(coll).encode("utf-8")
 
     basics = _load_basics_from_bytes(real_bytes)
     pool = build_real_pool(coll)
@@ -896,6 +950,26 @@ async def list_decks():
             for k, v in decks.items()
         ],
     }
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/decks/{deck_key} — borra un mazo (sesión + Supabase)
+# ---------------------------------------------------------------------------
+
+@app.delete("/api/decks/{deck_key}")
+async def delete_deck(deck_key: str, pin: str | None = None):
+    index = load_index(_DECKS_DIR)
+    decks = index.get("decks", {})
+    removed = False
+    if deck_key in decks:
+        del decks[deck_key]
+        index["decks"] = decks
+        save_index(index, _DECKS_DIR)
+        removed = True
+    supa_removed = False
+    if pin and pin.strip():
+        supa_removed = _supa_delete_deck(pin.strip(), deck_key)
+    return {"ok": True, "removed": removed, "supa_removed": supa_removed}
 
 
 # ---------------------------------------------------------------------------
