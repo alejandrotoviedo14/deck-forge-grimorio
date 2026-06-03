@@ -886,3 +886,285 @@ async def list_decks():
             for k, v in decks.items()
         ],
     }
+
+
+# ---------------------------------------------------------------------------
+# POST /api/import-deck — importa un mazo exportado de ManaBox
+# ---------------------------------------------------------------------------
+
+@app.post("/api/import-deck")
+async def import_deck(
+    deck_csv: UploadFile = File(..., description="CSV de mazo exportado de ManaBox"),
+    commander: str | None = Form(None, description="Nombre del comandante (si no se detecta)"),
+    deck_name: str | None = Form(None, description="Nombre para el mazo"),
+    pin: str | None = Form(None, description="PIN de sesión para guardar y detectar conflictos"),
+):
+    """
+    Importa un mazo exportado desde ManaBox.
+    Enriquece las cartas con Scryfall, detecta el comandante,
+    detecta conflictos con otros mazos del mismo PIN y registra
+    el mazo en el grimorio.
+    """
+    import csv as csv_mod
+    import traceback
+
+    raw_bytes = await deck_csv.read()
+    try:
+        content = raw_bytes.decode("utf-8")
+    except UnicodeDecodeError:
+        content = raw_bytes.decode("latin-1")
+
+    # 1. Parsear el CSV
+    reader = csv_mod.DictReader(io.StringIO(content))
+    rows = [r for r in reader]
+    if not rows:
+        raise HTTPException(status_code=400, detail="El CSV está vacío o tiene formato incorrecto.")
+
+    # 2. Cargar bulk de Scryfall para enriquecer (reutiliza el caché de ingest)
+    from ingest import _download_bulk, _load_bulk_index, _extract, BULK_FILE
+    try:
+        _download_bulk(force=False)
+        bulk_index = _load_bulk_index()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error cargando datos de Scryfall: {e}")
+
+    # 3. Enriquecer cartas del CSV
+    enriched_cards: list[dict] = []
+    not_found: list[str] = []
+    for row in rows:
+        sid = (row.get("Scryfall ID") or row.get("scryfall_id") or "").strip()
+        name = (row.get("Name") or row.get("name") or "").strip()
+        if not name:
+            continue
+
+        card_data = bulk_index.get(sid)
+        if not card_data:
+            card_data = next((c for c in bulk_index.values() if c.get("name") == name), None)
+        if not card_data:
+            not_found.append(name)
+            continue
+
+        fields = _extract(card_data)
+        fields["quantity"] = int(row.get("Quantity") or row.get("quantity") or 1)
+        enriched_cards.append(fields)
+
+    if not enriched_cards:
+        raise HTTPException(status_code=400, detail=f"No se encontraron cartas válidas. Cartas no reconocidas: {not_found[:5]}")
+
+    # 4. Detectar comandante
+    def _scryfall_img_local(sid: str) -> str:
+        if not sid or len(sid) < 2: return ""
+        return f"https://cards.scryfall.io/normal/front/{sid[0]}/{sid[1]}/{sid}.jpg"
+
+    commander_card = None
+    if commander:
+        commander_card = next((c for c in enriched_cards if c["name"].lower() == commander.lower()), None)
+        if not commander_card:
+            raise HTTPException(status_code=404, detail=f"Comandante '{commander}' no encontrado en el CSV.")
+    else:
+        # Auto-detectar: primera carta legendary creature
+        candidates = [c for c in enriched_cards if c.get("can_be_commander")]
+        if candidates:
+            # Elegir la más popular por edhrec_rank
+            commander_card = min(candidates, key=lambda c: c.get("edhrec_rank") or 999999)
+        else:
+            # Fallback: legendary creature
+            for c in enriched_cards:
+                tl = c.get("type_line", "")
+                if "Legendary" in tl and "Creature" in tl:
+                    commander_card = c
+                    break
+        if not commander_card:
+            raise HTTPException(status_code=400, detail="No se detectó un comandante. Especifícalo manualmente.")
+
+    # 5. Cartas del mazo (sin el comandante)
+    deck_cards = [c for c in enriched_cards if c["name"] != commander_card["name"]]
+    deck_ci = set(commander_card.get("color_identity") or [])
+
+    # 6. Detectar arquetipo
+    from core.archetypes import detect_archetype, ARCHETYPES
+    archetype_key = detect_archetype(commander_card) or "counters"
+    archetype = ARCHETYPES[archetype_key]
+
+    # 7. Clasificar cartas y construir categorías
+    from core import classifier as cls
+    from core.pool import is_basic_land
+    categories: dict[str, list[dict]] = {}
+    from core.exporters import _build_deck_data_json, ROLE_ICONS
+
+    def card_record_from_enriched(card: dict) -> dict:
+        sid = card.get("scryfall_id") or ""
+        roles = list(cls.classify(card))
+        # Determinar categoría
+        if card.get("is_land") and not is_basic_land(card):
+            cat = "Tierras No-Básicas"
+        elif "ramp" in roles and not card.get("is_land"):
+            cat = "Ramp"
+        elif "draw" in roles:
+            cat = "Card Draw"
+        elif "removal" in roles or "sweeper" in roles or "counter" in roles:
+            cat = "Removal & Interaction"
+        elif "equipment" in roles:
+            cat = "Equipment"
+        elif "threat" in roles:
+            cat = "Wincons & Amenazas"
+        else:
+            cat = "Soporte"
+        return {
+            "name": card["name"],
+            "scryfall_id": sid,
+            "img": _scryfall_img_local(sid),
+            "cmc": int(card.get("cmc") or 0),
+            "type": card.get("type_line", ""),
+            "oracle": (card.get("oracle_text") or "")[:200],
+            "colors": card.get("color_identity", []),
+            "rank": card.get("edhrec_rank"),
+            "role": roles[0] if roles else "",
+            "justification": "Importada desde ManaBox.",
+            "roles": roles,
+            "role_icons": [ROLE_ICONS.get(r, "") for r in roles if ROLE_ICONS.get(r)],
+            "is_land": card.get("is_land", False),
+            "is_creature": card.get("is_creature", False),
+            "rarity": card.get("rarity", ""),
+            "_cat": cat,
+        }
+
+    cmd_sid = commander_card.get("scryfall_id") or ""
+    cmd_record = {
+        **card_record_from_enriched(commander_card),
+        "role": "Commander",
+        "justification": "Comandante del mazo.",
+    }
+    categories["Comandante"] = [cmd_record]
+
+    for card in deck_cards:
+        rec = card_record_from_enriched(card)
+        cat = rec.pop("_cat", "Soporte")
+        categories.setdefault(cat, []).append(rec)
+
+    # 8. Detectar conflictos con otros mazos del PIN
+    conflicts_list = []
+    if pin and pin.strip():
+        try:
+            other_decks = _supa_load_decks(pin.strip())
+            reserved: dict[str, str] = {}
+            for d in other_decks:
+                owner = d.get("commander", d.get("deck_key", "?"))
+                dd = d.get("deck_data", {})
+                for c in dd.get("cards", []):
+                    n = c.get("name", "")
+                    if n:
+                        reserved[n.lower()] = owner
+            for card in deck_cards:
+                n = card["name"]
+                if n.lower() in reserved:
+                    conflicts_list.append({
+                        "card": n,
+                        "reserved_by": reserved[n.lower()],
+                    })
+        except Exception as e:
+            print(f"  [IMPORT] Error detectando conflictos: {e}")
+
+    # 9. Estimar bracket
+    from core.bracket import estimate_bracket
+    from core.builder import DeckCard, BuiltDeck
+    # Crear BuiltDeck sintético para el bracket
+    built_cards = []
+    for card in deck_cards:
+        built_cards.append(DeckCard(
+            card=card,
+            category="Imported",
+            role="",
+            justification="Importada desde ManaBox.",
+        ))
+    synth_deck = BuiltDeck(
+        commander=commander_card,
+        archetype=archetype,
+        colors="".join(sorted(deck_ci)) or "C",
+        cards=built_cards,
+        needed_basics=max(0, 99 - len(built_cards)),
+    )
+    bracket = estimate_bracket(synth_deck)
+
+    # 10. Construir html_data completo
+    from core.exporters import ARCHETYPE_DESCRIPTIONS, BRACKET_LABELS, _color_pips, _extract_wincons_from_deck
+    colors_str = "".join(sorted(deck_ci)) or "C"
+    html_data = {
+        "commander": commander_card["name"],
+        "commander_img": _scryfall_img_local(cmd_sid),
+        "archetype_key": archetype_key,
+        "archetype_name": archetype.name,
+        "archetype_desc": ARCHETYPE_DESCRIPTIONS.get(archetype_key, archetype.description),
+        "wincons": _extract_wincons_from_deck(synth_deck),
+        "colors": colors_str,
+        "color_pips": _color_pips(colors_str),
+        "bracket": bracket.bracket,
+        "bracket_label": BRACKET_LABELS.get(bracket.bracket, ""),
+        "bracket_score": round(bracket.score, 2),
+        "bracket_notes": bracket.notes,
+        "game_changers": bracket.game_changers,
+        "fast_mana": bracket.fast_mana,
+        "tutors": bracket.restrictive_tutors,
+        "combos": [list(c) for c in bracket.detected_combos],
+        "avg_cmc": round(bracket.avg_cmc, 2),
+        "manabase_score": round(bracket.manabase_score, 2),
+        "card_count": len(enriched_cards),
+        "needed_basics": synth_deck.needed_basics,
+        "categories": categories,
+        "gameplay_guide": "",
+    }
+
+    # 11. Registrar en índice local
+    safe = "".join(c if c.isalnum() else "_" for c in commander_card["name"].lower()).strip("_")
+    safe = f"import_{safe}"
+    register_deck(
+        output_dir=_DECKS_DIR,
+        deck_key=safe,
+        commander_card=commander_card,
+        archetype_key=archetype_key,
+        colors=colors_str,
+        bracket=bracket.bracket,
+        bracket_score=bracket.score,
+        cards=deck_cards,
+        needed_basics=synth_deck.needed_basics,
+        html_data=html_data,
+    )
+
+    # 12. Guardar en Supabase bajo el PIN
+    saved_to_pin = False
+    if pin and pin.strip():
+        try:
+            full_deck_data = {
+                "commander_card": commander_card,
+                "archetype_key": archetype_key,
+                "colors": colors_str,
+                "bracket": bracket.bracket,
+                "bracket_score": round(bracket.score, 2),
+                "cards": deck_cards,
+                "needed_basics": synth_deck.needed_basics,
+                "html_data": html_data,
+            }
+            saved_to_pin = _supa_save_deck(
+                pin.strip(), safe, commander_card["name"],
+                archetype_key, colors_str, bracket.bracket, full_deck_data,
+            )
+        except Exception as e:
+            print(f"  [IMPORT] Error guardando en Supabase: {e}")
+
+    # 13. Grimorio actualizado
+    index = load_index(_DECKS_DIR)
+    grimorio_html = build_multi_html_from_index(_DECKS_DIR, index.get("decks", {}))
+
+    return {
+        "ok": True,
+        "commander": commander_card["name"],
+        "deck_key": safe,
+        "archetype": archetype.name,
+        "colors": colors_str,
+        "bracket": bracket.bracket,
+        "card_count": len(enriched_cards),
+        "not_found": not_found,
+        "conflicts": conflicts_list,
+        "saved_to_pin": saved_to_pin,
+        "grimorio_html": grimorio_html,
+    }

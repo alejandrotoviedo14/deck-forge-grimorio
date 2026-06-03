@@ -309,8 +309,9 @@
     <button class="tab active" onclick="showTab('setup',this)">I. Colección</button>
     <button class="tab" onclick="showTab('analyze',this)">II. Analizar</button>
     <button class="tab" onclick="showTab('build',this)">III. Forjar</button>
-    <button class="tab" onclick="showTab('grimorio',this)">IV. Grimorio</button>
-    <button class="tab" onclick="openSimulator()">V. Simular</button>
+    <button class="tab" onclick="showTab('import',this)">IV. Importar</button>
+    <button class="tab" onclick="showTab('grimorio',this)">V. Grimorio</button>
+    <button class="tab" onclick="openSimulator()">VI. Simular</button>
   </div>
 
   <!-- ══ I. COLECCIÓN ══ -->
@@ -536,7 +537,30 @@
     </div>
   </div>
 
-  <!-- ══ IV. GRIMORIO ══ -->
+  <!-- ══ IV. IMPORTAR MAZO ══ -->
+  <div class="panel" id="panel-import">
+    <div class="card">
+      <div class="card-title">Importar Mazo de ManaBox</div>
+      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;margin-bottom:1.2rem">
+        Exporta un mazo desde ManaBox (<b style="color:var(--gold-light)">Mi Mazo → ··· → Exportar → CSV</b>),
+        súbelo aquí y lo analizaremos: arquetipo, bracket, guía de juego y conflictos con tus otros mazos.
+      </p>
+
+      <label>Nombre del mazo (opcional)</label>
+      <input type="text" id="import-deck-name" placeholder="ej. Mi Mazo Vorel"/>
+
+      <label>Comandante (si no se detecta automáticamente)</label>
+      <input type="text" id="import-commander" placeholder="ej. Vorel of the Hull Clade"/>
+
+      <label>CSV del mazo de ManaBox</label>
+      <input type="file" id="import-csv" accept=".csv"/>
+
+      <button class="primary" onclick="doImport()">✦ Importar y Analizar Mazo ✦</button>
+      <div id="import-result"></div>
+    </div>
+  </div>
+
+  <!-- ══ V. GRIMORIO ══ -->
   <div class="panel" id="panel-grimorio">
     <div class="card">
       <div class="card-title">El Grimorio</div>
@@ -571,6 +595,13 @@ function showTab(name, btn) {
   btn.classList.add('active');
   if (name === 'analyze' || name === 'build') refreshCollectionSelects();
   if (name === 'sim') refreshSimDeckSelect();
+  if (name === 'import' && _activePIN) {
+    // Mostrar hint del PIN activo
+    const r = document.getElementById('import-result');
+    if (r && !r.innerHTML) {
+      r.innerHTML = `<div class="msg info">PIN activo: <b>${_activePIN}</b> — los conflictos se detectarán automáticamente contra tus otros mazos.</div>`;
+    }
+  }
 }
 
 // ── Helpers ──
@@ -1202,6 +1233,80 @@ function toggleSelected(el) {
 function simLog(text) {
   const log = document.getElementById('sim-log');
   log.innerHTML = `<p>${text}</p>` + log.innerHTML;
+}
+
+// ── IMPORTAR MAZO ──
+async function doImport() {
+  const btn = event.target;
+  const result = document.getElementById('import-result');
+  const file = document.getElementById('import-csv').files[0];
+  if (!file) { msg(result, 'err', 'Selecciona el CSV del mazo de ManaBox.'); return; }
+
+  setLoading(btn, true, 'Analizando mazo...');
+  msg(result, 'info', '<span class="spinner"></span> Procesando cartas con Scryfall...');
+
+  const fd = new FormData();
+  fd.append('deck_csv', file);
+  const deckName = document.getElementById('import-deck-name').value.trim();
+  const cmdName  = document.getElementById('import-commander').value.trim();
+  if (deckName) fd.append('deck_name', deckName);
+  if (cmdName)  fd.append('commander', cmdName);
+  if (_activePIN) fd.append('pin', _activePIN);
+
+  try {
+    const res  = await fetch('/api/import-deck', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+
+    // Actualizar grimorio
+    document.getElementById('grimorio-frame').srcdoc = data.grimorio_html;
+
+    // Bloque de conflictos
+    const conflicts = data.conflicts || [];
+    const conflictsHtml = conflicts.length ? `
+      <div style="margin-top:1rem;background:rgba(201,168,76,0.06);border:1px solid var(--border-gold);border-radius:6px;overflow:hidden">
+        <div style="padding:0.6rem 1rem;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif;font-size:0.72rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase">
+          ⚠ ${conflicts.length} carta${conflicts.length>1?'s':''} en conflicto con otros mazos
+        </div>
+        <div style="padding:0.4rem 0">
+          ${conflicts.map(c=>`
+            <div style="display:flex;align-items:center;gap:1rem;padding:0.45rem 1rem;border-bottom:1px solid var(--border);font-size:0.88rem">
+              <span style="color:#ca8a8a;min-width:180px"><b>${c.card}</b></span>
+              <span style="color:var(--text-muted);font-size:0.8rem">→ también en mazo de <b style="color:var(--text)">${c.reserved_by}</b></span>
+            </div>`).join('')}
+        </div>
+      </div>` : `<div class="msg ok" style="margin-top:0.5rem">✓ Sin conflictos con otros mazos</div>`;
+
+    // Cartas no encontradas
+    const notFoundHtml = data.not_found?.length ? `
+      <div class="msg info" style="margin-top:0.5rem">
+        ⚠ ${data.not_found.length} carta${data.not_found.length>1?'s':''} no reconocida${data.not_found.length>1?'s':''} en Scryfall:
+        <span style="color:var(--text-muted)">${data.not_found.slice(0,5).join(', ')}${data.not_found.length>5?'...':''}</span>
+      </div>` : '';
+
+    const pinBadge = data.saved_to_pin
+      ? `<div class="msg ok" style="margin-top:0.5rem">✦ Mazo guardado en PIN <b>${_activePIN}</b></div>`
+      : _activePIN ? `<div class="msg err" style="margin-top:0.5rem">⚠ No se pudo guardar en Supabase</div>` : '';
+
+    result.innerHTML = `
+      <div class="msg ok">✦ Mazo importado: <b>${data.commander}</b></div>
+      ${pinBadge}
+      <div class="stat-grid" style="margin-top:0.75rem">
+        <div class="stat"><span class="val">${data.card_count}</span><span class="lbl">Cartas</span></div>
+        <div class="stat"><span class="val">${data.bracket}</span><span class="lbl">Bracket est.</span></div>
+        <div class="stat"><span class="val">${data.archetype}</span><span class="lbl">Arquetipo</span></div>
+      </div>
+      ${conflictsHtml}
+      ${notFoundHtml}
+      <p style="margin-top:1rem;color:var(--text-muted);font-size:0.9rem">
+        El mazo ya está disponible en el <b style="color:var(--gold-light)">Grimorio (V)</b> y en el <b style="color:var(--gold-light)">Simulador</b>.
+      </p>`;
+
+  } catch(e) {
+    msg(result, 'err', '✗ Error importando: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
 }
 
 // ── Simulator ──
