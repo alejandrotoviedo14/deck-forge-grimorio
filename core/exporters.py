@@ -1170,63 +1170,86 @@ function renderGaps(deck) {{
   return gaps;
 }}
 
-// State for view mode and sorting
-let currentSort = 'default';
-let currentView = 'grid';
+// ── State ──
+let currentSort  = 'default';
+let currentView  = 'grid';
+let currentGroup = 'category'; // 'category' | 'flat' | 'type' | 'color'
+let currentColorFilter = 'all';
 
 const TYPE_ORDER = {{
-  'Creature': 1, 'Artifact': 2, 'Enchantment': 3,
-  'Planeswalker': 4, 'Instant': 5, 'Sorcery': 6, 'Land': 7,
+  'Creature':1,'Artifact':2,'Enchantment':3,'Planeswalker':4,'Instant':5,'Sorcery':6,'Land':7
 }};
+const COLOR_MAP = {{'W':'Blanco','U':'Azul','B':'Negro','R':'Rojo','G':'Verde','C':'Incoloro'}};
 
 function getTypeOrder(type) {{
   if (!type) return 99;
-  for (const key in TYPE_ORDER) {{
-    if (type.includes(key)) return TYPE_ORDER[key];
-  }}
+  for (const key in TYPE_ORDER) if (type.includes(key)) return TYPE_ORDER[key];
   return 99;
+}}
+function getTypeName(type) {{
+  if (!type) return 'Otro';
+  const keys = ['Creature','Artifact','Enchantment','Planeswalker','Instant','Sorcery','Land'];
+  const sp   = ['Criatura','Artefacto','Encantamiento','Planeswalker','Instante','Conjuro','Tierra'];
+  for (let i=0;i<keys.length;i++) if (type.includes(keys[i])) return sp[i];
+  return 'Otro';
+}}
+
+function cardColors(c) {{
+  return c.colors && c.colors.length ? c.colors : ['C'];
 }}
 
 function sortCards(cards, mode) {{
   const arr = [...cards];
   switch (mode) {{
-    case 'name':
-      return arr.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    case 'cmc':
-      return arr.sort((a, b) => (a.cmc ?? 99) - (b.cmc ?? 99) || (a.name || '').localeCompare(b.name || ''));
-    case 'cmc_desc':
-      return arr.sort((a, b) => (b.cmc ?? -1) - (a.cmc ?? -1) || (a.name || '').localeCompare(b.name || ''));
-    case 'type':
-      return arr.sort((a, b) => getTypeOrder(a.type) - getTypeOrder(b.type) || (a.cmc ?? 99) - (b.cmc ?? 99));
-    case 'rank':
-      return arr.sort((a, b) => (a.rank ?? 999999) - (b.rank ?? 999999));
-    case 'default':
-    default:
-      return arr;
+    case 'name':     return arr.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    case 'cmc':      return arr.sort((a,b)=>((a.cmc??99)-(b.cmc??99))||(a.name||'').localeCompare(b.name||''));
+    case 'cmc_desc': return arr.sort((a,b)=>((b.cmc??-1)-(a.cmc??-1))||(a.name||'').localeCompare(b.name||''));
+    case 'type':     return arr.sort((a,b)=>getTypeOrder(a.type)-getTypeOrder(b.type)||((a.cmc??99)-(b.cmc??99)));
+    case 'color':    return arr.sort((a,b)=>((cardColors(a)[0]||'Z').localeCompare(cardColors(b)[0]||'Z'))||(a.name||'').localeCompare(b.name||''));
+    case 'rank':     return arr.sort((a,b)=>(a.rank??999999)-(b.rank??999999));
+    default:         return arr;
   }}
 }}
 
-function setView(btn, view) {{
-  currentView = view;
-  // Update toggle buttons in this panel
-  const toggle = btn.closest('.view-toggle') || btn.parentElement;
-  toggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
-  // Apply list-mode class to all category sections in the active panel
-  const panel = btn.closest('.deck-panel');
-  if (panel) {{
-    panel.querySelectorAll('.category-section').forEach(sec => {{
-      sec.classList.toggle('list-mode', view === 'list');
-    }});
-  }}
+function filterByColor(cards, color) {{
+  if (color === 'all') return cards;
+  return cards.filter(c => {{
+    const cols = cardColors(c);
+    if (color === 'multi') return cols.length > 1;
+    if (color === 'C') return cols.length === 0 || (cols.length === 1 && cols[0] === 'C');
+    return cols.includes(color);
+  }});
 }}
 
-function setSort(selectEl) {{
-  const mode = selectEl.value;
-  currentSort = mode;
-  currentView = 'grid'; // reset view on sort change
-  // Re-render all panels to apply new sort
+// Flatten all cards from all categories (including commander)
+function getAllCards(deck) {{
+  const all = [];
+  for (const [cat, cards] of Object.entries(deck.categories || {{}})) {{
+    for (const c of cards) all.push({{...c, _cat: cat}});
+  }}
+  return all;
+}}
+
+// Group flat list by some grouping
+function groupCards(cards, groupBy) {{
+  const groups = {{}};
+  for (const c of cards) {{
+    let key;
+    if (groupBy === 'type')  key = getTypeName(c.type);
+    else if (groupBy === 'color') {{
+      const cols = cardColors(c);
+      key = cols.length > 1 ? 'Multicolor' : (COLOR_MAP[cols[0]] || 'Incoloro');
+    }}
+    else key = c._cat || 'Sin categoría';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(c);
+  }}
+  return groups;
+}}
+
+function applyAndRender() {{
   const activePanel = document.querySelector('.deck-panel.active');
-  const activeKey = activePanel ? activePanel.id.replace('panel-', '') : null;
+  const activeKey   = activePanel ? activePanel.id.replace('panel-','') : null;
   const panels = document.getElementById('panels');
   panels.innerHTML = '';
   Object.keys(DECK_DATA).forEach(key => {{
@@ -1235,62 +1258,89 @@ function setSort(selectEl) {{
   if (activeKey) showDeck(activeKey);
 }}
 
+function setView(btn, view) {{
+  currentView = view;
+  const toggle = btn.closest('.view-toggle');
+  if (toggle) toggle.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));
+  const panel = btn.closest('.deck-panel');
+  if (panel) {{
+    panel.querySelectorAll('.category-section').forEach(sec=>{{
+      sec.classList.toggle('list-mode', view==='list');
+    }});
+  }}
+}}
+
+function setSort(sel) {{ currentSort = sel.value; applyAndRender(); }}
+function setGroup(sel) {{ currentGroup = sel.value; applyAndRender(); }}
+function setColorFilter(sel) {{ currentColorFilter = sel.value; applyAndRender(); }}
+
+function renderCardItem(c) {{
+  const icons = (c.role_icons || []).slice(0,3).join('');
+  const esc = s => (s||'').replace(/"/g,'&quot;');
+  const cardData = `data-name="${{esc(c.name)}}" data-type="${{esc(c.type)}}" data-oracle="${{esc(c.oracle)}}" data-role="${{esc(c.role)}}" data-just="${{esc(c.justification)}}"`;
+  const img = c.img
+    ? `<img src="${{c.img}}" alt="${{esc(c.name)}}" loading="lazy" style="cursor:zoom-in"
+         onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()"
+         onclick="openCardModal(this);return false;"
+         ontouchend="event.preventDefault();openCardModal(this);"
+         ${{cardData}}>`
+    : `<div style="height:196px;background:#1a1a24;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#5a5468;border:1px solid #2a2a3a;padding:8px;text-align:center">${{c.name}}</div>`;
+  return `<div class="card-item">
+    ${{img}}
+    ${{icons?`<div class="card-roles">${{icons.split('').map(i=>`<span class="role-icon">${{i}}</span>`).join('')}}</div>`:''}}
+    <div class="card-name">${{c.name}}</div>
+  </div>`;
+}}
+
+function renderCardRow(c) {{
+  const icons = (c.role_icons||[]).slice(0,3).join('');
+  const thumb = c.img
+    ? `<img class="card-list-thumb" src="${{c.img}}" alt="" loading="lazy">`
+    : `<div class="card-list-thumb" style="background:#1a1a24"></div>`;
+  const onclick = c.img
+    ? `onclick="openCardModal(this.querySelector('img'))" ontouchend="event.preventDefault();openCardModal(this.querySelector('img'));"`
+    : '';
+  return `<div class="card-list-row" ${{onclick}}>
+    ${{thumb}}
+    <div class="card-list-name">${{c.name}}</div>
+    <div class="card-list-type">${{c.type||''}}</div>
+    <div class="card-list-cmc">${{c.cmc!=null?c.cmc:'—'}}</div>
+    <div class="card-list-roles">${{icons}}</div>
+  </div>`;
+}}
+
+function renderCardGroup(groupName, cards) {{
+  if (!cards || !cards.length) return '';
+  const sorted   = sortCards(filterByColor(cards, currentColorFilter), currentSort);
+  if (!sorted.length) return '';
+  const gridHtml = sorted.map(renderCardItem).join('');
+  const listHtml = sorted.map(renderCardRow).join('');
+  return `<div class="category-section ${{currentView==='list'?'list-mode':''}}">
+    <div class="category-title">${{groupName}}<span class="category-count">${{sorted.length}}</span></div>
+    <div class="card-grid">${{gridHtml}}</div>
+    <div class="card-list">${{listHtml}}</div>
+  </div>`;
+}}
+
 function renderDeckPanel(key, deck) {{
   const gaps = renderGaps(deck);
 
-  const categoriesHtml = Object.entries(deck.categories || {{}}).map(([cat, cards]) => {{
-    if (!cards || cards.length === 0) return '';
-    const sorted = sortCards(cards, currentSort);
-    const cardsHtml = sorted.map(c => {{
-      const icons = (c.role_icons || []).slice(0, 3).join('');
-      const cardData = `data-name="${{c.name.replace(/"/g,'&quot;')}}"
-               data-type="${{(c.type||'').replace(/"/g,'&quot;')}}"
-               data-oracle="${{(c.oracle||'').replace(/"/g,'&quot;')}}"
-               data-role="${{(c.role||'').replace(/"/g,'&quot;')}}"
-               data-just="${{(c.justification||'').replace(/"/g,'&quot;')}}"`;
-      const img = c.img
-        ? `<img src="${{c.img}}" alt="${{c.name}}" loading="lazy"
-               style="cursor:zoom-in"
-               onmouseenter="showTooltip(event,this)"
-               onmouseleave="hideTooltip()"
-               onclick="openCardModal(this); return false;"
-               ontouchend="event.preventDefault(); openCardModal(this);"
-               ${{cardData}}>`
-        : `<div style="height:196px;background:#1a1a24;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#5a5468;border:1px solid #2a2a3a">${{c.name}}</div>`;
-      return `<div class="card-item">
-        ${{img}}
-        ${{icons ? `<div class="card-roles">${{icons.split('').map(i=>`<span class="role-icon">${{i}}</span>`).join('')}}</div>` : ''}}
-        <div class="card-name">${{c.name}}</div>
-      </div>`;
-    }}).join('');
-
-    // Vista lista
-    const rowsHtml = sorted.map(c => {{
-      const icons = (c.role_icons || []).slice(0, 3).join('');
-      const thumb = c.img
-        ? `<img class="card-list-thumb" src="${{c.img}}" alt="" loading="lazy">`
-        : `<div class="card-list-thumb" style="background:#1a1a24"></div>`;
-      const onclickAttr = c.img
-        ? `onclick="openCardModal(this.querySelector('img'))" ontouchend="event.preventDefault(); openCardModal(this.querySelector('img'));"`
-        : '';
-      return `<div class="card-list-row" ${{onclickAttr}}>
-        ${{thumb}}
-        <div class="card-list-name">${{c.name}}</div>
-        <div class="card-list-type">${{c.type || ''}}</div>
-        <div class="card-list-cmc">${{c.cmc != null ? c.cmc : '—'}}</div>
-        <div class="card-list-roles">${{icons}}</div>
-      </div>`;
-    }}).join('');
-
-    return `<div class="category-section">
-      <div class="category-title">
-        ${{cat}}
-        <span class="category-count">${{cards.length}}</span>
-      </div>
-      <div class="card-grid">${{cardsHtml}}</div>
-      <div class="card-list">${{rowsHtml}}</div>
-    </div>`;
-  }}).join('');
+  // Build grouped display
+  let categoriesHtml = '';
+  if (currentGroup === 'flat') {{
+    const all = getAllCards(deck);
+    categoriesHtml = renderCardGroup('Todas las cartas', all);
+  }} else {{
+    const all    = getAllCards(deck);
+    const groups = groupCards(all, currentGroup === 'category' ? 'category' : currentGroup);
+    // Sort groups: Comandante first, Tierras last
+    const groupOrder = Object.keys(groups).sort((a,b) => {{
+      if (a === 'Comandante') return -1; if (b === 'Comandante') return 1;
+      if (a === 'Tierras' || a === 'Tierra') return 1; if (b === 'Tierras' || b === 'Tierra') return -1;
+      return a.localeCompare(b);
+    }});
+    categoriesHtml = groupOrder.map(g => renderCardGroup(g, groups[g])).join('');
+  }}
 
   const wincons = (deck.wincons || []).map(w =>
     `<li>${{w}}</li>`
@@ -1402,16 +1452,38 @@ function renderDeckPanel(key, deck) {{
         <div class="view-controls">
           <span class="view-controls-label">Vista:</span>
           <div class="view-toggle">
-            <button class="active" data-view="grid" onclick="setView(this, 'grid')">Cartas</button>
-            <button data-view="list" onclick="setView(this, 'list')">Lista</button>
+            <button class="active" data-view="grid" onclick="setView(this,'grid')">⊞ Cartas</button>
+            <button data-view="list" onclick="setView(this,'list')">☰ Lista</button>
           </div>
-          <span class="view-controls-label" style="margin-left:auto">Ordenar por:</span>
-          <select class="sort-select" onchange="setSort(this)">
+
+          <span class="view-controls-label">Agrupar:</span>
+          <select class="sort-select" onchange="setGroup(this)" style="min-width:130px">
+            <option value="category">Por categoría</option>
+            <option value="type">Por tipo</option>
+            <option value="color">Por color</option>
+            <option value="flat">Sin grupos</option>
+          </select>
+
+          <span class="view-controls-label">Filtrar color:</span>
+          <select class="sort-select" onchange="setColorFilter(this)" style="min-width:110px">
+            <option value="all">Todos</option>
+            <option value="W">⚪ Blanco</option>
+            <option value="U">🔵 Azul</option>
+            <option value="B">⚫ Negro</option>
+            <option value="R">🔴 Rojo</option>
+            <option value="G">🟢 Verde</option>
+            <option value="C">⬜ Incoloro</option>
+            <option value="multi">🌈 Multicolor</option>
+          </select>
+
+          <span class="view-controls-label" style="margin-left:auto">Ordenar:</span>
+          <select class="sort-select" onchange="setSort(this)" style="min-width:130px">
             <option value="default">Por defecto</option>
             <option value="name">Nombre A-Z</option>
-            <option value="cmc">CMC (menor)</option>
-            <option value="cmc_desc">CMC (mayor)</option>
+            <option value="cmc">CMC ↑</option>
+            <option value="cmc_desc">CMC ↓</option>
             <option value="type">Tipo</option>
+            <option value="color">Color</option>
             <option value="rank">Popularidad</option>
           </select>
         </div>

@@ -610,8 +610,6 @@ async def build(
     saved_to_pin = False
     if pin and pin.strip():
         try:
-            # Usar solo campos ligeros para el html_data (sin oracle_text largo)
-            light_html_data = {k: v for k, v in html_data.items() if k != "categories"}
             full_deck_data = {
                 "commander_card": deck.commander,
                 "archetype_key": deck.archetype.key,
@@ -620,7 +618,7 @@ async def build(
                 "bracket_score": round(bracket.score, 2),
                 "cards": [dc.card for dc in deck.cards],
                 "needed_basics": deck.needed_basics,
-                "html_data": light_html_data,
+                "html_data": html_data,  # incluye categories con imgs
             }
             saved_to_pin = _supa_save_deck(
                 pin.strip(), safe, deck.commander["name"],
