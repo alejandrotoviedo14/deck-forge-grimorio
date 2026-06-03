@@ -68,6 +68,15 @@ class DeckCard:
 
 
 @dataclass
+class ConflictEntry:
+    """Una carta en conflicto con otro mazo de la sesión."""
+    card_name: str          # carta solicitada pero reservada
+    reserved_by: str        # nombre del mazo que la tiene
+    alternative: str | None # carta alternativa elegida (None si no hay)
+    slot: str               # slot donde se produjo el conflicto
+
+
+@dataclass
 class BuiltDeck:
     commander: dict
     archetype: Archetype
@@ -75,6 +84,7 @@ class BuiltDeck:
     cards: list[DeckCard] = field(default_factory=list)
     needed_basics: int = 0
     gameplay_guide: str = ""  # HTML generado por LLM Critic
+    conflicts: list[ConflictEntry] = field(default_factory=list)
 
     @property
     def card_count(self) -> int:
@@ -344,6 +354,7 @@ def build_deck(
     archetype_key: str | None = None,
     target_basics_split: bool = True,
     use_edhrec: bool = True,
+    reserved_cards: dict[str, str] | None = None,  # {card_name: deck_name_that_owns_it}
 ) -> BuiltDeck:
     """
     Construye un mazo de 100 cartas siguiendo el plan del arquetipo.
@@ -402,6 +413,7 @@ def build_deck(
     for c in in_identity:
         roles_by_card[c["name"]] = cls.classify(c)
 
+    reserved = reserved_cards or {}  # {card_name_lower: deck_name}
     deck = BuiltDeck(commander=commander, archetype=archetype, colors=colors_str)
     selected_names: set[str] = {commander["name"]}
     cmc_distribution: dict[int, int] = {}
@@ -425,7 +437,7 @@ def build_deck(
             selected_names.add(auto_name)
             _track_cmc(match)
 
-    # 6. Slots del arquetipo — con score compuesto
+    # 6. Slots del arquetipo — con score compuesto y detección de conflictos
     for slot in archetype.slots:
         # Candidatos que pasan el predicado y no están ya seleccionados
         candidates = [c for c in in_identity
@@ -443,7 +455,38 @@ def build_deck(
             )
         )
 
-        for c in candidates[:slot.target_count]:
+        added = 0
+        skip_idx = 0
+        while added < slot.target_count and skip_idx < len(candidates):
+            c = candidates[skip_idx]
+            skip_idx += 1
+            name_lower = c["name"].lower()
+
+            if name_lower in reserved:
+                # Conflicto — buscar la siguiente mejor alternativa
+                owner = reserved[name_lower]
+                # La alternativa es el siguiente candidato no reservado no seleccionado
+                alt = next(
+                    (x for x in candidates[skip_idx:]
+                     if x["name"].lower() not in reserved
+                     and x["name"] not in selected_names),
+                    None,
+                )
+                deck.conflicts.append(ConflictEntry(
+                    card_name=c["name"],
+                    reserved_by=owner,
+                    alternative=alt["name"] if alt else None,
+                    slot=slot.name,
+                ))
+                print(f"  [CONFLICT] '{c['name']}' reservada por '{owner}' "
+                      f"→ alternativa: '{alt['name'] if alt else 'ninguna'}'")
+                # Usar la alternativa si existe
+                if alt:
+                    c = alt
+                    skip_idx = candidates.index(alt) + 1  # avanzar el puntero
+                else:
+                    continue  # sin alternativa, saltar slot
+
             deck.cards.append(DeckCard(
                 c,
                 category=slot.name,
@@ -452,6 +495,7 @@ def build_deck(
             ))
             selected_names.add(c["name"])
             _track_cmc(c)
+            added += 1
 
     # 7. Tierras de utilidad (objetivo: 12)
     TARGET_UTILITY_LANDS = 12
@@ -477,6 +521,14 @@ def build_deck(
             break
         if land["name"] in selected_names:
             continue
+        if land["name"].lower() in reserved:
+            owner = reserved[land["name"].lower()]
+            deck.conflicts.append(ConflictEntry(
+                card_name=land["name"], reserved_by=owner,
+                alternative=None, slot="Tierras No-Básicas",
+            ))
+            print(f"  [CONFLICT] Tierra '{land['name']}' reservada por '{owner}' — omitida")
+            continue
         deck.cards.append(DeckCard(
             land,
             category="Tierras No-Básicas",
@@ -498,6 +550,7 @@ def build_deck(
             c for c in in_identity
             if c["name"] not in selected_names
             and not c.get("is_land")
+            and c["name"].lower() not in reserved  # respetar reservas también en relleno
         ]
         # Ordenar por score compuesto descendente (las mejores primero)
         fill_candidates.sort(

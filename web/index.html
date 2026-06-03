@@ -915,9 +915,35 @@ async function doBuild() {
       ? `<div class="msg ok" style="margin-top:0.5rem">✦ Mazo guardado en PIN <b>${activePinForBuild}</b> — se restaurará automáticamente</div>`
       : activePinForBuild ? `<div class="msg err" style="margin-top:0.5rem">⚠ No se pudo guardar en Supabase</div>` : '';
 
+    // Bloque de conflictos
+    const conflicts = data.conflicts || [];
+    const conflictsHtml = conflicts.length ? `
+      <div style="margin-top:1rem;background:rgba(201,168,76,0.06);border:1px solid var(--border-gold);border-radius:6px;overflow:hidden">
+        <div style="padding:0.6rem 1rem;background:rgba(201,168,76,0.1);font-family:'Cinzel',serif;font-size:0.72rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase">
+          ⚠ ${conflicts.length} conflicto${conflicts.length>1?'s':''} con otros mazos detectado${conflicts.length>1?'s':''}
+        </div>
+        <div style="padding:0.5rem 0">
+          ${conflicts.map(c => `
+            <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-bottom:1px solid var(--border);font-size:0.88rem">
+              <div>
+                <span style="color:#ca8a8a;text-decoration:line-through">${c.card}</span>
+                <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Cinzel',serif;margin-top:2px">en mazo de <b style="color:var(--text)">${c.reserved_by}</b></div>
+              </div>
+              <div style="color:var(--gold-dark);font-size:0.8rem">→</div>
+              <div>
+                ${c.alternative
+                  ? `<span style="color:#8aca8a">${c.alternative}</span>
+                     <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Cinzel',serif;margin-top:2px">mejor alternativa disponible</div>`
+                  : `<span style="color:var(--text-muted);font-style:italic">sin alternativa — básica añadida</span>`}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>` : '';
+
     result.innerHTML = `
       <div class="msg ok">✦ Mazo forjado: <b>${data.commander}</b></div>
       ${pinBadge}
+      ${conflictsHtml}
       <div class="stat-grid">
         <div class="stat"><span class="val">${data.card_count + data.needed_basics}</span><span class="lbl">Cartas totales</span></div>
         <div class="stat"><span class="val">${data.bracket}</span><span class="lbl">Bracket</span></div>

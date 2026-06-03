@@ -539,6 +539,21 @@ async def build(
     basics = _load_basics_from_bytes(real_bytes)
     pool = build_real_pool(coll)
 
+    # Cargar cartas reservadas por otros mazos del mismo PIN
+    reserved_cards: dict[str, str] = {}  # {card_name_lower: commander_del_mazo_dueño}
+    if pin and pin.strip():
+        try:
+            other_decks = _supa_load_decks(pin.strip())
+            for d in other_decks:
+                owner = d.get("commander", d.get("deck_key", "?"))
+                dd = d.get("deck_data", {})
+                for c in dd.get("cards", []):
+                    card_name = c.get("name", "")
+                    if card_name:
+                        reserved_cards[card_name.lower()] = owner
+        except Exception as e:
+            print(f"  [RESERVED] Error cargando reservas: {e}")
+
     try:
         deck = build_deck(
             pool,
@@ -546,6 +561,7 @@ async def build(
             colors=colors,
             archetype_key=archetype,
             use_edhrec=use_edhrec,
+            reserved_cards=reserved_cards if reserved_cards else None,
         )
     except Exception as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -642,6 +658,15 @@ async def build(
         "manabox_csv": csv_path.read_text(encoding="utf-8"),
         "sim_cards": sim_cards,
         "saved_to_pin": saved_to_pin,
+        "conflicts": [
+            {
+                "card": c.card_name,
+                "reserved_by": c.reserved_by,
+                "alternative": c.alternative,
+                "slot": c.slot,
+            }
+            for c in deck.conflicts
+        ],
     }
 
 
