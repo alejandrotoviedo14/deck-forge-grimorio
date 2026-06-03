@@ -1,284 +1,180 @@
 # Deck Forge — Grimorio
 
-Constructor de mazos Commander a partir de tu colección de ManaBox.
+Constructor de mazos Commander a partir de tu colección de ManaBox. Disponible como aplicación web completa.
 
-**Disponible online** → [deckforge.up.railway.app](https://deckforge.up.railway.app/)
+**🌐 Acceso online** → [deckforge.up.railway.app](https://deckforge.up.railway.app/)
 
-**Cero tokens de Claude consumidos en tiempo de ejecución.** Todo se ejecuta en el servidor con tu colección exportada de ManaBox.
-
----
-
-## Uso web (recomendado)
-
-Accede desde cualquier dispositivo, sin instalar nada:
-
-1. Abre la URL de arriba
-2. Exporta tu colección desde ManaBox (`Settings → Export → CSV`)
-3. Sube el CSV en la pestaña **I. Colección**
-4. Analiza tu pool en **II. Analizar**
-5. Forja un mazo en **III. Forjar**
-6. Visualiza y descarga en **IV. Grimorio**
+**🎮 Simulador de mesa** → [deckforge.up.railway.app/simulator](https://deckforge.up.railway.app/simulator)
 
 ---
 
-## Uso local (CLI)
+## ¿Qué es Deck Forge?
+
+Deck Forge construye mazos de Commander optimizados a partir de las cartas que ya tienes en tu colección física. Sube tu CSV de ManaBox, selecciona un comandante y obtén un mazo de 100 cartas listo para jugar — con imágenes, guía de juego y exportación a ManaBox/Moxfield.
 
 ---
 
-## Instalación
+## Características
 
-```powershell
-pip install requests pandas pyedhrec
-```
+| Función | Descripción |
+|---|---|
+| **Constructor de mazos** | Heurísticas por arquetipo + EDHREC + Claude Haiku para 9 arquetipos distintos |
+| **Identidad de color estricta** | Tres capas de validación — ninguna carta ilegal puede entrar al mazo |
+| **Grimorio** | Visor de mazos con imágenes Scryfall, filtros por color/tipo, ordenación, zoom |
+| **Simulador de mesa** | Mesa de juego interactiva con todas las fases de turno, maná, combate y tokens |
+| **Sesiones con PIN** | Colección y mazos guardados en Supabase — accesibles desde cualquier dispositivo con 6 dígitos |
+| **Análisis de comandantes** | Puntúa los mejores comandantes para tu pool con score y bracket estimado |
+
+---
+
+## Uso rápido
+
+1. Ve a [deckforge.up.railway.app](https://deckforge.up.railway.app/)
+2. **I. Colección** — sube tu CSV de ManaBox (`Settings → Export → CSV`) y guarda tu PIN
+3. **II. Analizar** — descubre los mejores comandantes para tu colección
+4. **III. Forjar** — elige comandante y forja el mazo
+5. **IV. Grimorio** — visualiza, filtra y descarga el mazo
+6. **V. Simular** — prueba el mazo en una mesa de juego interactiva
+
+### PIN de sesión
+Al subir tu colección recibes un **PIN de 6 dígitos**. Introdúcelo en cualquier dispositivo para restaurar tu colección completa y todos los mazos forjados.
+
+---
+
+## Simulador de mesa
+
+Accede en [/simulator](https://deckforge.up.railway.app/simulator).
+
+| Función | Detalle |
+|---|---|
+| **Fases de turno** | Destapear → Mantenimiento → Robar → Principal → Combate → Final — cada fase hace algo real |
+| **Zona de tierras** | Strip horizontal separado; tap para producir maná por color |
+| **Pool de maná** | Muestra W/U/B/R/G/C disponible en tiempo real |
+| **Campo de batalla** | Drag & drop libre; doble tap para tapear/destapear |
+| **Comandante** | Zona propia con contador de impuesto (+2 por lanzamiento) |
+| **Combate** | Declara atacantes tocando criaturas; resolución automática |
+| **Tokens** | Crea tokens con nombre, P/T, color y cantidad personalizados |
+| **Mulligan** | London mulligan con selector de cartas a devolver |
+| **Zoom** | Toca cualquier carta para verla a tamaño completo |
+| **Teclado** | D=robar, U=destapear, E=fase final, C=comandante, M=mulligan |
+
+---
+
+## Grimorio — controles
+
+| Control | Opciones |
+|---|---|
+| **Agrupar** | Por categoría · Por tipo · Por color · Sin grupos (plano) |
+| **Filtrar color** | Todos · W · U · B · R · G · Incoloro · Multicolor |
+| **Ordenar** | Por defecto · Nombre A-Z · CMC ↑↓ · Tipo · Color · Popularidad |
+| **Vista** | Cartas (grid) · Lista |
+
+---
+
+## Arquetipos disponibles (9)
+
+| Arquetipo | Descripción |
+|---|---|
+| `counters` | +1/+1 Counters / Proliferate |
+| `equipment` | Equipment Voltron |
+| `aristocrats` | Tokens / Sacrifice / Drain |
+| `spellslinger` | Spellslinger / Cantrips |
+| `tribal` | Tribal / Kindred |
+| `blink` | Blink / ETB Abuse |
+| `landfall` | Landfall / Land Matters |
+| `lifegain` | Lifegain / Life Matters |
+| `reanimator` | Reanimator / Graveyard |
+
+---
+
+## Cómo funciona el builder
+
+### 1. Filtrado por identidad de color (3 capas)
+1. Pool inicial filtrado por `color_identity ⊆ commander_ci`
+2. LLM Critic valida cada carta sugerida antes de aceptarla
+3. Filtro final al terminar el build elimina cualquier carta ilegal
+
+### 2. Score compuesto por carta
+
+| Componente | Peso |
+|---|---|
+| EDHREC score para este comandante | 40% |
+| Sinergia con arquetipo (oracle text) | 25% |
+| Manabase friendliness (pips de color) | 20% |
+| Encaje en la curva actual | 15% |
+
+**Multi-rol bonus:** +15% por cada rol extra que cumple la carta.
+
+### 3. LLM Critic (Claude Haiku)
+Después del builder heurístico, Claude Haiku revisa el mazo holísticamente y propone la composición óptima de 50 cartas no tierra. Solo usa cartas disponibles en tu colección. Genera también una guía de juego detallada en español.
+
+### 4. EDHREC
+Consulta EDHREC para el comandante específico y enriquece el scoring. Falla gracefully si no hay conexión — usa scoring local sin interrumpir.
+
+---
+
+## Stack técnico
+
+| Capa | Tecnología |
+|---|---|
+| Backend | FastAPI (Python) |
+| Base de datos | Supabase (PostgreSQL) — sesiones PIN |
+| Despliegue | Railway |
+| Datos de cartas | Scryfall bulk API (caché 7 días) |
+| IA | Claude Haiku (Anthropic) |
+| Frontend | HTML/CSS/JS vanilla |
 
 ---
 
 ## Estructura del proyecto
 
 ```
-deck_forge/
-├── deck_forge.py           # CLI completo (acciones + flags)
-├── forge.py                # CLI en lenguaje natural (wrapper)
-├── ingest.py               # genera collection_enriched.json (Scryfall bulk)
-├── enrich_collection.py    # generador alternativo legacy (deprecated)
-├── core/
-│   ├── __init__.py
-│   ├── pool.py             # carga collection_enriched.json + filtra fakes
-│   ├── classifier.py       # detecta roles de cada carta (ramp, draw, removal...)
-│   ├── archetypes.py       # 9 arquetipos con slots rebalanceados (v3)
-│   ├── builder.py          # ensambla el mazo — score compuesto + EDHREC + multi-rol (v3)
-│   ├── edhrec_advisor.py   # integración con EDHREC para ranking por comandante
-│   ├── bracket.py          # estima bracket WotC
-│   ├── exporters.py        # HTML multi-mazo con modal zoom, lista, ordenación
-│   ├── commander_score.py  # scoring compuesto de comandantes
-│   ├── deck_index.py       # índice persistente de mazos construidos
-│   └── upgrader.py         # análisis de gaps + swaps + compras Scryfall
-├── data/
-│   └── game_changers.json  # lista oficial WotC
-└── templates/
-    └── deck.html           # template HTML (legacy)
-```
-
----
-
-## Paso 0: Generar la colección enriquecida
-
-`ingest.py` usa el bulk data de Scryfall (descarga única ~300MB) en lugar de llamadas individuales. **Segundos en lugar de 5-10 minutos. Sin cookies. Sin configuración.**
-
-```powershell
-python ingest.py --real real.csv --fake fake.csv --output collection_enriched.json
-```
-
-La primera ejecución descarga el bulk (~100-300MB). Las siguientes son instantáneas — se reutiliza durante 7 días.
-
-| Formato | Comando |
-|---------|---------|
-| CSV de ManaBox (real + fake) | `python ingest.py --real real.csv --fake fake.csv` |
-| Solo real | `python ingest.py --real real.csv` |
-| Lista de texto (Moxfield/Archidekt) | `python ingest.py --list mi_coleccion.txt` |
-| Forzar re-descarga del bulk | Añadir `--refresh-bulk` |
-
----
-
-## Uso
-
-Hay dos formas de ejecutar Deck Forge:
-
-- **`forge.py`** — lenguaje natural, comandos cortos. Recomendado para uso diario.
-- **`deck_forge.py`** — CLI completo con flags explícitos. Para automatización o casos avanzados.
-
----
-
-## Comandos rápidos con `forge.py`
-
-```powershell
-python forge.py analizar
-python forge.py mazos
-python forge.py construir mazo rojo
-python forge.py construir simic counters
-python forge.py construir goblins
-python forge.py construir reanimator negro verde
-python forge.py upgrade vorel
-python forge.py mejorar teneb hasta bracket 2
-```
-
-| Tipo | Palabras reconocidas |
-|------|---------------------|
-| **Acciones** | `analizar`, `construir`, `mejorar`/`upgrade`, `mazos`/`listar` |
-| **Colores** | `blanco`, `azul`, `negro`, `rojo`, `verde` |
-| **Guilds** | `azorius`, `dimir`, `rakdos`, `gruul`, `selesnya`, `orzhov`, `izzet`, `golgari`, `boros`, `simic` |
-| **Shards** | `esper`, `grixis`, `jund`, `naya`, `bant`, `abzan`, `jeskai`, `sultai`, `mardu`, `temur` |
-| **Arquetipos** | `counters`, `equipment`/`voltron`, `aristocrats`/`tokens`/`sacrifice`, `spellslinger`, `tribal`/`goblins`/`elves`/`vampires`/`dragons`/`zombies`, `blink`/`flicker`, `landfall`, `lifegain`, `reanimator`/`graveyard` |
-| **Bracket** | `bracket 2`, `hasta 3` |
-
----
-
-## Comandos completos con `deck_forge.py`
-
-```powershell
-# Analizar pool
-python deck_forge.py analyze --collection collection_enriched.json
-
-# Construir 1 mazo (con EDHREC activo por defecto)
-python deck_forge.py build `
-  --collection collection_enriched.json `
-  --real-csv real.csv `
-  --commander "Teneb, the Harvester" `
-  --output-dir .\decks
-
-# Construir sin consultar EDHREC (más rápido, scoring local)
-python deck_forge.py build `
-  --collection collection_enriched.json `
-  --real-csv real.csv `
-  --commander "Teneb, the Harvester" `
-  --output-dir .\decks `
-  --no-edhrec
-
-# Construir varios mazos
-python deck_forge.py multi `
-  --collection collection_enriched.json `
-  --real-csv real.csv `
-  --commanders "Vorel of the Hull Clade" "Eivor, Battle-Ready" "Izoni, Thousand-Eyed" `
-  --output-dir .\decks
-
-# Ver mazos guardados
-python deck_forge.py decks --output-dir .\decks
-
-# Proponer mejoras
-python deck_forge.py upgrade --deck teneb --collection collection_enriched.json --output-dir .\decks
-python deck_forge.py upgrade --deck teneb --target-bracket 2 --collection collection_enriched.json --output-dir .\decks
-python deck_forge.py upgrade --deck teneb --max-price 5 --collection collection_enriched.json --output-dir .\decks
-python deck_forge.py upgrade --deck teneb --no-purchases --collection collection_enriched.json --output-dir .\decks
-```
-
----
-
-## Cómo funciona el builder (v3)
-
-### 1. Score compuesto por carta
-
-En lugar de ordenar solo por EDHREC rank (que penaliza cartas nuevas o poco conocidas), cada carta recibe un **score compuesto**:
-
-| Componente | Peso sin EDHREC | Peso con EDHREC |
-|---|---|---|
-| Sinergia con arquetipo (oracle text) | 40% | 25% |
-| EDHREC score para este comandante | — | 40% |
-| Manabase friendliness (pips de color) | 25% | 20% |
-| Encaje en la curva actual del mazo | 20% | 15% |
-| EDHREC rank genérico | 15% | — |
-
-**Multi-rol bonus:** cartas que cumplen varios roles útiles simultáneamente (ej: ramp + draw, removal + cuerpo) reciben +15% por cada rol extra. Esto premia la versatilidad que es clave en Commander.
-
-### 2. Integración con EDHREC
-
-Al construir un mazo, el builder consulta EDHREC para el comandante específico:
-- **High synergy cards**: cartas que aparecen MÁS en listas de este comandante vs. el promedio general
-- **Top cards**: las más jugadas con este comandante
-- **Commander cards**: todas las categorías recomendadas
-
-Las recomendaciones se cruzan con tu pool real. Las cartas en EDHREC reciben score más alto; las que no aparecen reciben score neutro (0.3) — no se penalizan, porque pueden ser buenas cartas simplemente menos conocidas.
-
-Los datos se cachean en `~/.deck_forge_cache/edhrec/` durante 48h para evitar peticiones repetidas.
-
-### 3. Slots rebalanceados (v3)
-
-Los slots de cada arquetipo ahora priorizan **Ramp → Draw → Removal** antes de los slots específicos del arquetipo. Esto garantiza que el mazo siempre tenga una base funcional sólida antes de especializarse.
-
-El arquetipo Equipment pasó de 18 equipos a 12, con predicado de criaturas de soporte que requiere sinergia real (no solo CMC≤3).
-
----
-
-## El grimorio HTML
-
-Cada `build` genera/actualiza `decks/decks.html` con:
-
-- Sidebar con todos los mazos
-- Hero por mazo con imagen del comandante
-- Stats: cartas, CMC medio, manabase, bracket
-- Estrategia + wincons del arquetipo
-- Bracket detail con game changers, fast mana, tutores
-- Gaps para subir bracket
-- Grid de cartas con imágenes Scryfall + tooltip al hover
-- **Modal zoom** al hacer click en cualquier carta (X, Escape o click fuera)
-- **Toggle Cartas / Lista**
-- **Ordenación** por defecto, alfabético, CMC (asc/desc), tipo, popularidad EDHREC
-
-### Grimorio online
-
-```
-https://alejandrotoviedo14.github.io/deck-forge-grimorio/
-```
-
-Para actualizar tras un build:
-```powershell
-Copy-Item "decks\decks.html" -Destination "index.html" -Force
-git add index.html
-git commit -m "update grimorio"
-git push
-```
-
----
-
-## Arquetipos disponibles (9)
-
-| Key | Nombre | Slots (orden) |
-|-----|--------|---------------|
-| `counters` | +1/+1 Counters / Proliferate | Ramp → Draw → Removal → Payoffs → Threats |
-| `equipment` | Equipment Voltron | Ramp → Removal → Draw → Equipment → Synergy → Soporte |
-| `aristocrats` | Tokens / Sacrifice / Drain | Ramp → Draw → Removal → Tokens → Sac Outlets → Death Payoffs → Wincons |
-| `spellslinger` | Spellslinger / Cantrips | Payoffs → Counters → Burn → Draw → Ramp |
-| `tribal` | Tribal / Kindred | Ramp → Draw → Removal → Lords → Criaturas |
-| `blink` | Blink / ETB Abuse | Ramp → Draw → Removal → ETB Payoffs → Blink Enablers |
-| `landfall` | Landfall / Land Matters | Land Ramp → Draw → Removal → Payoffs → Threats |
-| `lifegain` | Lifegain / Life Matters | Ramp → Draw → Removal → Payoffs → Life Sources → Wincons |
-| `reanimator` | Reanimator / Graveyard | Ramp → Draw → Removal → Reanimation → Enablers → Targets |
-
----
-
-## Outputs por mazo
-
-| Archivo | Para qué sirve |
-|---------|----------------|
-| `{commander}_manabox.csv` | Importa directo en ManaBox (Settings → Import) |
-| `{commander}_moxfield.txt` | Pega en Moxfield/Archidekt al crear deck |
-| `decks/decks.html` | Grimorio local con todos los mazos |
-| `decks/decks_index.json` | Índice interno — no tocar manualmente |
-| `index.html` | Copia del grimorio para GitHub Pages |
-
----
-
-## Cache de EDHREC
-
-Los datos de EDHREC se guardan en `~/.deck_forge_cache/edhrec/` (un JSON por comandante).
-TTL: 48 horas. Para forzar re-consulta:
-
-```powershell
-Remove-Item "$env:USERPROFILE\.deck_forge_cache\edhrec\*" -Force
+├── main.py                 # FastAPI — todos los endpoints
+├── ingest.py               # Procesa CSV de ManaBox + Scryfall bulk
+├── Dockerfile              # Imagen para Railway
+├── web/
+│   ├── index.html          # Interfaz web principal (5 pestañas)
+│   └── simulator.html      # Mesa de juego interactiva
+└── core/
+    ├── pool.py             # Filtrado del pool y color identity
+    ├── classifier.py       # Detecta roles de cada carta
+    ├── archetypes.py       # 9 arquetipos con slots
+    ├── builder.py          # Ensambla el mazo (score compuesto + EDHREC + LLM)
+    ├── edhrec_advisor.py   # Integración EDHREC
+    ├── llm_critic.py       # Revisión con Claude Haiku
+    ├── bracket.py          # Estimación de bracket WotC
+    ├── exporters.py        # HTML grimorio + ManaBox CSV + Moxfield txt
+    ├── commander_score.py  # Scoring de comandantes
+    ├── deck_index.py       # Índice persistente de mazos
+    └── upgrader.py         # Análisis de gaps y mejoras
 ```
 
 ---
 
 ## Garantías
 
-- ✓ Nunca usa cartas de `fake.csv`
-- ✓ Singleton estricto (1 copia por carta)
-- ✓ Siempre 100 cartas exactas
-- ✓ Todas las cartas tienen Scryfall ID exacto → importación sin fricciones en ManaBox
-- ✓ EDHREC falla gracefully — si no hay conexión, usa scoring local sin interrumpir
+- ✅ Nunca usa cartas de `fake.csv` (proxies excluidas)
+- ✅ Singleton estricto (1 copia por carta)
+- ✅ Siempre 100 cartas exactas
+- ✅ Identidad de color validada en tres capas
+- ✅ EDHREC falla gracefully — scoring local como fallback
+- ✅ Sesiones persistentes vía PIN (Supabase)
 
 ---
 
 ## Changelog
 
 | Versión | Cambios |
-|---------|---------|
-| v1 | `analyze`, `build`, `multi`. 4 arquetipos. Pool real sin fakes. |
-| v2 | Power Score percentil 1-10. Score compuesto de comandantes. |
-| v3 | Bracket estimado real. Exporters ManaBox CSV + Moxfield txt + HTML. |
-| v4 | Scryfall Tagger opcional. Classifier v2. 5 arquetipos nuevos (9 total). |
-| v5 | `decks` + `upgrade`. Auto-detección de cookie Tagger. |
-| v6 | `upgrade` con sugerencias de compra reales desde Scryfall. `--max-price`, `--no-purchases`. |
-| v7 | HTML multi-mazo con imágenes Scryfall, roles, wincons, bracket detail. GitHub Pages. |
-| v8 | `ingest.py`: Scryfall bulk data. Segundos en lugar de minutos. Soporte para listas de texto. |
-| v9 | `forge.py`: CLI en lenguaje natural. HTML: modal zoom, toggle Cartas/Lista, ordenación. |
-| v10 | Builder v3: score compuesto (sinergia + manabase + curva + rank). Multi-rol bonus. Integración EDHREC por comandante. Slots rebalanceados: Ramp → Draw → Removal primero en todos los arquetipos. Equipment: 18→12 equipos, criaturas de soporte con sinergia real. `--no-edhrec` flag. |
+|---|---|
+| v1–v9 | CLI local: analyze, build, multi, upgrade. 9 arquetipos. Scryfall bulk. forge.py lenguaje natural. |
+| v10 | Builder v3: score compuesto, multi-rol, EDHREC por comandante. |
+| v11 | **Web app**: FastAPI + Railway. UI con 4 pestañas. Grimorio online. |
+| v12 | **UI MTG**: diseño parchment/gold, Cinzel, grimorio con imágenes y zoom. |
+| v13 | **Wincons dinámicos**: extraídos de cartas reales del mazo, no hardcodeados. |
+| v14 | **LLM Critic activo**: Claude Haiku revisa y mejora cada mazo. Guía de juego. |
+| v15 | **Colecciones guardadas**: dropdowns en todas las pestañas, comandante del análisis pre-seleccionado. |
+| v16 | **Simulador básico**: mesa de juego con mano, robar, mulligan, cementerio, exilio. |
+| v17 | **PIN de sesión**: colección + mazos guardados en Supabase, accesibles desde cualquier dispositivo. |
+| v18 | **Simulador completo**: fases de turno, pool de maná, tierras separadas, drag & drop, combate, tokens, commander zone. Mobile-first con Action Sheet. |
+| v19 | **Grimorio mejorado**: agrupación por categoría/tipo/color/plano, filtro por color, sort por color. Fix: cartas visibles tras restaurar PIN. |
+| v20 | **Color identity estricto**: 3 capas de validación — pool filter + LLM Critic validation + final safety filter. |
