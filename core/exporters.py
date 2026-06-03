@@ -279,30 +279,33 @@ def _render_html(all_decks_data: dict) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deck Forge — Grimorio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
 :root {{
-  --bg:       #0d0d0f;
-  --bg2:      #13131a;
-  --bg3:      #1a1a24;
-  --border:   #2a2a3a;
+  /* Paleta pergamino/oro unificada con la web principal */
+  --bg:       #0a0806;
+  --bg2:      #100d08;
+  --bg3:      #1a1510;
+  --border:   #3a2e1a;
   --accent:   #c9a84c;
-  --accent2:  #8b6914;
-  --text:     #e8e4d8;
-  --text2:    #9990a0;
-  --text3:    #5a5468;
-  --w: #f9f6f0; --u: #4a90d9; --b: #9b59b6; --r: #e74c3c; --g: #27ae60; --c: #95a5a6;
-  --bracket1: #5a5468; --bracket2: #27ae60; --bracket3: #f39c12; --bracket4: #e74c3c; --bracket5: #8b0000;
+  --accent2:  #7a5c1e;
+  --text:     #d4c4a0;
+  --text2:    #9a8a64;
+  --text3:    #6a5a3a;
+  --w: #f8f6e3; --u: #4a90d9; --b: #c0a0c8; --r: #e05030; --g: #40a840; --c: #aa9a7a;
+  --bracket1: #6a5a3a; --bracket2: #40a840; --bracket3: #d9a020; --bracket4: #e05030; --bracket5: #8b0000;
   --sidebar: 280px;
 }}
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{
   background: var(--bg);
   color: var(--text);
-  font-family: 'Crimson Pro', Georgia, serif;
+  font-family: 'EB Garamond', Georgia, serif;
   font-size: 16px;
   min-height: 100vh;
   display: flex;
+  background-image: radial-gradient(ellipse at 20% 0%, rgba(90,45,10,0.25) 0%, transparent 55%),
+                    radial-gradient(ellipse at 80% 100%, rgba(40,25,60,0.2) 0%, transparent 55%);
 }}
 
 /* SIDEBAR */
@@ -323,10 +326,11 @@ body {{
   border-bottom: 1px solid var(--border);
 }}
 #sidebar-header h1 {{
-  font-family: 'Cinzel', serif;
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--accent);
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #7a5c1e 0%, #c9a84c 45%, #e8c96a 60%, #c9a84c 75%, #7a5c1e 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }}
