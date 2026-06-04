@@ -650,6 +650,161 @@
   @media(prefers-reduced-motion:reduce){
     *{animation:none !important; transition:none !important;}
   }
+  /* ════════════════════════════════════════════════════════════
+     ⚔  REALMS — PASE CINEMATOGRÁFICO (v2, gana sobre lo anterior)
+     ════════════════════════════════════════════════════════════ */
+  :root{
+    --gold:#e0a93c; --gold-light:#f6cf73; --gold-deep:#a9751f; --gold-dark:#5e4416;
+    --ember:#e08a2e;
+    --ink:#ece0c6; --ink-soft:#c4b08a; --ink-mute:#8a7757;
+    --warm-0:#0f0c07; --warm-1:#181309; --warm-2:#241c11;
+    --glass:rgba(36,28,17,0.62);
+    --glass-edge:rgba(224,169,60,0.30);
+    --r:16px;
+  }
+
+  /* Fondo cálido desaturado (no negro) */
+  html{ background:
+    radial-gradient(130% 90% at 50% -15%, #2c2315 0%, #16110a 48%, #0c0905 100%) fixed; }
+  body{ background:transparent; color:var(--ink); }
+  .fx-mesh{ opacity:0.45; }
+  .fx-runes{ display:none; }          /* fuera la rejilla, look más cine */
+  .fx-vignette{ background:radial-gradient(130% 95% at 50% 0%, transparent 45%, rgba(0,0,0,0.6) 100%); }
+
+  /* ════════ HERO A SANGRE COMPLETA CON ARTE ════════ */
+  header{
+    position:relative; width:100vw; margin-left:calc(50% - 50vw);
+    min-height:78vh; padding:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; overflow:hidden;
+    border-bottom:1px solid rgba(224,169,60,0.22);
+  }
+  .header-glow{ display:none; }
+  .hero-art{
+    position:absolute; inset:0; z-index:0;
+    background-image:url('https://api.scryfall.com/cards/named?exact=Goldspan%20Dragon&format=image&version=art_crop');
+    background-size:cover; background-position:center 28%; background-repeat:no-repeat;
+    filter:saturate(0.92) contrast(1.04) brightness(0.92);
+    transform:scale(1.06); animation:heroDrift 24s ease-in-out infinite alternate;
+  }
+  @keyframes heroDrift{0%{transform:scale(1.06) translateY(0);}100%{transform:scale(1.12) translateY(-14px);}}
+  .hero-fade{
+    position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:
+      linear-gradient(180deg, rgba(15,12,7,0.55) 0%, rgba(15,12,7,0.20) 32%, rgba(15,12,7,0.72) 74%, #0c0905 100%),
+      radial-gradient(85% 70% at 50% 42%, transparent 28%, rgba(12,9,5,0.6) 100%);
+  }
+  /* contenido del hero por encima de las capas */
+  .header-emblem-wrap, header h1, .title-rule, .subtitle, .mana-deco, .pin-badge{
+    position:relative; z-index:3;
+  }
+
+  /* Emblema más sobrio (estilo wordmark de juego) */
+  .header-emblem-wrap{width:64px; height:64px; margin-bottom:0.4rem;}
+  .header-emblem{font-size:2rem; filter:drop-shadow(0 0 14px rgba(224,138,46,0.8));}
+  .emblem-ring{border-color:rgba(224,169,60,0.4);}
+  .emblem-ring.ring2{display:none;}
+
+  /* Logo: serif alto, fino, tracking AMPLIO (REALMS) */
+  header h1{
+    font-family:'Cinzel',serif; font-weight:600;
+    font-size:clamp(3.2rem,12vw,7.5rem); letter-spacing:0.20em; line-height:0.95;
+    margin-left:0.20em;  /* compensa el tracking */
+    background:linear-gradient(180deg,#fbe7bd 0%,#f6cf73 30%,#e0a93c 52%,#a9751f 72%,#f0c267 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 3px 2px rgba(0,0,0,0.7)) drop-shadow(0 0 34px rgba(224,169,60,0.4));
+  }
+  header h1::after{ -webkit-text-stroke:1px rgba(224,169,60,0.18); filter:blur(7px); }
+
+  .title-rule{margin-top:0.5rem; width:min(360px,72vw);}
+  .rule-line{background:linear-gradient(90deg,transparent,var(--gold-deep),var(--gold-light),var(--gold-deep),transparent);}
+  .rule-diamond{color:var(--gold-light); text-shadow:0 0 12px var(--gold);}
+  .subtitle{font-family:'Marcellus',serif; font-size:0.95rem; letter-spacing:0.42em; color:#d8c39a;}
+
+  .mana-deco{margin-top:1.6rem;}
+  .mana-orb{width:40px; height:40px; font-size:1rem; border-color:rgba(224,169,60,0.45);}
+
+  /* PIN como tag "Event" (lozenge) */
+  .pin-badge{
+    margin-top:1.6rem; border-radius:0;
+    clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,12px 100%,0 50%);
+    background:linear-gradient(180deg,#2a2012,#3c2d16);
+    border:none; padding:0.5rem 1.4rem;
+  }
+
+  /* ════════ NAV / TABS (estilo barra de juego) ════════ */
+  main{max-width:1040px; padding-top:1.6rem;}
+  .tabs{
+    background:rgba(20,16,10,0.72); border:1px solid rgba(224,169,60,0.18);
+    border-radius:99px; padding:5px; gap:3px; box-shadow:0 16px 40px rgba(0,0,0,0.55);
+  }
+  .tab{border-radius:99px; font-size:0.7rem; letter-spacing:0.12em;}
+  .tab:hover:not(.active){background:rgba(224,169,60,0.10); color:var(--ink);}
+  .tab.active{
+    color:#1c1305;
+    background:linear-gradient(180deg,#f6cf73,#e0a93c 55%,#a9751f);
+    box-shadow:0 4px 14px rgba(224,169,60,0.4), inset 0 1px 2px rgba(255,255,255,0.55);
+  }
+
+  /* ════════ CARDS — marco cálido + filigrana ════════ */
+  .card{
+    background:linear-gradient(165deg, rgba(40,31,18,0.80), rgba(20,15,9,0.86));
+    border:1px solid rgba(224,169,60,0.22); border-radius:var(--r);
+    box-shadow:0 24px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .card::before{background:linear-gradient(90deg,transparent,var(--gold),transparent) top/100% 2px no-repeat; opacity:0.65;}
+  /* filigrana en las 4 esquinas */
+  .card::after{
+    content:''; position:absolute; inset:10px; border-radius:calc(var(--r) - 8px); pointer-events:none;
+    border:1px solid transparent;
+    background:
+      linear-gradient(var(--gold),var(--gold)) left top/18px 1px no-repeat,
+      linear-gradient(var(--gold),var(--gold)) left top/1px 18px no-repeat,
+      linear-gradient(var(--gold),var(--gold)) right top/18px 1px no-repeat,
+      linear-gradient(var(--gold),var(--gold)) right top/1px 18px no-repeat,
+      linear-gradient(var(--gold),var(--gold)) left bottom/18px 1px no-repeat,
+      linear-gradient(var(--gold),var(--gold)) left bottom/1px 18px no-repeat,
+      linear-gradient(var(--gold),var(--gold)) right bottom/18px 1px no-repeat,
+      linear-gradient(var(--gold),var(--gold)) right bottom/1px 18px no-repeat;
+    opacity:0.5;
+  }
+  .card-title{background:linear-gradient(90deg,#f6cf73,#e0a93c); -webkit-background-clip:text; background-clip:text;}
+
+  /* ════════ BOTONES LOZENGE con borde de oro metálico ════════ */
+  button.primary{
+    border-radius:999px; border:1.6px solid transparent;
+    background:
+      linear-gradient(180deg,#2c2113,#4a3619 48%,#2c2113) padding-box,
+      linear-gradient(180deg,#f6cf73,#a9751f) border-box;
+    color:var(--gold-light); letter-spacing:0.24em;
+    box-shadow:0 12px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 1px rgba(0,0,0,0.3);
+  }
+  button.primary:hover:not(:disabled){
+    color:#fff7e0;
+    background:
+      linear-gradient(180deg,#3a2c18,#5e4620 48%,#3a2c18) padding-box,
+      linear-gradient(180deg,#fbe7bd,#c8902f) border-box;
+    box-shadow:0 16px 40px rgba(224,169,60,0.3), inset 0 1px 0 rgba(255,255,255,0.22);
+  }
+  button.secondary{border-radius:999px;}
+  .dl-btn{border-color:rgba(224,169,60,0.4);}
+  .tab, button.primary, .dl-btn{font-family:'Cinzel',serif;}
+
+  /* lozenge hexagonal para etiquetas de sección */
+  .col-selector-header, .divider{color:var(--gold-deep);}
+
+  /* stats con número dorado más cálido */
+  .stat .val{background:linear-gradient(180deg,#f6cf73,#e0a93c); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+
+  .pin-number{background:linear-gradient(180deg,#fbe7bd,#e0a93c 60%,#a9751f); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+
+  iframe{height:760px;}
+
+  @media(max-width:640px){
+    header{min-height:62vh;}
+    header h1{font-size:clamp(2.6rem,15vw,4rem); letter-spacing:0.14em;}
+    .tab{font-size:0.58rem; padding:0.6rem 0.3rem; letter-spacing:0.04em;}
+  }
   </style>
 </head>
 <body>
@@ -663,6 +818,8 @@
 </div>
 
 <header>
+  <div class="hero-art"></div>
+  <div class="hero-fade"></div>
   <div class="header-glow"></div>
   <div class="header-emblem-wrap">
     <span class="header-emblem">⚔</span>
