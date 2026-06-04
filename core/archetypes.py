@@ -242,28 +242,44 @@ SPELLSLINGER = Archetype(
     key="spellslinger",
     name="Spellslinger / Cantrips",
     description=(
-        "Mazo cargado de instants y sorceries. Payoffs por cada hechizo. "
-        "Wincons: storm-lite, burn incremental, comandante voltron con counters."
+        "Lanzamos instantes y conjuros para potenciar payoffs (tokens, daño, draw). "
+        "Referencia: Jeskai Striker (WotC precon 2025) — 15 draw, 12 payoffs, 8 ramp, 7 removal. "
+        "Wincons: ejército de tokens, daño incremental, finisher de combate (Velomachus-style)."
     ),
     commander_predicate=is_spellslinger_commander,
     auto_includes=[
-        "Counterspell", "Snapcaster Mage", "Mind's Desire",
-        "Past in Flames", "Niv-Mizzet, Parun", "Talrand, Sky Summoner",
-        "Young Pyromancer", "Guttersnipe",
+        # Core payoffs que deben estar si están disponibles
+        "Young Pyromancer", "Guttersnipe", "Monastery Mentor",
+        "Goblin Electromancer", "Veyran, Voice of Duality",
     ],
     slots=[
-        Slot("Spellslinger Payoffs", 12, cls.is_spellslinger_payoff, score_rank,
-             "Payoff", "Premia cada hechizo casteado."),
-        Slot("Counterspells", 8, cls.is_counterspell, score_low_cmc_then_rank,
-             "Counter", "Reactivo."),
-        Slot("Burn / Removal Spells", 8,
-             lambda c: cls.is_removal(c) and cls.is_instant_or_sorcery(c),
-             score_low_cmc_then_rank, "Burn/Removal", "Daño puntual."),
-        Slot("Card Draw / Cantrips", 12, cls.is_draw, score_low_cmc_then_rank,
-             "Cantrip", "Mantiene el motor."),
-        Slot("Ramp (artifact only)", 6,
+        # RAMP PRIMERO — base funcional antes que el plan específico
+        Slot("Ramp", 8,
              lambda c: cls.is_ramp(c) and has_type(c, "Artifact"),
-             score_low_cmc_then_rank, "Ramp", "Mana fix sin verde."),
+             score_low_cmc_then_rank, "Ramp",
+             "Roca de maná — garantiza curva fluida. Sol Ring + Signets son obligatorios."),
+
+        # DRAW — 15 piezas es el estándar (Jeskai Striker)
+        # Split: 5 cantrips CMC≤1 + 10 draw restante
+        Slot("Cantrips CMC 1", 5,
+             lambda c: cls.is_draw(c) and not c.get("is_land") and int(c.get("cmc") or 0) <= 1,
+             score_low_cmc_then_rank, "Cantrip",
+             "Cantrip de CMC 1 — columna vertebral de consistencia (Opt, Ponder, Preordain)."),
+        Slot("Card Draw", 10,
+             lambda c: cls.is_draw(c) and not c.get("is_land") and int(c.get("cmc") or 0) >= 2,
+             score_rank, "Draw",
+             "Draw sostenido — mantiene la mano llena en turnos medios y tardíos."),
+
+        # PAYOFFS — 12 criaturas/permanentes que se benefician de lanzar hechizos
+        Slot("Spellslinger Payoffs", 12, cls.is_spellslinger_payoff, score_rank,
+             "Payoff",
+             "Permanente que genera ventaja por cada hechizo lanzado."),
+
+        # REMOVAL — 4 single + 2 sweepers según estándar Jeskai Striker
+        Slot("Removal & Interaction", 7,
+             lambda c: cls.is_removal(c) or cls.is_sweeper(c) or cls.is_counterspell(c),
+             score_low_cmc_then_rank, "Removal",
+             "Eliminación — responde amenazas y limpia el campo cuando sea necesario."),
     ],
 )
 

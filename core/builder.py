@@ -511,9 +511,12 @@ def build_deck(
             added += 1
 
     # 7. Tierras de utilidad (objetivo: 12)
+    # Basado en Jeskai Striker (WotC precon 2025 - referencia Bracket 2):
+    # 37 tierras = 14 básicas + 23 no-básicas (12 utility + 11 duales/check)
+    # El builder pone 12 utility lands; el resto se completa con básicas.
     TARGET_UTILITY_LANDS = 12
-    TARGET_BASICS         = 26   # básicas objetivo (~38 tierras totales)
-    TARGET_NON_LANDS      = 99 - TARGET_UTILITY_LANDS - TARGET_BASICS  # = 61
+    TARGET_BASICS         = 25   # básicas objetivo (14 básicas del estándar, ajustadas por utility)
+    TARGET_NON_LANDS      = 99 - TARGET_UTILITY_LANDS - TARGET_BASICS  # = 62
 
     utility_lands = [
         c for c in pool

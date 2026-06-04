@@ -180,7 +180,25 @@ class LLMCritic:
         else:
             reserved_section = ""
 
-        return f"""You are a world-class Magic: The Gathering Commander deck builder with deep knowledge of synergies, the metagame, and optimal deck construction. Build the OPTIMAL 99-card deck for this commander from the available card pool.
+        return f"""You are a world-class Magic: The Gathering Commander deck builder. You have deeply studied the structure of professional Wizards of the Coast precon decks.
+
+## BRACKET 2 GOLD STANDARD — JESKAI STRIKER (Official WotC Precon 2025)
+This is the reference structure every Bracket 2 deck must approximate:
+  RAMP: 8 pieces — Sol Ring (mandatory) + signets for each color pair + Fellwar Stone/Talisman
+  DRAW: 15 pieces — 5x CMC-1 cantrips (Opt/Ponder/Preordain) + 5x medium draw + 5x engines
+  PAYOFFS: 12 permanents that directly implement the main plan
+  REMOVAL: 4 single-target + 2 board wipes + 1 permanent removal = 7 total
+  LANDS: 37 (14+ basics so check-lands enter untapped + dual/utility mix)
+  AVG CMC: 2.8 (curve peaks at CMC 2-3; CMC 7+ only for impactful finishers)
+
+Golden rules from that analysis:
+- Sol Ring is mandatory in EVERY Commander deck without exception.
+- Include the Signets for each color pair of the commander (e.g., Izzet+Azorius+Boros for WUR).
+- 5 CMC-1 cantrips form the consistency backbone — pick any available in the colors.
+- Swords to Plowshares is the gold standard White removal; always include if playing White.
+- 2-3 tight synergy packages (2-3 cards each) beat 10 random "good" cards.
+- No tutors, no fast mana (Mana Crypt, Mox), no 2-card infinite combos in Bracket 2.
+- Every payoff card must reference the commander ability specifically, not just be generically good.
 
 ## COMMANDER
 Name: {deck.commander['name']}
@@ -200,28 +218,29 @@ Strategy: {deck.archetype.description}
 {edhrec_block}
 {reserved_section}
 ## YOUR REASONING PROCESS
-Think step by step about this specific commander:
-1. EARLY GAME (turns 1-4): What ramp and setup does it need to deploy the commander on curve?
-2. ENGINE: Which cards turn the commander's ability into repeatable card/board advantage?
-3. WIN CONDITIONS: Identify 2-3 concrete ways this deck closes games with the available cards.
-4. SYNERGY PACKAGES: Find cards with 1:N synergies — one card that powers up many others.
-5. INTERACTION: Ensure enough removal/protection to survive to the win.
-6. CURVE: Avoid clogging the curve; respect the ideal ramp/draw/removal/threat ratio.
-7. CUTS: Identify slow, conditional, or off-theme cards in the draft and replace them.
+1. RAMP FIRST: Identify Sol Ring + the 2-3 Signets for this color identity. Are they available? Pick them.
+2. CANTRIPS: Find 3-5 CMC-1 cantrips in these colors. These go in automatically.
+3. ENGINE: Which 2-3 cards directly power up the commander's specific ability?
+4. SYNERGY PACKAGES: Build 2-3 clusters of cards that reference each other AND the commander.
+5. WIN CONDITIONS: Define 2-3 concrete paths to victory using cards from the available pool.
+6. INTERACTION: 4 single removal + 2 sweepers minimum. Check Swords/Path/Abrade availability.
+7. CUTS: Remove anything with CMC 5+ that doesn't win the game or generate massive advantage.
+8. CURVE CHECK: Does the final list have a CMC average around 2.8? Adjust if higher.
 
 ## STRICT RULES
 - Every card must exist in "CARDS CURRENTLY IN DRAFT" or "ADDITIONAL CARDS AVAILABLE"
-- Respect {deck.colors} color identity strictly — every card's color identity MUST be a subset of {deck.colors}. NO EXCEPTIONS.
-- NEVER include any card from "CARDS ALREADY USED IN OTHER DECKS"
-- No duplicate card names. No basic lands. Not the commander itself.
-- Select exactly 60 non-land cards (deck = these 60 + commander + ~12 utility lands + ~27 basics = 100).
+- Color identity: EVERY card's color_identity must be a subset of {deck.colors}. ZERO EXCEPTIONS.
+- NEVER use any card from "CARDS ALREADY USED IN OTHER DECKS"
+- No duplicate names. No basic lands. Not the commander itself.
+- Select exactly 60 non-land cards (60 + ~12 utility lands + ~27 basics + commander = 100).
 
 ## OUTPUT — per-card reasoning
-For EACH card, give a SPECIFIC reason (why THIS card in THIS deck — reference the commander or a synergy, not generic) and its impact. Write reason/impact in SPANISH, concise (max ~15 words each).
+For EACH card, explain WHY it belongs in THIS specific deck (reference commander ability or synergy).
+Write reason and impact in SPANISH, max ~15 words each.
 
-Respond ONLY with valid JSON, no markdown fences, no other text:
+Respond ONLY with valid JSON, no markdown:
 {{
-  "analysis": "4-5 sentences in Spanish: the optimal game plan, the synergy packages you built around, and the main changes you made vs the draft.",
+  "analysis": "4-5 sentences in Spanish: optimal game plan, synergy packages built, main improvements vs draft.",
   "cards": [
     {{"name": "Card Name", "reason": "razón específica con esta comandante", "impact": "qué aporta al plan"}},
     ... exactly 60 cards
