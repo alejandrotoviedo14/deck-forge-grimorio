@@ -6,8 +6,18 @@
   <title>Deck Forge — Grimorio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Almendra:ital,wght@0,400;0,700;1,400&family=Almendra+Display&family=Caveat:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* ── FUENTES LOCALES DE FANTASÍA ── */
+    @font-face { font-family:'HalfElven'; src:url('/fonts/halfelven.ttf') format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:'HalfElven'; src:url('/fonts/halfelvenbold.ttf') format('truetype'); font-weight:700; font-style:normal; font-display:swap; }
+    @font-face { font-family:'HalfElven'; src:url('/fonts/halfelvencond.ttf') format('truetype'); font-weight:300; font-style:normal; font-display:swap; }
+    @font-face { font-family:'HalfElven'; src:url('/fonts/halfelvenital.ttf') format('truetype'); font-weight:400; font-style:italic; font-display:swap; }
+    @font-face { font-family:'Immortal'; src:url('/fonts/IMMORTAL.ttf') format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Immortal'; src:url('/fonts/IMMRTLT_.ttf') format('truetype'); font-weight:300; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Endor'; src:url('/fonts/ENDOR___.ttf') format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Endor'; src:url('/fonts/ENDORALT.ttf') format('truetype'); font-weight:300; font-style:normal; font-display:swap; }
+    /* ── BASE ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --gold: #c9a84c; --gold-light: #e8c96a; --gold-dark: #7a5c1e;
@@ -381,7 +391,7 @@
   .hdr-rune-top { font-size: 0.58rem; letter-spacing: 0.65em; color: var(--gold-d); margin-bottom: 0.5rem; }
 
   header h1 {
-    font-family: 'Cinzel Decorative', serif; font-weight: 700;
+    font-family: 'Immortal', 'Cinzel Decorative', serif; font-weight: 400;
     font-size: clamp(2.2rem, 7vw, 4.8rem); letter-spacing: 0.06em; line-height: 1.05;
     background: linear-gradient(180deg, #fff8e0 0%, #f0d060 25%, #c9a84c 50%, #7a5c1e 70%, #e8c96a 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
@@ -392,7 +402,7 @@
   .hdr-rule span:not(.hdr-diamond) { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-d), var(--gold), var(--gold-d), transparent); }
   .hdr-diamond { color: var(--gold); font-size: 0.7rem; text-shadow: 0 0 10px var(--gold); }
 
-  .subtitle { font-family: 'Cinzel', serif; font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink-s); }
+  .subtitle { font-family: 'HalfElven', 'Cinzel', serif; font-size: 0.82rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-s); }
 
   .mana-deco { display: flex; justify-content: center; gap: 0.85rem; margin-top: 1.6rem; }
   .mana-orb {
@@ -427,7 +437,7 @@
 
   /* TABS */
   .tabs { display: flex; gap: 4px; margin-bottom: 2.4rem; padding: 5px; background: rgba(10,8,14,0.82); border: 1px solid rgba(201,168,76,0.2); border-radius: 99px; backdrop-filter: blur(12px); box-shadow: 0 16px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04); position: sticky; top: 10px; z-index: 30; flex-wrap: wrap; }
-  .tab { flex: 1 1 auto; min-width: 80px; padding: 0.75rem 0.5rem; border-radius: 99px; background: none; border: 1px solid transparent; color: var(--ink-m); font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.2s; }
+  .tab { flex: 1 1 auto; min-width: 80px; padding: 0.75rem 0.5rem; border-radius: 99px; background: none; border: 1px solid transparent; color: var(--ink-m); font-family: 'Endor', 'Cinzel', serif; font-size: 0.72rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.2s; }
   .tab::after { content: none; }
   .tab:hover:not(.active) { color: var(--ink); background: rgba(201,168,76,0.08); }
   .tab.active { color: #1a1206; font-weight: 700; background: linear-gradient(180deg, #ffe090, #c9a84c 55%, #7a5c1e); border-color: rgba(255,240,160,0.3); box-shadow: 0 4px 16px rgba(201,168,76,0.35), inset 0 1px 2px rgba(255,255,255,0.5); transform: translateY(-1px); }
@@ -441,7 +451,7 @@
   .card { position: relative; margin-bottom: 1.8rem; padding: 2rem; background: linear-gradient(160deg, rgba(20,18,26,0.84), rgba(10,8,16,0.90)); border: 1px solid rgba(201,168,76,0.18); border-radius: var(--r); overflow: hidden; backdrop-filter: blur(8px); box-shadow: 0 20px 50px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.04); transition: transform .3s, box-shadow .3s; }
   .card::before { content: ''; position: absolute; top:0; left:0; right:0; height:2px; pointer-events:none; background: linear-gradient(90deg, transparent, var(--gold), var(--gold-l), var(--gold), transparent); opacity: 0.65; }
   .card::after { content: ''; position: absolute; inset: 10px; border-radius: calc(var(--r)-6px); pointer-events: none; background: linear-gradient(var(--gold-d),var(--gold-d)) left top/18px 1px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) left top/1px 18px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) right top/18px 1px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) right top/1px 18px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) left bottom/18px 1px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) left bottom/1px 18px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) right bottom/18px 1px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) right bottom/1px 18px no-repeat; opacity: 0.32; }
-  .card-title { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1.5rem; background: linear-gradient(90deg, #e8c96a, #c9a84c); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 0.6rem; }
+  .card-title { font-family: 'HalfElven', 'Cinzel', serif; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1.5rem; background: linear-gradient(90deg, #e8c96a, #c9a84c); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 0.6rem; }
   .card-title::before { content: '◈'; -webkit-text-fill-color: var(--gold-d); font-size: 0.72rem; }
 
   /* FORM */
@@ -457,7 +467,7 @@
   .checkbox-row label { margin:0; font-size:0.9rem; color:var(--ink-s); }
 
   /* BUTTONS */
-  button.primary { margin-top:1.8rem; width:100%; padding:1rem 2rem; border-radius:99px; background:linear-gradient(180deg,#2a2010,#47320e 48%,#2a2010); border:1.5px solid var(--gold-d); position:relative; overflow:hidden; color:var(--gold-l); font-family:'Cinzel',serif; font-size:0.88rem; font-weight:700; letter-spacing:0.22em; text-transform:uppercase; box-shadow:0 10px 26px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1); transition:transform .15s, box-shadow .25s, color .2s; }
+  button.primary { margin-top:1.8rem; width:100%; padding:1rem 2rem; border-radius:99px; background:linear-gradient(180deg,#2a2010,#47320e 48%,#2a2010); border:1.5px solid var(--gold-d); position:relative; overflow:hidden; color:var(--gold-l); font-family:'HalfElven','Cinzel',serif; font-size:0.92rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; box-shadow:0 10px 26px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1); transition:transform .15s, box-shadow .25s, color .2s; }
   button.primary::before { content:''; position:absolute; top:0; left:-120%; width:60%; height:100%; background:linear-gradient(105deg,transparent,rgba(232,201,106,0.4),transparent); transform:skewX(-18deg); transition:left .55s ease; }
   button.primary:hover:not(:disabled) { color:#fff8e0; transform:translateY(-2px); border-color:var(--gold-l); box-shadow:0 0 26px rgba(201,168,76,0.28), 0 16px 36px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18); }
   button.primary:hover:not(:disabled)::before { left:130%; }
@@ -495,7 +505,7 @@
   .stat:hover { transform:translateY(-3px); box-shadow:0 14px 30px rgba(0,0,0,0.5); }
   .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
   .stat .val { display:block; font-family:'Cinzel',serif; font-size:1.8rem; font-weight:800; background:linear-gradient(180deg,#ffe090,#c9a84c); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; line-height:1.1; }
-  .stat .lbl { display:block; margin-top:0.4rem; font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-m); }
+  .stat .lbl { display:block; margin-top:0.4rem; font-family:'Endor','Cinzel',serif; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-m); }
 
   /* TABLE */
   .table-wrap { overflow-x:auto; margin-top:1rem; border:1px solid rgba(201,168,76,0.15); border-radius:12px; }

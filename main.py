@@ -193,6 +193,11 @@ def _load_basics_from_bytes(content: bytes) -> dict:
 # Rutas estáticas
 # ---------------------------------------------------------------------------
 
+# Servir fuentes locales y assets estáticos
+_WEB_DIR = Path(__file__).parent / "web"
+if (_WEB_DIR / "fonts").exists():
+    app.mount("/fonts", StaticFiles(directory=str(_WEB_DIR / "fonts")), name="fonts")
+
 @app.get("/", response_class=HTMLResponse)
 async def index():
     ui = Path(__file__).parent / "web" / "index.html"
