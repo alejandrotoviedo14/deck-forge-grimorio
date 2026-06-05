@@ -718,7 +718,8 @@
     <button class="tab" onclick="showTab('build',this)">III. Forjar</button>
     <button class="tab" onclick="showTab('import',this)">IV. Importar</button>
     <button class="tab" onclick="showTab('grimorio',this)">V. Grimorio</button>
-    <button class="tab" onclick="openSimulator()">VI. Simular</button>
+    <button class="tab" onclick="showTab('search',this)">VI. Buscar</button>
+    <button class="tab" onclick="openSimulator()">VII. Simular</button>
   </div>
 
   <!-- ══ I. COLECCIÓN ══ -->
@@ -965,6 +966,37 @@
       <button class="primary" onclick="doImport()">✦ Importar y Analizar Mazo ✦</button>
       <div id="import-result"></div>
     </div>
+  </div>
+
+  <!-- ══ VI. BÚSQUEDA SCRYFALL ══ -->
+  <div class="panel" id="panel-search">
+    <div class="card">
+      <div class="card-title">Búsqueda Scryfall — filtrada a tu colección</div>
+      <p style="color:var(--ink-m);font-size:0.9rem;margin-bottom:1rem">
+        Usa la sintaxis completa de Scryfall. Las cartas de tu colección aparecen resaltadas.
+        Ejemplos: <code style="background:rgba(0,0,0,0.3);padding:2px 5px;border-radius:3px">type:creature color:g cmc&lt;=3 o:counter</code> ·
+        <code style="background:rgba(0,0,0,0.3);padding:2px 5px;border-radius:3px">t:instant o:"draw a card" c:u cmc=2</code>
+      </p>
+      <div style="display:flex;gap:0.75rem;align-items:flex-end">
+        <div style="flex:1">
+          <label>Consulta Scryfall</label>
+          <input type="text" id="search-query" placeholder='t:creature c:g cmc<=3 o:"enter the battlefield"'
+                 onkeydown="if(event.key==='Enter')doSearch()"/>
+        </div>
+        <button class="primary" style="margin-top:0;width:auto;padding:0.78rem 1.5rem" onclick="doSearch()">🔍 Buscar</button>
+      </div>
+      <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap" id="search-quick-btns">
+        <button class="dl-btn" onclick="quickSearch('type:instant color:u cmc<=2 oracle:\"draw a card\"')">Cantrips U ≤2</button>
+        <button class="dl-btn" onclick="quickSearch('type:artifact cmc<=3 oracle:\"add {\"')">Mana Rocks ≤3</button>
+        <button class="dl-btn" onclick="quickSearch('type:sorcery oracle:\"search your library\" oracle:\"basic land\"')">Land Ramp</button>
+        <button class="dl-btn" onclick="quickSearch('type:instant oracle:\"destroy target\" cmc<=3')">Removal ≤3</button>
+        <button class="dl-btn" onclick="quickSearch('oracle:\"destroy all creatures\"')">Board Wipes</button>
+        <button class="dl-btn" onclick="quickSearch('type:instant oracle:\"counter target\" cmc<=3')">Counterspells ≤3</button>
+      </div>
+      <div id="search-result" style="margin-top:1rem"></div>
+    </div>
+
+    <div id="search-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:0.5rem"></div>
   </div>
 
   <!-- ══ V. GRIMORIO ══ -->
@@ -1245,15 +1277,26 @@ async function doAnalyze() {
     _analyzedCommanders = data.commanders;
     updateCommanderDropdown();
 
-    const rows = data.commanders.map((c, i) => `
+    const rows = data.commanders.map((c, i) => {
+      const themes = (c.themes||[]).slice(0,3).map(t=>`<span style="font-size:0.65rem;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:3px;padding:1px 5px;margin:1px;display:inline-block">${t}</span>`).join('');
+      const combosBadge = c.combos_in_pool > 0 ? `<span style="background:rgba(39,174,96,0.15);color:#27ae60;font-size:0.62rem;padding:1px 5px;border-radius:3px;margin-left:4px">⚡${c.combos_in_pool} combos</span>` : '';
+      const relBadge = c.pool_relevance_pct > 0 ? `<span style="color:var(--text-muted);font-size:0.62rem"> ${c.pool_relevance_pct}% relevante</span>` : '';
+      const priceBadge = c.est_price_eur ? `<span style="color:#98f098;font-size:0.62rem"> ~€${c.est_price_eur}</span>` : '';
+      return `
       <tr class="clickable" onclick="selectCommanderFromTable('${c.name.replace(/'/g,"\\'")}')">
-        <td style="font-weight:500;color:var(--text)">${c.name}</td>
+        <td>
+          <div style="font-weight:500;color:var(--text)">${c.name}${combosBadge}</div>
+          <div style="margin-top:2px">${themes}</div>
+        </td>
         <td>${colorBadges(c.colors)}</td>
-        <td style="color:var(--text-muted);font-size:0.85rem">${c.archetype_name || '—'}</td>
-        <td><span style="color:var(--gold);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">${c.total_score}</span>
+        <td style="color:var(--text-muted);font-size:0.85rem">
+          ${c.archetype_name || '—'}${relBadge}${priceBadge}
+        </td>
+        <td><span style="color:var(--gold)">${c.total_score}</span>
             <span class="score-bar" style="width:${c.total_score*0.8}px"></span></td>
         <td style="color:var(--text-muted)">${c.bracket_ceiling}</td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
 
     result.innerHTML = `
       <div class="msg ok">✦ Haz click en un comandante para seleccionarlo y forjar su mazo</div>
@@ -1264,7 +1307,7 @@ async function doAnalyze() {
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Comandante</th><th>Colores</th><th>Arquetipo</th><th>Score</th><th>Bracket</th></tr></thead>
+          <thead><tr><th>Comandante</th><th>Colores</th><th>Arquetipo / Info</th><th>Score</th><th>Bracket</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>`;
@@ -1772,6 +1815,67 @@ async function doImport() {
     msg(result, 'err', '✗ Error importando: ' + e.message);
   } finally {
     btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+// ── BÚSQUEDA SCRYFALL ──
+async function doSearch() {
+  const q = document.getElementById('search-query').value.trim();
+  if (!q) return;
+  const result = document.getElementById('search-result');
+  const grid   = document.getElementById('search-grid');
+  msg(result, 'info', '<span class="spinner"></span> Buscando en Scryfall...');
+  grid.innerHTML = '';
+
+  const colId = _activeColId || '';
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&collection_id=${colId}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+
+    const inCol = data.total_in_collection;
+    const total = data.total_scryfall;
+    result.innerHTML = `<div class="msg ok">
+      ${total} resultados en Scryfall · <b>${inCol}</b> en tu colección
+      ${data.has_more ? ' (mostrando primeros 60)' : ''}
+    </div>`;
+
+    grid.innerHTML = data.results.map(c => {
+      const border = c.in_collection
+        ? 'border:2px solid rgba(39,174,96,0.6);box-shadow:0 0 10px rgba(39,174,96,0.2)'
+        : 'border:1px solid rgba(255,255,255,0.1);opacity:0.55';
+      const badge = c.in_collection
+        ? '<div style="position:absolute;top:4px;left:4px;background:rgba(39,174,96,0.9);color:#fff;font-size:0.55rem;padding:1px 5px;border-radius:3px;font-family:\'Helvetica Neue\',sans-serif">EN COLECCIÓN</div>'
+        : '';
+      const price = c.price_eur ? `<div style="font-size:0.7rem;color:#98f098;text-align:center">€${parseFloat(c.price_eur).toFixed(2)}</div>` : '';
+      const img = c.img
+        ? `<img src="${c.img}" alt="${c.name}" style="width:100%;border-radius:6px;display:block" loading="lazy">`
+        : `<div style="width:100%;aspect-ratio:2/3;background:rgba(255,255,255,0.05);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:var(--ink-m);padding:6px;text-align:center">${c.name}</div>`;
+      return `<div style="position:relative;border-radius:8px;overflow:hidden;${border};cursor:pointer;transition:transform 0.15s"
+                   onclick="zoomGrimorioCard('${c.img||''}','${c.name.replace(/'/g,'')}')"
+                   title="${c.name} — ${c.type_line}">
+        ${badge}${img}
+        <div style="font-size:0.7rem;color:var(--ink-s);padding:4px 4px 2px;text-align:center;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${c.name}</div>
+        ${price}
+      </div>`;
+    }).join('');
+
+  } catch(e) {
+    msg(result, 'err', '✗ Error: ' + e.message);
+  }
+}
+
+function quickSearch(q) {
+  document.getElementById('search-query').value = q;
+  doSearch();
+}
+
+function zoomGrimorioCard(img, name) {
+  if (!img) return;
+  const modal = document.getElementById('card-modal');
+  if (modal) {
+    document.getElementById('card-modal-img').src = img;
+    modal.classList.add('visible');
   }
 }
 

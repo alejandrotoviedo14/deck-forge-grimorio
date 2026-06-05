@@ -540,26 +540,74 @@ async def analyze(
         raise HTTPException(status_code=400, detail=f"collection JSON inválido: {e}")
 
     pool = build_real_pool(coll)
+    pool_names = {c["name"].lower() for c in pool}
+    pool_by_name = {c["name"].lower(): c for c in pool}
     max_b, reason = estimate_max_bracket_for_pool(pool)
     scores = score_commanders(pool, min_colors=min_colors, require_legal=False)
+
+    # Enriquecimiento asíncrono-ish: EDHREC themes, combos, precio, relevancia
+    # Solo para el top-N para no sobrecargar
+    enriched_commanders = []
+    for s in scores[:top]:
+        entry = {
+            "name":            s.name,
+            "colors":          s.colors,
+            "archetype":       s.archetype.key  if s.archetype else None,
+            "archetype_name":  s.archetype.name if s.archetype else None,
+            "total_score":     round(s.total_score,   1),
+            "synergy_density": round(s.synergy_density, 1),
+            "bracket_ceiling": round(s.bracket_ceiling, 2),
+            "rank_score":      round(s.rank_score, 1),
+            # Campos enriquecidos (rellenados abajo)
+            "themes":          [],
+            "combos_in_pool":  0,
+            "pool_relevance_pct": 0,
+            "est_price_eur":   None,
+        }
+
+        # Pool relevance: % de cartas del pool que EDHREC recomienda para este comandante
+        try:
+            from core.edhrec_advisor import EDHRecAdvisor
+            _adv = EDHRecAdvisor(verbose=False)
+            _edata = _adv.fetch_commander_data(s.name)
+            edhrec_names = {n.lower() for n in _edata.get("all_cards", {})}
+            if edhrec_names:
+                relevant = len(pool_names & edhrec_names)
+                entry["pool_relevance_pct"] = round(relevant / max(len(edhrec_names), 1) * 100, 1)
+            entry["themes"] = _edata.get("themes", [])[:5]
+        except Exception:
+            pass
+
+        # Combos disponibles en el pool para esta identidad
+        try:
+            from core.combo_advisor import find_combos_in_pool
+            combo_res = find_combos_in_pool(pool_names, s.colors, s.name, verbose=False)
+            entry["combos_in_pool"] = len(combo_res.get("complete", []))
+        except Exception:
+            pass
+
+        # Precio estimado: suma las top-60 cartas del pool más relevantes para este color
+        try:
+            from core.price_advisor import calculate_deck_price, card_price_eur
+            color_set = set(s.colors)
+            relevant_pool = [
+                c for c in pool
+                if set(c.get("color_identity") or []).issubset(color_set)
+            ]
+            # Tomar las 60 más populares (por edhrec_rank)
+            relevant_pool.sort(key=lambda c: c.get("edhrec_rank") or 999999)
+            price_stats = calculate_deck_price(relevant_pool[:60])
+            entry["est_price_eur"] = price_stats.get("total_eur")
+        except Exception:
+            pass
+
+        enriched_commanders.append(entry)
 
     return {
         "pool_size": len(pool),
         "max_bracket": max_b,
         "max_bracket_reason": reason,
-        "commanders": [
-            {
-                "name": s.name,
-                "colors": s.colors,
-                "archetype": s.archetype.key if s.archetype else None,
-                "archetype_name": s.archetype.name if s.archetype else None,
-                "total_score": round(s.total_score, 1),
-                "synergy_density": round(s.synergy_density, 1),
-                "bracket_ceiling": round(s.bracket_ceiling, 2),
-                "rank_score": round(s.rank_score, 1),
-            }
-            for s in scores[:top]
-        ],
+        "commanders": enriched_commanders,
     }
 
 
@@ -667,6 +715,25 @@ async def build(
         }
         for c in deck.conflicts
     ]
+
+    # ── SINERGIAS y ESTADÍSTICAS del mazo ────────────────────────────────
+    try:
+        from core.synergy_detector import detect_synergies, compute_deck_stats
+        all_deck_cards_dicts = [dc.card for dc in deck.cards]
+        synergy_packages = detect_synergies(all_deck_cards_dicts)
+        deck_stats = compute_deck_stats(all_deck_cards_dicts)
+        html_data["synergy_packages"] = synergy_packages
+        html_data["deck_stats"]       = deck_stats
+        # Mapa {nombre_carta → sinergias} para el tooltip
+        from core.synergy_detector import build_card_synergy_map
+        html_data["card_synergy_map"] = build_card_synergy_map(
+            all_deck_cards_dicts, synergy_packages
+        )
+    except Exception as e:
+        print(f"  [SYNERGY] Error: {e}")
+        html_data["synergy_packages"] = []
+        html_data["deck_stats"]       = {}
+        html_data["card_synergy_map"] = {}
 
     # ── PRECIOS del mazo ──────────────────────────────────────────────────
     try:
@@ -975,6 +1042,89 @@ async def grimorio():
     if not index.get("decks"):
         return HTMLResponse("<p>No hay mazos construidos todavía. Usa /api/build primero.</p>")
     return HTMLResponse(build_multi_html_from_index(_DECKS_DIR, index["decks"]))
+
+
+# ---------------------------------------------------------------------------
+# GET /api/search — búsqueda Scryfall filtrada a la colección del usuario
+# ---------------------------------------------------------------------------
+
+@app.get("/api/search")
+async def search_collection(
+    q: str,
+    collection_id: str | None = None,
+):
+    """
+    Busca cartas con sintaxis Scryfall y filtra a las que están en la colección.
+    Si collection_id no se pasa, devuelve resultados de Scryfall sin filtrar.
+    """
+    import urllib.request as ur
+    import urllib.parse
+
+    if not q or not q.strip():
+        raise HTTPException(status_code=400, detail="Parámetro q requerido")
+
+    UA = "Mozilla/5.0 (compatible; DeckForge/1.0)"
+
+    # 1. Buscar en Scryfall
+    url = ("https://api.scryfall.com/cards/search?"
+           + urllib.parse.urlencode({"q": q.strip(), "format": "json", "page": 1}))
+    req = ur.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
+    try:
+        with ur.urlopen(req, timeout=15) as r:
+            data = json.loads(r.read())
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Error Scryfall: {e}")
+
+    scryfall_cards = data.get("data", [])
+    total_scryfall = data.get("total_cards", len(scryfall_cards))
+
+    # 2. Filtrar a la colección si hay collection_id
+    collection_names: set[str] | None = None
+    if collection_id:
+        col_path = _SESSION_COLLECTIONS_DIR / f"{collection_id}.json"
+        if col_path.exists():
+            try:
+                col = json.loads(col_path.read_text(encoding="utf-8"))
+                collection_names = {c["name"].lower() for c in col.get("real", [])}
+            except Exception:
+                pass
+
+    def _img(sid: str) -> str:
+        if not sid or len(sid) < 2: return ""
+        return f"https://cards.scryfall.io/normal/front/{sid[0]}/{sid[1]}/{sid}.jpg"
+
+    results = []
+    for card in scryfall_cards:
+        sid  = card.get("id", "")
+        name = card.get("name", "")
+        in_collection = (
+            collection_names is None or
+            name.lower() in collection_names
+        )
+        prices = card.get("prices") or {}
+        results.append({
+            "name":          name,
+            "scryfall_id":   sid,
+            "img":           _img(sid),
+            "type_line":     card.get("type_line", ""),
+            "oracle_text":   (card.get("oracle_text") or "")[:300],
+            "cmc":           int(card.get("cmc") or 0),
+            "colors":        card.get("color_identity", []),
+            "rarity":        card.get("rarity", ""),
+            "set_name":      card.get("set_name", ""),
+            "price_eur":     prices.get("eur"),
+            "in_collection": in_collection,
+        })
+
+    # Ordenar: primero las de la colección
+    results.sort(key=lambda c: (0 if c["in_collection"] else 1, c["name"]))
+
+    return {
+        "total_scryfall": total_scryfall,
+        "total_in_collection": sum(1 for c in results if c["in_collection"]),
+        "has_more": data.get("has_more", False),
+        "results": results[:60],
+    }
 
 
 # ---------------------------------------------------------------------------

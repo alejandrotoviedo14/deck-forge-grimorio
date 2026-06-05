@@ -992,6 +992,120 @@ body {{
   margin-top: 2px;
 }}
 
+/* ── DASHBOARD CHARTS ── */
+.dashboard-grid {{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}}
+.chart-box {{
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}}
+.chart-box h4 {{
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: var(--accent2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}}
+.bar-row {{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 11px;
+}}
+.bar-label {{
+  width: 32px;
+  color: var(--text3);
+  text-align: right;
+  flex-shrink: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+}}
+.bar-track {{
+  flex: 1;
+  height: 14px;
+  background: var(--bg3);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}}
+.bar-fill {{
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(.2,.8,.2,1);
+}}
+.bar-count {{
+  width: 24px;
+  text-align: right;
+  color: var(--text2);
+  font-size: 10px;
+  flex-shrink: 0;
+}}
+/* Radar chart SVG */
+.radar-container {{
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}}
+/* Synergy packages */
+.synergy-package {{
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 10px;
+}}
+.synergy-package-header {{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}}
+.synergy-icon {{
+  font-size: 18px;
+}}
+.synergy-title {{
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 600;
+}}
+.synergy-summary {{
+  font-size: 11px;
+  color: var(--text3);
+  margin-left: auto;
+}}
+.synergy-cards {{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}}
+.synergy-card-tag {{
+  background: rgba(201,168,76,0.1);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: var(--text2);
+}}
+.synergy-card-tag.trigger {{
+  border-color: rgba(201,168,76,0.4);
+  color: var(--accent);
+}}
+.synergy-sep {{
+  font-size: 10px;
+  color: var(--text3);
+  margin: 6px 0 4px;
+  font-style: italic;
+}}
 /* UPGRADE SECTION */
 .upgrade-box {{
   background: var(--bg2);
@@ -1342,6 +1456,143 @@ function setSort(sel) {{ currentSort = sel.value; applyAndRender(); }}
 function setGroup(sel) {{ currentGroup = sel.value; applyAndRender(); }}
 function setColorFilter(sel) {{ currentColorFilter = sel.value; applyAndRender(); }}
 
+// ── DASHBOARD VISUAL ──────────────────────────────────────────────
+function renderDashboard(deck) {{
+  const s = deck.deck_stats || {{}};
+  if (!s.cmc_dist) return '';
+
+  // Mana curve
+  const cmcKeys  = ['0','1','2','3','4','5','6','7+'];
+  const cmcVals  = cmcKeys.map(k => s.cmc_dist[k] || 0);
+  const cmcMax   = Math.max(...cmcVals, 1);
+  const cmcColors= ['#aaa','#27ae60','#2980b9','#8e44ad','#e67e22','#e74c3c','#c0392b','#7f0000'];
+
+  const curveBars = cmcKeys.map((k,i) => {{
+    const v = cmcVals[i];
+    const pct = Math.round(v / cmcMax * 100);
+    return `<div class="bar-row">
+      <span class="bar-label">${{k}}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${{pct}}%;background:${{cmcColors[i]}}"></div>
+      </div>
+      <span class="bar-count">${{v}}</span>
+    </div>`;
+  }}).join('');
+
+  // Type distribution
+  const typeColors = {{
+    'Criatura':'#27ae60','Instante':'#2980b9','Conjuro':'#8e44ad',
+    'Artefacto':'#95a5a6','Encantamiento':'#f39c12','Planeswalker':'#e74c3c',
+    'Tierra':'#6b8e23','Otro':'#7f8c8d'
+  }};
+  const typeEntries = Object.entries(s.type_dist || {{}}).sort((a,b)=>b[1]-a[1]);
+  const typeMax = Math.max(...typeEntries.map(e=>e[1]), 1);
+  const typeBars = typeEntries.map(([name,v]) => {{
+    const pct = Math.round(v / typeMax * 100);
+    const col = typeColors[name] || '#7f8c8d';
+    return `<div class="bar-row">
+      <span class="bar-label" style="width:76px;font-size:9px">${{name}}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${{pct}}%;background:${{col}}"></div>
+      </div>
+      <span class="bar-count">${{v}}</span>
+    </div>`;
+  }}).join('');
+
+  // Category radar (SVG spider)
+  const catKeys  = ['Ramp','Draw','Removal','Payoffs','Sweepers','Tutores'];
+  const catVals  = catKeys.map(k => s.cat_dist[k] || 0);
+  const catMax   = Math.max(...catVals, 1);
+  const catNorm  = catVals.map(v => v / catMax);
+  const cx=80, cy=80, r=60;
+  const angle = (i) => (i * 2 * Math.PI / catKeys.length) - Math.PI/2;
+  const pt = (i, scale) => [
+    cx + r * scale * Math.cos(angle(i)),
+    cy + r * scale * Math.sin(angle(i))
+  ];
+  // Grid rings
+  const rings = [0.33,0.66,1].map(scale =>
+    catKeys.map((_,i) => pt(i,scale)).map((p,i)=>(i===0?`M`:`L`)+ p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+' Z'
+  ).map(d=>`<path d="${{d}}" fill="none" stroke="rgba(201,168,76,0.15)" stroke-width="1"/>`).join('');
+  // Axes
+  const axes = catKeys.map((_,i)=>{{
+    const [x,y]=pt(i,1);
+    return `<line x1="${{cx}}" y1="${{cy}}" x2="${{x.toFixed(1)}}" y2="${{y.toFixed(1)}}" stroke="rgba(201,168,76,0.2)" stroke-width="1"/>`;
+  }}).join('');
+  // Data polygon
+  const polyPts = catNorm.map((_,i) => pt(i, Math.max(catNorm[i],0.05))).map(p=>p.join(',')).join(' ');
+  const labels = catKeys.map((k,i)=>{{
+    const [x,y]=pt(i,1.22);
+    return `<text x="${{x.toFixed(1)}}" y="${{y.toFixed(1)}}" text-anchor="middle" font-size="8" fill="var(--text3)" font-family="Cinzel,serif">${{k}}</text>`;
+  }}).join('');
+  const radarSVG = `<svg viewBox="0 0 160 160" width="160" height="160">
+    ${{rings}}${{axes}}
+    <polygon points="${{polyPts}}" fill="rgba(201,168,76,0.2)" stroke="var(--accent)" stroke-width="1.5"/>
+    ${{labels}}
+    ${{catKeys.map((_,i)=>{{const[x,y]=pt(i,catNorm[i]);return`<circle cx="${{x.toFixed(1)}}" cy="${{y.toFixed(1)}}" r="3" fill="var(--accent)"/>`;}}  ).join('')}}
+  </svg>`;
+
+  // Color distribution pips
+  const colorMap = {{'W':'#f6f2e0','U':'#3a7ab8','B':'#3a1858','R':'#c04820','G':'#287840','C':'#555'}};
+  const colorPips = Object.entries(s.color_dist||{{}}).filter(([,v])=>v>0).map(([c,v]) =>
+    `<div style="display:inline-flex;align-items:center;gap:4px;margin:3px">
+      <div style="width:16px;height:16px;border-radius:50%;background:${{colorMap[c]||'#555'}};display:inline-block"></div>
+      <span style="font-size:11px;color:var(--text2)">${{c}} ${{v}}</span>
+    </div>`
+  ).join('');
+
+  return `<div class="section">
+    <div class="section-title">📊 Dashboard del Mazo</div>
+    <div class="dashboard-grid">
+      <div class="chart-box">
+        <h4>Curva de Maná</h4>
+        ${{curveBars}}
+      </div>
+      <div class="chart-box">
+        <h4>Tipos de Carta</h4>
+        ${{typeBars}}
+      </div>
+      <div class="chart-box">
+        <h4>Categorías (radar)</h4>
+        <div class="radar-container">${{radarSVG}}</div>
+        <div style="text-align:center;margin-top:4px">
+          ${{colorPips}}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}}
+
+// ── SINERGIAS ──────────────────────────────────────────────────────────
+function renderSynergies(deck) {{
+  const packages = (deck.synergy_packages || []).slice(0,6);
+  if (!packages.length) return '';
+
+  const pkgHtml = packages.map(p => {{
+    const triggers = p.triggers.map(n =>
+      `<span class="synergy-card-tag trigger">${{n}}</span>`
+    ).join('');
+    const enablers = p.enablers.slice(0,6).map(n =>
+      `<span class="synergy-card-tag">${{n}}</span>`
+    ).join('');
+    return `<div class="synergy-package">
+      <div class="synergy-package-header">
+        <span class="synergy-icon">${{p.icon}}</span>
+        <span class="synergy-title">${{p.name_es}}</span>
+        <span class="synergy-summary">${{p.summary}}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:4px;font-style:italic">${{p.description}}</div>
+      <div class="synergy-cards">${{triggers}}</div>
+      ${{enablers ? `<div class="synergy-sep">activa con:</div><div class="synergy-cards">${{enablers}}</div>` : ''}}
+    </div>`;
+  }}).join('');
+
+  return `<div class="section">
+    <div class="section-title">🔗 Paquetes de Sinergia Detectados</div>
+    ${{pkgHtml}}
+  </div>`;
+}}
+
 function renderCardItem(c, deckConflictsMap) {{
   const icons = (c.role_icons || []).slice(0,3).join('');
   const esc = s => (s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -1350,7 +1601,9 @@ function renderCardItem(c, deckConflictsMap) {{
   const conflict = deckConflictsMap && deckConflictsMap[c.name];
 
   const peur = c.price_eur != null ? `€${{c.price_eur.toFixed(2)}}` : '';
-  const cardData = `data-name="${{esc(c.name)}}" data-type="${{esc(c.type)}}" data-oracle="${{esc(c.oracle)}}" data-role="${{esc(c.role)}}" data-just="${{esc(c.justification)}}" data-impact="${{esc(c.impact||'')}}" data-price="${{peur}}"
+  const csMap = deckConflictsMap._synergyMap || {{}};
+  const cardSynergies = csMap[c.name] ? csMap[c.name].join(' · ') : '';
+  const cardData = `data-name="${{esc(c.name)}}" data-type="${{esc(c.type)}}" data-oracle="${{esc(c.oracle)}}" data-role="${{esc(c.role)}}" data-just="${{esc(c.justification)}}" data-impact="${{esc(c.impact||'')}}" data-price="${{peur}}" data-synergies="${{esc(cardSynergies)}}"
     ${{conflict ? `data-conflict="1" data-confowner="${{esc(conflict.reserved_by)}}" data-confalt="${{esc(conflict.alternative||'')}}"` : ''}}`;
 
   const conflictBadge = conflict
@@ -1405,11 +1658,12 @@ function renderCardGroup(groupName, cards, conflictsMap) {{
 function renderDeckPanel(key, deck) {{
   const gaps = renderGaps(deck);
 
-  // Mapa de conflictos: card_name → {{reserved_by, alternative}}
+  // Mapa de conflictos + sinergias
   const conflictsMap = {{}};
   (deck.conflicts || []).forEach(c => {{
     conflictsMap[c.card] = {{ reserved_by: c.reserved_by, alternative: c.alternative }};
   }});
+  conflictsMap._synergyMap = deck.card_synergy_map || {{}};
 
   // Build grouped display
   let categoriesHtml = '';
@@ -1511,6 +1765,9 @@ function renderDeckPanel(key, deck) {{
           </div>
         </div>
       </div>` : ''}}
+
+      ${{deck.deck_stats ? renderDashboard(deck) : ''}}
+      ${{deck.synergy_packages && deck.synergy_packages.length ? renderSynergies(deck) : ''}}
 
       ${{(deck.edhrec_themes && deck.edhrec_themes.length) ? `
       <div class="section">
@@ -1737,10 +1994,11 @@ function showTooltip(e, el) {{
   const name  = el.dataset.name  || '';
   const type  = el.dataset.type  || '';
   const oracle = el.dataset.oracle || '';
-  const role     = el.dataset.role   || '';
-  const just     = el.dataset.just   || '';
-  const cardImpact = el.dataset.impact || '';
-  const price    = el.dataset.price  || '';
+  const role       = el.dataset.role      || '';
+  const just       = el.dataset.just      || '';
+  const cardImpact = el.dataset.impact    || '';
+  const price      = el.dataset.price     || '';
+  const synergies  = el.dataset.synergies || '';
   const conf  = el.dataset.conflict || '';
   const confAlt = el.dataset.confalt || '';
   const confOwner = el.dataset.confowner || '';
@@ -1773,6 +2031,14 @@ function showTooltip(e, el) {{
     body += `<div class="tt-section">
       <div class="tt-label">💰 Precio estimado</div>
       <div class="tt-impact" style="color:#98f098">${{price}}</div>
+    </div>`;
+  }}
+
+  // Sinergias con otras cartas del mazo
+  if (synergies) {{
+    body += `<div class="tt-section">
+      <div class="tt-label">🔗 Activa sinergias</div>
+      <div class="tt-text" style="color:#a880ff">${{synergies}}</div>
     </div>`;
   }}
 
