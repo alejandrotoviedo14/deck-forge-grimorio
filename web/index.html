@@ -644,6 +644,46 @@
   .card tr.clickable:hover td { background: rgba(139,106,40,0.1); }
   .card .table-wrap { border-color: rgba(139,106,40,0.3); }
 
+  /* ── SIMPLIFICACIONES UI ── */
+  .card-desc { font-size:0.92rem; color:var(--ink-m); line-height:1.6; margin-bottom:0.4rem; }
+
+  /* Chips de búsqueda rápida */
+  .chip {
+    padding:0.38rem 0.9rem; border-radius:99px; font-size:0.72rem; font-family:'Cinzel',serif;
+    letter-spacing:0.06em; cursor:pointer; transition:all .18s;
+    background:rgba(212,168,67,0.08); border:1px solid rgba(212,168,67,0.28); color:var(--gold-l);
+  }
+  .chip:hover { background:rgba(212,168,67,0.2); border-color:var(--gold-l); }
+
+  /* Tabs con emojis — más legibles */
+  .tabs { flex-wrap:wrap; gap:3px; }
+  .tab { font-size:0.75rem; letter-spacing:0.04em; }
+  @media(max-width:600px){ .tab{font-size:0.65rem;padding:0.6rem 0.3rem;} }
+
+  /* Gestor de cartas compartidas */
+  .shared-deck-block { margin-bottom:1rem; }
+  .shared-deck-name { font-family:'Cinzel',serif; font-size:0.78rem; color:var(--gold); margin-bottom:0.5rem; font-weight:600; }
+  .shared-card-row {
+    display:flex; align-items:center; gap:0.7rem; padding:0.45rem 0;
+    border-bottom:1px solid rgba(212,168,67,0.1); font-size:0.88rem;
+  }
+  .shared-card-row:last-child { border-bottom:none; }
+  .shared-card-img { width:32px; height:44px; border-radius:3px; object-fit:cover; flex-shrink:0; }
+  .shared-card-info { flex:1; min-width:0; }
+  .shared-card-name { color:var(--ink); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .shared-card-type { font-size:0.72rem; color:var(--ink-m); }
+  .shared-toggle {
+    appearance:none; width:36px; height:20px; border-radius:99px; flex-shrink:0;
+    background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.2);
+    position:relative; cursor:pointer; transition:background .2s;
+  }
+  .shared-toggle:checked { background:rgba(39,174,96,0.7); border-color:#27ae60; }
+  .shared-toggle::before {
+    content:''; position:absolute; top:2px; left:2px; width:14px; height:14px;
+    border-radius:50%; background:#fff; transition:transform .2s;
+  }
+  .shared-toggle:checked::before { transform:translateX(16px); }
+
 </style>
 </head>
 <body>
@@ -657,13 +697,10 @@
 </div>
 
 <header>
-  <!-- Arte de fondo: Wrath of God, Kev Walker -->
   <div class="hdr-art"></div>
   <div class="hdr-vignette"></div>
   <canvas id="fx-embers" class="hdr-embers"></canvas>
-
   <div class="hdr-inner">
-    <!-- Logo 5 colores MTG -->
     <svg class="mtg-5color" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <radialGradient id="gW" cx="35%" cy="30%"><stop offset="0%" stop-color="#f6f2e0"/><stop offset="100%" stop-color="#b0a878"/></radialGradient>
@@ -673,36 +710,26 @@
         <radialGradient id="gG" cx="35%" cy="30%"><stop offset="0%" stop-color="#30904a"/><stop offset="100%" stop-color="#082010"/></radialGradient>
         <filter id="glow"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       </defs>
-      <!-- Anillos -->
       <circle cx="60" cy="60" r="57" fill="none" stroke="rgba(201,168,76,0.45)" stroke-width="1"/>
       <circle cx="60" cy="60" r="51" fill="rgba(5,4,8,0.72)" stroke="rgba(201,168,76,0.2)" stroke-width="0.6"/>
-      <!-- Pentagono y estrella -->
       <polygon points="60,23 95,49 82,91 38,91 25,49" fill="none" stroke="rgba(201,168,76,0.3)" stroke-width="0.8"/>
       <polygon points="60,23 82,91 25,49 95,49 38,91" fill="none" stroke="rgba(201,168,76,0.14)" stroke-width="0.5"/>
-      <!-- W Blanco -->
       <circle cx="60" cy="23" r="13" fill="url(#gW)" stroke="#e8e0c0" stroke-width="1.2" filter="url(#glow)"/>
       <text x="60" y="28" text-anchor="middle" font-size="11" font-weight="bold" font-family="serif" fill="#1a180a">W</text>
-      <!-- U Azul -->
       <circle cx="95" cy="49" r="13" fill="url(#gU)" stroke="#4a8ad0" stroke-width="1.2" filter="url(#glow)"/>
       <text x="95" y="54" text-anchor="middle" font-size="11" font-weight="bold" font-family="serif" fill="#c0deff">U</text>
-      <!-- B Negro -->
       <circle cx="82" cy="91" r="13" fill="url(#gB)" stroke="#7a40a8" stroke-width="1.2" filter="url(#glow)"/>
       <text x="82" y="96" text-anchor="middle" font-size="11" font-weight="bold" font-family="serif" fill="#d8b8f0">B</text>
-      <!-- R Rojo -->
       <circle cx="38" cy="91" r="13" fill="url(#gR)" stroke="#d05020" stroke-width="1.2" filter="url(#glow)"/>
       <text x="38" y="96" text-anchor="middle" font-size="11" font-weight="bold" font-family="serif" fill="#ffc0a0">R</text>
-      <!-- G Verde -->
       <circle cx="25" cy="49" r="13" fill="url(#gG)" stroke="#308848" stroke-width="1.2" filter="url(#glow)"/>
       <text x="25" y="54" text-anchor="middle" font-size="11" font-weight="bold" font-family="serif" fill="#a8f0b0">G</text>
-      <!-- Centro -->
       <circle cx="60" cy="60" r="12" fill="rgba(5,4,8,0.9)" stroke="rgba(201,168,76,0.7)" stroke-width="1.2"/>
       <text x="60" y="65" text-anchor="middle" font-size="14" fill="#c9a84c">⚜</text>
     </svg>
-
     <div class="hdr-rune-top">✦ &nbsp; ✦ &nbsp; ✦</div>
     <h1>Deck Forge</h1>
     <div class="hdr-rule"><span></span><span class="hdr-diamond">◆</span><span></span></div>
-
     <div id="active-pin-badge" class="pin-badge" style="display:none">
       🔑 PIN: <b id="active-pin-value"></b>
       <button onclick="copyPin(_activePIN)" class="pin-mini-btn">copiar</button>
@@ -712,81 +739,71 @@
 </header>
 
 <main>
-  <div class="tabs">
-    <button class="tab active" onclick="showTab('setup',this)">I. Colección</button>
-    <button class="tab" onclick="showTab('analyze',this)">II. Analizar</button>
-    <button class="tab" onclick="showTab('build',this)">III. Forjar</button>
-    <button class="tab" onclick="showTab('import',this)">IV. Importar</button>
-    <button class="tab" onclick="showTab('grimorio',this)">V. Grimorio</button>
-    <button class="tab" onclick="showTab('search',this)">VI. Buscar</button>
-    <button class="tab" onclick="openSimulator()">VII. Simular</button>
-  </div>
+  <nav class="tabs">
+    <button class="tab active" onclick="showTab('setup',this)">📦 Colección</button>
+    <button class="tab" onclick="showTab('analyze',this)">🔮 Analizar</button>
+    <button class="tab" onclick="showTab('build',this)">⚔ Forjar</button>
+    <button class="tab" onclick="showTab('grimorio',this)">📖 Grimorio</button>
+    <button class="tab" onclick="showTab('search',this)">🔍 Buscar</button>
+    <button class="tab" onclick="showTab('import',this)">⬆ Importar</button>
+    <button class="tab" onclick="openSimulator()">🎮 Simular</button>
+  </nav>
 
-  <!-- ══ I. COLECCIÓN ══ -->
+  <!-- ══ COLECCIÓN ══ -->
   <div class="panel active" id="panel-setup">
-    <div class="card">
-      <div class="card-title">Invocar la Colección</div>
 
-      <div class="steps">
-        <div class="step" id="step1">
-          <div class="step-num">I</div>
-          <div class="step-text">En ManaBox: <b>Settings → Export → CSV</b></div>
+    <!-- Restaurar PIN primero (más común después de la primera vez) -->
+    <div class="card">
+      <div class="card-title">Restaurar sesión</div>
+      <p class="card-desc">¿Ya tienes un PIN? Introdúcelo para recuperar tu colección y mazos en cualquier dispositivo.</p>
+      <div style="display:flex;gap:0.75rem;align-items:flex-end">
+        <div style="flex:1">
+          <label>PIN de 6 dígitos</label>
+          <input type="text" id="pin-input" placeholder="482931" maxlength="6"
+                 style="text-align:center;letter-spacing:0.4em;font-size:1.5rem"/>
         </div>
-        <div class="step">
-          <div class="step-num">II</div>
-          <div class="step-text">Sube el archivo y dale un <b>nombre</b> para reutilizarla</div>
-        </div>
-        <div class="step">
-          <div class="step-num">III</div>
-          <div class="step-text">La colección quedará guardada y disponible en todas las pestañas</div>
-        </div>
+        <button class="primary" style="margin-top:0;width:auto;padding:0.8rem 1.4rem" onclick="doRestorePin()">Restaurar</button>
       </div>
-
-      <div class="divider">Nueva Colección</div>
-
-      <label>Nombre de la colección</label>
-      <input type="text" id="col-name" placeholder="ej. Mi Colección Mayo 2026" />
-
-      <label>Tu colección de ManaBox (archivo CSV)</label>
-      <input type="file" id="real-csv" accept=".csv" />
-
-      <button class="primary" id="btn-ingest" onclick="doIngest()">✦ Invocar Colección ✦</button>
-      <div id="ingest-result"></div>
-    </div>
-
-    <!-- Restaurar por PIN -->
-    <div class="card">
-      <div class="card-title">Restaurar Sesión con PIN</div>
-      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;margin-bottom:1rem">
-        Si ya tienes un PIN de una colección anterior, introdúcelo aquí para restaurarla en cualquier dispositivo.
-      </p>
-      <label>Tu PIN de 6 dígitos</label>
-      <input type="text" id="pin-input" placeholder="ej. 482931" maxlength="6" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:1.4rem;letter-spacing:0.3em;text-align:center" />
-      <button class="primary" onclick="doRestorePin()">✦ Restaurar Colección ✦</button>
       <div id="restore-result"></div>
     </div>
 
-    <div class="card" id="saved-collections-card">
-      <div class="card-title">Colecciones en esta Sesión</div>
-      <div id="saved-collections-list"><div class="col-empty">Ninguna colección cargada aún.</div></div>
+    <!-- Nueva colección -->
+    <div class="card">
+      <div class="card-title">Nueva colección</div>
+      <p class="card-desc">Exporta tu colección desde ManaBox: <strong>Settings → Export → CSV</strong></p>
+
+      <label>Nombre</label>
+      <input type="text" id="col-name" placeholder="Mi Colección — Junio 2026"/>
+
+      <label>Archivo CSV de ManaBox</label>
+      <input type="file" id="real-csv" accept=".csv"/>
+
+      <button class="primary" id="btn-ingest" onclick="doIngest()">✦ Subir Colección ✦</button>
+      <div id="ingest-result"></div>
     </div>
+
+    <!-- Colecciones guardadas -->
+    <div class="card" id="saved-collections-card">
+      <div class="card-title">Mis colecciones</div>
+      <div id="saved-collections-list"><p class="col-empty">Ninguna colección cargada aún.</p></div>
+    </div>
+
   </div>
 
-  <!-- ══ II. ANALIZAR ══ -->
+  <!-- ══ ANALIZAR ══ -->
   <div class="panel" id="panel-analyze">
     <div class="card">
-      <div class="card-title">Leer los Augurios</div>
+      <div class="card-title">Analizar comandantes</div>
+      <p class="card-desc">Descubre qué comandantes encajan mejor con las cartas de tu colección.</p>
 
-      <div class="col-selector">
-        <div class="col-selector-header">◆ Colección a analizar</div>
-        <select id="analyze-col-select" onchange="onAnalyzeColChange()">
-          <option value="">— Selecciona una colección —</option>
-        </select>
-      </div>
+      <label>Colección</label>
+      <select id="analyze-col-select" onchange="onAnalyzeColChange()">
+        <option value="">— Selecciona una colección —</option>
+      </select>
 
-      <div class="row">
+      <div class="row" style="margin-top:1rem">
         <div>
-          <label>Mínimo de colores</label>
+          <label>Colores mínimos</label>
           <select id="min-colors">
             <option value="2">Bicolor o más</option>
             <option value="3">Tricolor o más</option>
@@ -794,62 +811,85 @@
           </select>
         </div>
         <div>
-          <label>Comandantes a revelar</label>
-          <input type="number" id="top-n" value="20" min="5" max="100" />
+          <label>Mostrar top</label>
+          <input type="number" id="top-n" value="20" min="5" max="100"/>
         </div>
       </div>
 
-      <button class="primary" onclick="doAnalyze()">✦ Consultar el Oráculo ✦</button>
+      <button class="primary" onclick="doAnalyze()">✦ Analizar ✦</button>
       <div id="analyze-result"></div>
     </div>
   </div>
 
-  <!-- ══ III. FORJAR ══ -->
+  <!-- ══ FORJAR ══ -->
   <div class="panel" id="panel-build">
     <div class="card">
-      <div class="card-title">Forjar el Mazo</div>
+      <div class="card-title">Forjar un mazo</div>
 
-      <div class="col-selector">
-        <div class="col-selector-header">◆ Colección a usar</div>
-        <select id="build-col-select" onchange="onBuildColChange()">
-          <option value="">— Selecciona una colección —</option>
-        </select>
-      </div>
+      <label>Colección</label>
+      <select id="build-col-select" onchange="onBuildColChange()">
+        <option value="">— Selecciona una colección —</option>
+      </select>
 
       <label>Comandante</label>
       <select id="commander-select" onchange="onCommanderSelectChange()">
         <option value="">— Elige del análisis o escribe abajo —</option>
       </select>
-      <p class="hint" id="commander-hint">Ejecuta el Oráculo (pestaña II) para ver comandantes sugeridos aquí.</p>
+      <p class="hint" id="commander-hint">Analiza tu colección primero para ver sugerencias aquí.</p>
 
-      <label>O escribe el nombre exacto del comandante</label>
-      <input type="text" id="commander" placeholder="ej. Vorel of the Hull Clade" />
+      <label>O escribe el nombre exacto</label>
+      <input type="text" id="commander" placeholder="ej. Vorel of the Hull Clade"/>
 
-      <div class="row">
+      <div class="row" style="margin-top:1rem">
         <div>
-          <label>Identidad de color (si no hay comandante)</label>
-          <input type="text" id="colors" placeholder="ej. GU, WUB" />
+          <label>Identidad de color (opcional)</label>
+          <input type="text" id="colors" placeholder="ej. GU, WUB"/>
         </div>
         <div>
-          <label>Arquetipo de batalla</label>
+          <label>Arquetipo</label>
           <select id="archetype">
             <option value="">Auto-detectar</option>
-            <option value="counters">+1/+1 Counters / Proliferate</option>
+            <option value="counters">+1/+1 Counters</option>
             <option value="equipment">Equipment Voltron</option>
-            <option value="aristocrats">Tokens / Sacrificio / Drenaje</option>
-            <option value="spellslinger">Spellslinger / Cantrips</option>
+            <option value="aristocrats">Tokens / Sacrificio</option>
+            <option value="spellslinger">Spellslinger</option>
             <option value="tribal">Tribal / Kindred</option>
-            <option value="blink">Blink / ETB Abuse</option>
-            <option value="landfall">Landfall / Señor de Tierras</option>
-            <option value="lifegain">Ganancias de Vida</option>
-            <option value="reanimator">Reanimador / Cementerio</option>
+            <option value="blink">Blink / ETB</option>
+            <option value="landfall">Landfall</option>
+            <option value="lifegain">Lifegain</option>
+            <option value="reanimator">Reanimador</option>
           </select>
         </div>
       </div>
 
-      <div class="checkbox-row">
-        <input type="checkbox" id="use-edhrec" checked />
-        <label for="use-edhrec">Consultar el Grimorio de EDHREC (más lento pero más preciso)</label>
+      <div class="checkbox-row" style="margin-top:1rem">
+        <input type="checkbox" id="use-edhrec" checked/>
+        <label for="use-edhrec">Usar EDHREC para mejorar la selección de cartas</label>
+      </div>
+
+      <!-- ══ GESTOR DE CARTAS COMPARTIDAS ══ -->
+      <div id="shared-cards-manager" style="display:none;margin-top:1.4rem">
+        <div style="background:rgba(212,168,67,0.07);border:1px solid rgba(212,168,67,0.25);border-radius:10px;overflow:hidden">
+          <div style="padding:0.9rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none"
+               onclick="toggleSharedManager()">
+            <div>
+              <span style="font-weight:600;color:var(--gold)">🔗 Cartas de otros mazos</span>
+              <span id="shared-summary" style="font-size:0.82rem;color:var(--ink-m);margin-left:0.6rem"></span>
+            </div>
+            <span id="shared-toggle-icon" style="color:var(--gold)">▼</span>
+          </div>
+          <div id="shared-cards-body" style="display:none;padding:0 1rem 1rem">
+            <p style="font-size:0.85rem;color:var(--ink-m);margin-bottom:0.8rem;line-height:1.5">
+              Estas cartas ya las usas en otros mazos. Marca las que quieres <strong>permitir</strong> en este también
+              (se incluirán aunque estén repetidas). Las no marcadas se sustituirán por la mejor alternativa disponible.
+            </p>
+            <div id="shared-cards-list"></div>
+            <button class="secondary" style="margin-top:0.8rem;width:auto;padding:0.5rem 1.2rem;font-size:0.78rem"
+                    onclick="selectAllShared(true)">Permitir todas</button>
+            <button class="secondary" style="margin-top:0;margin-left:0.5rem;width:auto;padding:0.5rem 1.2rem;font-size:0.78rem"
+                    onclick="selectAllShared(false)">Excluir todas</button>
+          </div>
+        </div>
       </div>
 
       <button class="primary" onclick="doBuild()">✦ Forjar el Mazo ✦</button>
@@ -857,42 +897,93 @@
     </div>
   </div>
 
-  <!-- ══ V. SIMULADOR ══ -->
+  <!-- ══ GRIMORIO ══ -->
+  <div class="panel" id="panel-grimorio">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+        <div class="card-title" style="margin:0">Mis mazos</div>
+        <button class="primary" style="margin:0;width:auto;padding:0.7rem 1.4rem" onclick="loadGrimorio()">Abrir grimorio ✦</button>
+      </div>
+      <div id="deck-manage-list" style="margin-top:1rem"><p class="col-empty">No hay mazos todavía.</p></div>
+    </div>
+    <div class="grimorio-wrap">
+      <iframe id="grimorio-frame" src="about:blank"></iframe>
+    </div>
+  </div>
+
+  <!-- ══ BÚSQUEDA ══ -->
+  <div class="panel" id="panel-search">
+    <div class="card">
+      <div class="card-title">Buscar en Scryfall</div>
+      <p class="card-desc">Sintaxis Scryfall completa. Las cartas de tu colección aparecen resaltadas en verde.</p>
+      <div style="display:flex;gap:0.75rem;align-items:flex-end">
+        <div style="flex:1">
+          <label>Búsqueda</label>
+          <input type="text" id="search-query" placeholder='t:instant c:u cmc<=2 o:"draw a card"'
+                 onkeydown="if(event.key==='Enter')doSearch()"/>
+        </div>
+        <button class="primary" style="margin-top:0;width:auto;padding:0.8rem 1.4rem" onclick="doSearch()">Buscar</button>
+      </div>
+      <div style="display:flex;gap:0.45rem;flex-wrap:wrap;margin-top:0.75rem">
+        <button class="chip" onclick="quickSearch('type:instant color:u cmc<=2 oracle:\"draw a card\"')">Cantrips U</button>
+        <button class="chip" onclick="quickSearch('type:artifact cmc<=3 oracle:\"add {\"')">Mana Rocks</button>
+        <button class="chip" onclick="quickSearch('type:sorcery oracle:\"search your library\" oracle:\"basic land\"')">Land Ramp</button>
+        <button class="chip" onclick="quickSearch('type:instant oracle:\"destroy target\" cmc<=3')">Removal</button>
+        <button class="chip" onclick="quickSearch('oracle:\"destroy all creatures\"')">Board Wipes</button>
+        <button class="chip" onclick="quickSearch('type:instant oracle:\"counter target\" cmc<=3')">Counterspells</button>
+      </div>
+      <div id="search-result" style="margin-top:0.8rem"></div>
+    </div>
+    <div id="search-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:0.5rem"></div>
+  </div>
+
+  <!-- ══ IMPORTAR ══ -->
+  <div class="panel" id="panel-import">
+    <div class="card">
+      <div class="card-title">Importar mazo existente</div>
+      <p class="card-desc">Exporta un mazo desde ManaBox (<strong>Mi Mazo → ··· → Exportar → CSV</strong>) y súbelo para analizarlo.</p>
+
+      <label>Nombre del mazo (opcional)</label>
+      <input type="text" id="import-deck-name" placeholder="Mi Mazo Vorel"/>
+
+      <label>Comandante (si no se detecta solo)</label>
+      <input type="text" id="import-commander" placeholder="ej. Vorel of the Hull Clade"/>
+
+      <label>CSV del mazo</label>
+      <input type="file" id="import-csv" accept=".csv"/>
+
+      <button class="primary" onclick="doImport()">✦ Importar mazo ✦</button>
+      <div id="import-result"></div>
+    </div>
+  </div>
+
+  <!-- ══ SIMULADOR (básico inline) ══ -->
   <div class="panel" id="panel-sim">
     <div class="card">
-      <div class="card-title">Mesa de Juego</div>
-
-      <!-- Selector de mazo -->
+      <div class="card-title">Mesa de juego</div>
+      <p class="card-desc">El simulador completo se abre en una ventana nueva para aprovechar toda la pantalla.</p>
       <div class="col-selector" id="sim-deck-selector">
-        <div class="col-selector-header">◆ Mazo a simular</div>
+        <label>Mazo a simular</label>
         <select id="sim-deck-select">
           <option value="">— Forja un mazo primero —</option>
         </select>
-        <button class="primary" style="margin-top:1rem" onclick="startSim()">✦ Comenzar Partida ✦</button>
+        <button class="primary" style="margin-top:0.9rem" onclick="startSim()">✦ Comenzar Partida ✦</button>
       </div>
-
-      <!-- Mesa (oculta hasta que empiece la partida) -->
       <div id="sim-table" style="display:none">
-
-        <!-- Controles superiores -->
         <div class="sim-controls">
           <button class="sim-btn" onclick="simDraw()" id="btn-draw">⬇ Robar</button>
           <button class="sim-btn" onclick="simNextTurn()" id="btn-next">→ Siguiente Turno</button>
           <button class="sim-btn" onclick="showMulliganOverlay()" id="btn-mull">↩ Mulligan</button>
-          <button class="sim-btn danger" onclick="resetSim()">↺ Nueva Partida</button>
-
+          <button class="sim-btn danger" onclick="resetSim()">↺ Reset</button>
           <div class="sim-stat">Turno <b id="sim-turn">1</b></div>
           <div class="sim-stat">Mazo <b id="sim-library-count">99</b></div>
           <div class="sim-stat">Mano <b id="sim-hand-count">7</b></div>
-
           <div class="sim-life-area">
             <button class="sim-life-btn" onclick="changeLife(-1)">−</button>
             <div class="sim-life-val" id="sim-life">40</div>
             <button class="sim-life-btn" onclick="changeLife(+1)">+</button>
           </div>
         </div>
-
-        <!-- Fases -->
         <div class="sim-phase" id="sim-phases">
           <span class="phase-pip active" onclick="setPhase(this)">Inicio</span>
           <span class="phase-pip" onclick="setPhase(this)">Mantenimiento</span>
@@ -902,12 +993,8 @@
           <span class="phase-pip" onclick="setPhase(this)">Principal II</span>
           <span class="phase-pip" onclick="setPhase(this)">Final</span>
         </div>
-
-        <!-- Mano -->
         <div class="sim-zone-label">Mano <span class="sim-zone-count" id="hand-label"></span></div>
         <div class="sim-hand" id="sim-hand"></div>
-
-        <!-- Cementerio -->
         <div class="sim-zones" style="margin-top:1rem">
           <div>
             <div class="sim-zone-label">Cementerio <span class="sim-zone-count" id="gy-label"></span></div>
@@ -918,108 +1005,27 @@
             <div class="sim-gy" id="sim-exile"></div>
           </div>
         </div>
-
-        <!-- Log -->
         <div class="sim-log" id="sim-log"></div>
       </div>
     </div>
   </div>
 
-  <!-- Overlay de Mulligan -->
   <div class="sim-mulligan-overlay" id="mull-overlay">
     <div class="sim-mulligan-box">
       <h3>Mulligan de Londres</h3>
-      <p style="color:var(--text-muted);font-size:0.9rem">
-        Robas 7 cartas nuevas y devuelves <b id="mull-return-n">N</b> al fondo del mazo.
-      </p>
+      <p style="color:var(--text-muted);font-size:0.9rem">Robas 7 cartas y devuelves <b id="mull-return-n">N</b> al fondo.</p>
       <div class="sim-mulligan-input">
         <button class="sim-life-btn" onclick="changeMullN(-1)">−</button>
         <div class="sim-mulligan-n" id="mull-n-display">1</div>
         <button class="sim-life-btn" onclick="changeMullN(+1)">+</button>
       </div>
-      <p style="color:var(--text-muted);font-size:0.82rem">Cartas a devolver</p>
       <div class="sim-mull-btn-row">
         <button class="sim-btn keep-btn" onclick="doMulligan()">✦ Hacer Mulligan</button>
         <button class="sim-btn" onclick="hideMulliganOverlay()">Cancelar</button>
       </div>
     </div>
   </div>
-
-  <!-- ══ IV. IMPORTAR MAZO ══ -->
-  <div class="panel" id="panel-import">
-    <div class="card">
-      <div class="card-title">Importar Mazo de ManaBox</div>
-      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;margin-bottom:1.2rem">
-        Exporta un mazo desde ManaBox (<b style="color:var(--gold-light)">Mi Mazo → ··· → Exportar → CSV</b>),
-        súbelo aquí y lo analizaremos: arquetipo, bracket, guía de juego y conflictos con tus otros mazos.
-      </p>
-
-      <label>Nombre del mazo (opcional)</label>
-      <input type="text" id="import-deck-name" placeholder="ej. Mi Mazo Vorel"/>
-
-      <label>Comandante (si no se detecta automáticamente)</label>
-      <input type="text" id="import-commander" placeholder="ej. Vorel of the Hull Clade"/>
-
-      <label>CSV del mazo de ManaBox</label>
-      <input type="file" id="import-csv" accept=".csv"/>
-
-      <button class="primary" onclick="doImport()">✦ Importar y Analizar Mazo ✦</button>
-      <div id="import-result"></div>
-    </div>
-  </div>
-
-  <!-- ══ VI. BÚSQUEDA SCRYFALL ══ -->
-  <div class="panel" id="panel-search">
-    <div class="card">
-      <div class="card-title">Búsqueda Scryfall — filtrada a tu colección</div>
-      <p style="color:var(--ink-m);font-size:0.9rem;margin-bottom:1rem">
-        Usa la sintaxis completa de Scryfall. Las cartas de tu colección aparecen resaltadas.
-        Ejemplos: <code style="background:rgba(0,0,0,0.3);padding:2px 5px;border-radius:3px">type:creature color:g cmc&lt;=3 o:counter</code> ·
-        <code style="background:rgba(0,0,0,0.3);padding:2px 5px;border-radius:3px">t:instant o:"draw a card" c:u cmc=2</code>
-      </p>
-      <div style="display:flex;gap:0.75rem;align-items:flex-end">
-        <div style="flex:1">
-          <label>Consulta Scryfall</label>
-          <input type="text" id="search-query" placeholder='t:creature c:g cmc<=3 o:"enter the battlefield"'
-                 onkeydown="if(event.key==='Enter')doSearch()"/>
-        </div>
-        <button class="primary" style="margin-top:0;width:auto;padding:0.78rem 1.5rem" onclick="doSearch()">🔍 Buscar</button>
-      </div>
-      <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap" id="search-quick-btns">
-        <button class="dl-btn" onclick="quickSearch('type:instant color:u cmc<=2 oracle:\"draw a card\"')">Cantrips U ≤2</button>
-        <button class="dl-btn" onclick="quickSearch('type:artifact cmc<=3 oracle:\"add {\"')">Mana Rocks ≤3</button>
-        <button class="dl-btn" onclick="quickSearch('type:sorcery oracle:\"search your library\" oracle:\"basic land\"')">Land Ramp</button>
-        <button class="dl-btn" onclick="quickSearch('type:instant oracle:\"destroy target\" cmc<=3')">Removal ≤3</button>
-        <button class="dl-btn" onclick="quickSearch('oracle:\"destroy all creatures\"')">Board Wipes</button>
-        <button class="dl-btn" onclick="quickSearch('type:instant oracle:\"counter target\" cmc<=3')">Counterspells ≤3</button>
-      </div>
-      <div id="search-result" style="margin-top:1rem"></div>
-    </div>
-
-    <div id="search-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:0.5rem"></div>
-  </div>
-
-  <!-- ══ V. GRIMORIO ══ -->
-  <div class="panel" id="panel-grimorio">
-    <div class="card">
-      <div class="card-title">El Grimorio</div>
-      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6">
-        Todos los mazos forjados e importados en esta sesión.
-      </p>
-      <button class="primary" style="margin-top:1.2rem" onclick="loadGrimorio()">✦ Abrir el Grimorio ✦</button>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Gestionar Mazos</div>
-      <div id="deck-manage-list"><div class="col-empty">No hay mazos todavía.</div></div>
-    </div>
-
-    <div class="grimorio-wrap">
-      <iframe id="grimorio-frame" src="about:blank"></iframe>
-    </div>
-  </div>
 </main>
-
 <footer>Deck Forge — Constructor de Mazos Commander &nbsp;✦&nbsp; Forjado con fuego arcano</footer>
 
 <script>
@@ -1039,6 +1045,7 @@ function showTab(name, btn) {
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
   if (name === 'analyze' || name === 'build') refreshCollectionSelects();
+  if (name === 'build') refreshSharedManager();
   if (name === 'sim') refreshSimDeckSelect();
   if (name === 'grimorio') renderDeckManageList();
   if (name === 'import' && _activePIN) {
@@ -1148,6 +1155,96 @@ async function onAnalyzeColChange() {
 
 async function onBuildColChange() {
   _buildColId = document.getElementById('build-col-select').value || null;
+}
+
+// ── GESTOR DE CARTAS COMPARTIDAS ──────────────────────────────────────────
+// Guarda {card_name_lower → true/false} donde true=permitir aunque esté en otro mazo
+let _sharedCardChoices = {};  // true = el usuario PERMITE compartir; false = excluir (default)
+let _sharedManagerOpen = false;
+
+async function loadSharedCardsManager() {
+  if (!_activePIN) { document.getElementById('shared-cards-manager').style.display = 'none'; return; }
+
+  // Obtener la identidad de color del comandante seleccionado
+  const cmd = document.getElementById('commander').value.trim();
+  const colors = document.getElementById('colors').value.trim() || '';
+
+  let colorParam = colors;
+  if (!colorParam && cmd) {
+    // Intentar detectar del dropdown de análisis
+    const analyzed = _analyzedCommanders.find(c => c.name === cmd);
+    if (analyzed) colorParam = analyzed.colors || '';
+  }
+
+  try {
+    const url = `/api/pin-shared-cards?pin=${encodeURIComponent(_activePIN)}${colorParam ? '&colors=' + encodeURIComponent(colorParam) : ''}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const decks = data.decks || [];
+
+    const mgr = document.getElementById('shared-cards-manager');
+    const body = document.getElementById('shared-cards-list');
+    const summary = document.getElementById('shared-summary');
+
+    if (!decks.length || decks.every(d => !d.cards.length)) {
+      mgr.style.display = 'none';
+      return;
+    }
+
+    const totalCards = decks.reduce((s, d) => s + d.cards.length, 0);
+    summary.textContent = `${totalCards} carta${totalCards !== 1 ? 's' : ''} en ${decks.length} mazo${decks.length !== 1 ? 's' : ''}`;
+    mgr.style.display = 'block';
+
+    // Render cada deck y sus cartas
+    body.innerHTML = decks.map(deck => `
+      <div class="shared-deck-block">
+        <div class="shared-deck-name">⚔ ${deck.commander}</div>
+        ${deck.cards.map(card => {
+          const key = card.name.toLowerCase();
+          const checked = _sharedCardChoices[key] !== false ? '' : '';  // default: excluir (off)
+          return `
+          <div class="shared-card-row">
+            ${card.img ? `<img class="shared-card-img" src="${card.img}" alt="${card.name}" loading="lazy">` : '<div class="shared-card-img" style="background:rgba(255,255,255,0.05)"></div>'}
+            <div class="shared-card-info">
+              <div class="shared-card-name">${card.name}</div>
+              <div class="shared-card-type">${card.type || ''} · CMC ${card.cmc}</div>
+            </div>
+            <label style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;font-size:0.75rem;color:var(--ink-m)">
+              <input type="checkbox" class="shared-toggle" data-card="${card.name.toLowerCase()}"
+                     onchange="onSharedToggle(this)" ${_sharedCardChoices[key] === true ? 'checked' : ''}>
+              Permitir
+            </label>
+          </div>`;
+        }).join('')}
+      </div>`
+    ).join('');
+
+  } catch(e) {
+    document.getElementById('shared-cards-manager').style.display = 'none';
+  }
+}
+
+function onSharedToggle(checkbox) {
+  _sharedCardChoices[checkbox.dataset.card] = checkbox.checked;
+}
+
+function toggleSharedManager() {
+  _sharedManagerOpen = !_sharedManagerOpen;
+  document.getElementById('shared-cards-body').style.display = _sharedManagerOpen ? 'block' : 'none';
+  document.getElementById('shared-toggle-icon').textContent = _sharedManagerOpen ? '▲' : '▼';
+}
+
+function selectAllShared(allow) {
+  document.querySelectorAll('.shared-toggle').forEach(cb => {
+    cb.checked = allow;
+    _sharedCardChoices[cb.dataset.card] = allow;
+  });
+}
+
+// Se llama cuando el usuario selecciona un comandante o colección en Forjar
+function refreshSharedManager() {
+  // Pequeño delay para que los valores del form se actualicen primero
+  setTimeout(loadSharedCardsManager, 200);
 }
 
 // ── INGEST ──
@@ -1373,6 +1470,7 @@ function updateCommanderDropdown() {
 function onCommanderSelectChange() {
   const val = document.getElementById('commander-select').value;
   if (val) document.getElementById('commander').value = val;
+  refreshSharedManager();
 }
 
 // ── BUILD ──
@@ -1405,9 +1503,16 @@ async function doBuild() {
   if (colors) fd.append('colors', colors);
   if (arch) fd.append('archetype', arch);
   fd.append('use_edhrec', edhrec);
-  // Pasar PIN activo para guardar el mazo en Supabase
+  // PIN para guardar en Supabase
   const activePinForBuild = _activePIN || '';
   if (activePinForBuild) fd.append('pin', activePinForBuild);
+
+  // Cartas que el usuario PERMITE compartir aunque estén en otros mazos
+  // Las no marcadas siguen siendo reservadas (se busca alternativa)
+  const allowedShared = Object.entries(_sharedCardChoices)
+    .filter(([,allowed]) => allowed === true)
+    .map(([name]) => name);
+  if (allowedShared.length) fd.append('allowed_shared', JSON.stringify(allowedShared));
 
   try {
     const res = await fetch('/api/build', { method: 'POST', body: fd });

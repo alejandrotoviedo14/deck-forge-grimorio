@@ -622,6 +622,7 @@ async def build(
     archetype: str | None = Form(None),
     use_edhrec: bool = Form(True),
     pin: str | None = Form(None),
+    allowed_shared: str | None = Form(None),  # JSON array de nombres que el usuario permite compartir
 ):
     """Construye un mazo y devuelve HTML + exportaciones."""
     import traceback
@@ -644,6 +645,14 @@ async def build(
     basics = _load_basics_from_bytes(real_bytes)
     pool = build_real_pool(coll)
 
+    # Cartas que el usuario explícitamente permite compartir
+    user_allowed: set[str] = set()
+    if allowed_shared:
+        try:
+            user_allowed = {n.lower() for n in json.loads(allowed_shared)}
+        except Exception:
+            pass
+
     # Cargar cartas reservadas por otros mazos del mismo PIN
     reserved_cards: dict[str, str] = {}  # {card_name_lower: commander_del_mazo_dueño}
     if pin and pin.strip():
@@ -654,7 +663,7 @@ async def build(
                 dd = d.get("deck_data", {})
                 for c in dd.get("cards", []):
                     card_name = c.get("name", "")
-                    if card_name:
+                    if card_name and card_name.lower() not in user_allowed:
                         reserved_cards[card_name.lower()] = owner
         except Exception as e:
             print(f"  [RESERVED] Error cargando reservas: {e}")
@@ -1166,6 +1175,62 @@ async def delete_deck(deck_key: str, pin: str | None = None):
     if pin and pin.strip():
         supa_removed = _supa_delete_deck(pin.strip(), deck_key)
     return {"ok": True, "removed": removed, "supa_removed": supa_removed}
+
+
+# ---------------------------------------------------------------------------
+# GET /api/pin-shared-cards — cartas de otros mazos del PIN, para el gestor
+# ---------------------------------------------------------------------------
+
+@app.get("/api/pin-shared-cards")
+async def pin_shared_cards(
+    pin: str,
+    colors: str = "",        # identidad de color del mazo a construir (ej "WUR")
+):
+    """
+    Devuelve las cartas de otros mazos del PIN que también encajan
+    en la identidad de color dada. El usuario puede elegir cuáles excluir.
+    """
+    if not pin or not pin.strip():
+        return {"decks": []}
+
+    try:
+        other_decks = _supa_load_decks(pin.strip())
+    except Exception:
+        return {"decks": []}
+
+    color_set = set(colors.upper()) if colors else set()
+
+    from core.exporters import _scryfall_img
+
+    result = []
+    for d in other_decks:
+        owner = d.get("commander", d.get("deck_key", "?"))
+        deck_key = d.get("deck_key", "")
+        dd = d.get("deck_data", {})
+        shared_cards = []
+        for c in dd.get("cards", []):
+            name = c.get("name", "")
+            if not name:
+                continue
+            # Solo mostrar las que encajan en la identidad de color del nuevo mazo
+            card_ci = set(c.get("color_identity") or [])
+            if color_set and not card_ci.issubset(color_set):
+                continue
+            sid = c.get("scryfall_id") or ""
+            shared_cards.append({
+                "name": name,
+                "img":  _scryfall_img(sid),
+                "type": c.get("type_line", ""),
+                "cmc":  int(c.get("cmc") or 0),
+            })
+        if shared_cards:
+            result.append({
+                "deck_key": deck_key,
+                "commander": owner,
+                "cards": sorted(shared_cards, key=lambda x: x["cmc"]),
+            })
+
+    return {"decks": result}
 
 
 # ---------------------------------------------------------------------------
