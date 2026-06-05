@@ -1374,7 +1374,7 @@ async function doAnalyze() {
     _analyzedCommanders = data.commanders;
     updateCommanderDropdown();
 
-= `    const rows = data.commanders.map((c, i) => {
+const rows = data.commanders.map((c, i) => {
       const themes = (c.themes||[]).slice(0,3).map(t=>\`<span style="font-size:0.6rem;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:3px;padding:1px 5px;margin:1px;display:inline-block">\${t}</span>\`).join('');
       const combosBadge = c.combos_in_pool > 0 ? \`<span style="background:rgba(39,174,96,0.15);color:#27ae60;font-size:0.6rem;padding:1px 5px;border-radius:3px;margin-left:3px">⚡\${c.combos_in_pool}</span>\` : '';
       const relPct = c.pool_relevance_pct || 0;
@@ -1400,24 +1400,7 @@ async function doAnalyze() {
         </td>
         <td style="color:var(--ink-m)">\${c.bracket_ceiling}</td>
       </tr>\`
-        </td>
-        <td>
-          <span style="color:var(--gold);font-weight:600">${c.total_score}</span>
-          <span class="score-bar" style="width:${Math.min(c.total_score*0.8,80)}px"></span>
-        </td>
-        <td style="color:var(--ink-m)">${c.bracket_ceiling}</td>
-      </tr>`;
     }).join('');
-        </td>
-        <td>
-          <span style="color:var(--gold);font-weight:600">${c.total_score}</span>
-          <span class="score-bar" style="width:${Math.min(c.total_score*0.8,80)}px"></span>
-        </td>
-        <td style="color:var(--ink-m)">${c.bracket_ceiling}</td>
-      </tr>`;
-    }).join('');
-    }).join('');
-
     result.innerHTML = `
       <div class="msg ok">✦ Haz click en un comandante para seleccionarlo y forjar su mazo</div>
       <div class="stat-grid">
