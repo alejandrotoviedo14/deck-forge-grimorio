@@ -186,3 +186,9 @@ Consulta EDHREC para el comandante específico y enriquece el scoring. Falla gra
 | v26 | **Usabilidad (P2)**: forjar sin re-subir CSV (se sintetiza), barra de progreso por etapas, borrar mazos, PIN persistente con auto-restauración al recargar. |
 | v27 | **Look & feel (P3)**: grimorio unificado con la estética pergamino/oro de la web. |
 | v28 | **Simulador (P4)**: selector de color en tierras multicolor, persistencia de partida (reanudar al recargar). |
+| v29 | **Referencia precon**: análisis profundo de Jeskai Striker (WotC 2025) como estándar Bracket 2. Proporciones canónicas integradas en el prompt de Claude Sonnet. |
+| v30 | **Commander Spellbook**: detección de combos completos y "a 1 carta" en cada mazo. Sección de combos en el grimorio. |
+| v31 | **Precios Scryfall**: precio por carta en tooltip, total del mazo en stats, top-10 más caras, distribución por rangos. |
+| v32 | **EDHREC themes + inclusión %**: themes como pills, % de inclusión real de cada carta en mazos reales. |
+| v33 | **Scryfall Tagger propio**: índice de 4952 cartas con 24 tags funcionales (mana-rock, cantrip, board-wipe…) construido desde oracle text. Classifier 10× más preciso. |
+| v34 | **Dashboard visual del mazo**: curva de maná, distribución de tipos, radar de categorías, colores. Sinergias detectadas (10 tipos). Análisis enriquecido de comandantes (combos, precio, themes, relevancia). Búsqueda Scryfall integrada filtrada a colección. |
