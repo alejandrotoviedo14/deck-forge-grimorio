@@ -1277,25 +1277,48 @@ async function doAnalyze() {
     _analyzedCommanders = data.commanders;
     updateCommanderDropdown();
 
-    const rows = data.commanders.map((c, i) => {
-      const themes = (c.themes||[]).slice(0,3).map(t=>`<span style="font-size:0.65rem;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:3px;padding:1px 5px;margin:1px;display:inline-block">${t}</span>`).join('');
-      const combosBadge = c.combos_in_pool > 0 ? `<span style="background:rgba(39,174,96,0.15);color:#27ae60;font-size:0.62rem;padding:1px 5px;border-radius:3px;margin-left:4px">⚡${c.combos_in_pool} combos</span>` : '';
-      const relBadge = c.pool_relevance_pct > 0 ? `<span style="color:var(--text-muted);font-size:0.62rem"> ${c.pool_relevance_pct}% relevante</span>` : '';
-      const priceBadge = c.est_price_eur ? `<span style="color:#98f098;font-size:0.62rem"> ~€${c.est_price_eur}</span>` : '';
-      return `
-      <tr class="clickable" onclick="selectCommanderFromTable('${c.name.replace(/'/g,"\\'")}')">
+= `    const rows = data.commanders.map((c, i) => {
+      const themes = (c.themes||[]).slice(0,3).map(t=>\`<span style="font-size:0.6rem;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:3px;padding:1px 5px;margin:1px;display:inline-block">\${t}</span>\`).join('');
+      const combosBadge = c.combos_in_pool > 0 ? \`<span style="background:rgba(39,174,96,0.15);color:#27ae60;font-size:0.6rem;padding:1px 5px;border-radius:3px;margin-left:3px">⚡\${c.combos_in_pool}</span>\` : '';
+      const relPct = c.pool_relevance_pct || 0;
+      const relColor = relPct >= 60 ? '#27ae60' : relPct >= 30 ? '#f39c12' : 'var(--ink-m)';
+      const priceTxt = c.est_price_eur ? \` · €\${c.est_price_eur}\` : '';
+      return \`
+      <tr class="clickable" onclick="selectCommanderFromTable('\${c.name.replace(/'/g,"\\\\'")}')">
         <td>
-          <div style="font-weight:500;color:var(--text)">${c.name}${combosBadge}</div>
-          <div style="margin-top:2px">${themes}</div>
+          <div style="font-weight:500;color:var(--ink)">\${c.name}\${combosBadge}</div>
+          <div style="margin-top:3px">\${themes}</div>
         </td>
-        <td>${colorBadges(c.colors)}</td>
-        <td style="color:var(--text-muted);font-size:0.85rem">
-          ${c.archetype_name || '—'}${relBadge}${priceBadge}
+        <td>\${colorBadges(c.colors)}</td>
+        <td style="font-size:0.85rem">
+          <div style="color:var(--ink-m)">\${c.archetype_name || '—'}</div>
+          <div style="font-size:0.72rem;margin-top:1px">
+            <span style="color:\${relColor}">\${relPct}% relevante</span>
+            <span style="color:var(--ink-m)">\${priceTxt}</span>
+          </div>
         </td>
-        <td><span style="color:var(--gold)">${c.total_score}</span>
-            <span class="score-bar" style="width:${c.total_score*0.8}px"></span></td>
-        <td style="color:var(--text-muted)">${c.bracket_ceiling}</td>
+        <td>
+          <span style="color:var(--gold);font-weight:600">\${c.total_score}</span>
+          <span class="score-bar" style="width:\${Math.min(c.total_score*0.8,80)}px"></span>
+        </td>
+        <td style="color:var(--ink-m)">\${c.bracket_ceiling}</td>
+      </tr>\`
+        </td>
+        <td>
+          <span style="color:var(--gold);font-weight:600">${c.total_score}</span>
+          <span class="score-bar" style="width:${Math.min(c.total_score*0.8,80)}px"></span>
+        </td>
+        <td style="color:var(--ink-m)">${c.bracket_ceiling}</td>
       </tr>`;
+    }).join('');
+        </td>
+        <td>
+          <span style="color:var(--gold);font-weight:600">${c.total_score}</span>
+          <span class="score-bar" style="width:${Math.min(c.total_score*0.8,80)}px"></span>
+        </td>
+        <td style="color:var(--ink-m)">${c.bracket_ceiling}</td>
+      </tr>`;
+    }).join('');
     }).join('');
 
     result.innerHTML = `

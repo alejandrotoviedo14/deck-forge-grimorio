@@ -543,7 +543,9 @@ async def analyze(
     pool_names = {c["name"].lower() for c in pool}
     pool_by_name = {c["name"].lower(): c for c in pool}
     max_b, reason = estimate_max_bracket_for_pool(pool)
-    scores = score_commanders(pool, min_colors=min_colors, require_legal=False)
+    # use_edhrec=False para el scoring inicial (ya hacemos fetch separado abajo)
+    # evitamos llamar EDHREC dos veces por comandante
+    scores = score_commanders(pool, min_colors=min_colors, require_legal=False, use_edhrec=False)
 
     # Enriquecimiento asíncrono-ish: EDHREC themes, combos, precio, relevancia
     # Solo para el top-N para no sobrecargar
@@ -559,21 +561,17 @@ async def analyze(
             "bracket_ceiling": round(s.bracket_ceiling, 2),
             "rank_score":      round(s.rank_score, 1),
             # Campos enriquecidos (rellenados abajo)
-            "themes":          [],
-            "combos_in_pool":  0,
-            "pool_relevance_pct": 0,
-            "est_price_eur":   None,
+            "themes":             [],
+            "combos_in_pool":     0,
+            "pool_relevance_pct": round(s.edhrec_relevance, 1),  # ya calculado en score
+            "est_price_eur":      None,
         }
 
-        # Pool relevance: % de cartas del pool que EDHREC recomienda para este comandante
+        # Temas EDHREC (llamada ligera usando cache ya precargado por score_commanders)
         try:
             from core.edhrec_advisor import EDHRecAdvisor
             _adv = EDHRecAdvisor(verbose=False)
             _edata = _adv.fetch_commander_data(s.name)
-            edhrec_names = {n.lower() for n in _edata.get("all_cards", {})}
-            if edhrec_names:
-                relevant = len(pool_names & edhrec_names)
-                entry["pool_relevance_pct"] = round(relevant / max(len(edhrec_names), 1) * 100, 1)
             entry["themes"] = _edata.get("themes", [])[:5]
         except Exception:
             pass
