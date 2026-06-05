@@ -678,6 +678,25 @@ async def build(
         print(f"  [PRICE] Error calculando precios: {e}")
         html_data["price"] = {}
 
+    # ── EDHREC themes e inclusión ─────────────────────────────────────────
+    try:
+        from core.edhrec_advisor import EDHRecAdvisor
+        _edhrec_adv = EDHRecAdvisor(verbose=False)
+        _edhrec_data = _edhrec_adv.fetch_commander_data(deck.commander["name"])
+        html_data["edhrec_themes"] = _edhrec_data.get("themes", [])
+        # Top 10 cartas por inclusion_pct para mostrar en el grimorio
+        all_cards = _edhrec_data.get("all_cards", {})
+        top_inc = sorted(
+            [{"name": n, "inclusion_pct": v.get("inclusion_pct", 0), "synergy": round(v.get("synergy", 0), 2)}
+             for n, v in all_cards.items() if v.get("inclusion_pct", 0) > 0],
+            key=lambda x: -x["inclusion_pct"]
+        )[:12]
+        html_data["edhrec_top_inclusion"] = top_inc
+    except Exception as e:
+        print(f"  [EDHREC THEMES] {e}")
+        html_data["edhrec_themes"] = []
+        html_data["edhrec_top_inclusion"] = []
+
     # ── COMBOS del mazo (Commander Spellbook) ─────────────────────────────
     try:
         from core.combo_advisor import find_combos_in_pool

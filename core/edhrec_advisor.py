@@ -126,9 +126,11 @@ class EDHRecAdvisor:
 
         client = self._get_client()
         result = {
-            "commander":   commander_name,
+            "commander":    commander_name,
             "high_synergy": {},
-            "all_cards":   {},  # unión de todas las fuentes
+            "all_cards":    {},   # unión de todas las fuentes
+            "themes":       [],   # themes de EDHREC para este comandante
+            "potential_decks": 0, # total de mazos con este comandante en EDHREC
         }
 
         # 1. High synergy (cartas más específicas para este comandante)
@@ -183,8 +185,39 @@ class EDHRecAdvisor:
                 print(f"  [EDHREC] WARN commander_cards: {e}")
         time.sleep(0.3)
 
+        # 4. Themes del comandante (estrategias populares: Tokens, Counters, Voltron...)
+        try:
+            raw_themes = client.get_commander_themes(commander_name)
+            if isinstance(raw_themes, list):
+                result["themes"] = [
+                    t if isinstance(t, str) else t.get("name", str(t))
+                    for t in raw_themes[:10]
+                ]
+            elif isinstance(raw_themes, dict):
+                result["themes"] = list(raw_themes.keys())[:10]
+        except Exception as e:
+            if self.verbose:
+                print(f"  [EDHREC] WARN themes: {e}")
+
+        # Calcular % de inclusión real para cada carta
+        # potential_decks = total de mazos que PODRÍAN incluir esta carta (misma identidad)
+        # inclusion % = inclusion / potential_decks * 100
+        try:
+            pot = max(
+                max((v.get("potential_decks", 1) for v in result["all_cards"].values()), default=1),
+                1
+            )
+            result["potential_decks"] = pot
+            for name, data in result["all_cards"].items():
+                pd = max(data.get("potential_decks", pot), 1)
+                inc = data.get("inclusion", 0)
+                data["inclusion_pct"] = round(min(inc / pd * 100, 100), 1)
+        except Exception:
+            pass
+
         if self.verbose:
-            print(f"  [EDHREC] Total único: {len(result['all_cards'])} cartas conocidas")
+            print(f"  [EDHREC] Total único: {len(result['all_cards'])} cartas | "
+                  f"themes: {result['themes'][:3]}")
 
         _save_cache(commander_name, result)
         return result
@@ -206,18 +239,17 @@ class EDHRecAdvisor:
         score = 0.0
 
         if hs:
-            # High synergy: peso máximo
+            # High synergy: pieza clave del arquetipo
             synergy_val = max(0, hs.get("synergy", 0))
-            potential = max(hs.get("potential_decks", 1), 1)
-            inclusion_rate = hs.get("inclusion", 0) / potential
-            hs_score = 0.6 * synergy_val + 0.4 * min(inclusion_rate, 1.0)
-            score = 0.4 + hs_score * 0.6  # base 0.4, max 1.0
+            inc_pct = hs.get("inclusion_pct", 0) / 100.0   # 0..1
+            # Combinamos: sinergia con el comandante + qué % de mazos la usan
+            hs_score = 0.55 * synergy_val + 0.45 * inc_pct
+            score = 0.40 + hs_score * 0.60   # base 0.4, max 1.0
         elif ac:
-            # En all_cards pero no high_synergy: buena pero no única
+            # En all_cards pero no high_synergy: buena pero no única para este comandante
             synergy_val = max(0, ac.get("synergy", 0))
-            inclusion = ac.get("inclusion", 0)
-            inclusion_norm = min(inclusion / 1000, 1.0)
-            score = 0.35 + inclusion_norm * 0.30 + synergy_val * 0.15
+            inc_pct = ac.get("inclusion_pct", 0) / 100.0
+            score = 0.30 + inc_pct * 0.35 + synergy_val * 0.15
 
         return min(score, 1.0)
 

@@ -271,6 +271,12 @@ def _build_deck_data_json(deck: BuiltDeck, bracket: BracketReport) -> dict:
         "needed_basics": deck.needed_basics,
         "categories": categories,
         "gameplay_guide": getattr(deck, "gameplay_guide", ""),
+        # Estos campos se añaden después en main.py:
+        # "price": {...}   — calculate_deck_price()
+        # "combos": {...}  — find_combos_in_pool()
+        # "conflicts": [...] — deck.conflicts
+        # "edhrec_themes": [...] — EDHREC themes
+        # "edhrec_inclusion": {...} — top cards con %
     }
 
 
@@ -1502,6 +1508,30 @@ function renderDeckPanel(key, deck) {{
                 </div>`
               ).join('')}}
             </div>
+          </div>
+        </div>
+      </div>` : ''}}
+
+      ${{(deck.edhrec_themes && deck.edhrec_themes.length) ? `
+      <div class="section">
+        <div class="section-title">📊 EDHREC — Contexto del Comandante</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="info-box">
+            <h4>Themes populares para este comandante</h4>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+              ${{(deck.edhrec_themes||[]).map(t=>
+                `<span style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);border-radius:4px;padding:3px 9px;font-size:11px;color:var(--accent)">${{t}}</span>`
+              ).join('')}}
+            </div>
+          </div>
+          <div class="info-box">
+            <h4>Cartas más incluidas en mazos similares</h4>
+            ${{(deck.edhrec_top_inclusion||[]).slice(0,8).map(c=>
+              `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border);font-size:11px">
+                <span style="color:var(--text2)">${{c.name}}</span>
+                <span style="color:var(--accent2);font-weight:600">${{c.inclusion_pct}}%</span>
+              </div>`
+            ).join('')}}
           </div>
         </div>
       </div>` : ''}}
