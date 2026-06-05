@@ -164,12 +164,41 @@ def _extract(card: dict) -> dict:
 # Procesado de CSV
 # ---------------------------------------------------------------------------
 
+def _detect_delimiter(csv_path: Path) -> str:
+    """Detecta automáticamente el delimitador del CSV (coma o punto y coma)."""
+    try:
+        with open(csv_path, encoding="utf-8") as f:
+            first_line = f.readline()
+        # Si la primera línea tiene más ';' que ',' → semicolons
+        if first_line.count(";") > first_line.count(","):
+            return ";"
+    except Exception:
+        pass
+    return ","
+
+
 def _process_csv(csv_path: Path, label: str, bulk_index: dict) -> list[dict]:
-    """Lee un CSV de ManaBox y enriquece con datos del bulk."""
+    """Lee un CSV de ManaBox y enriquece con datos del bulk.
+
+    Acepta tanto CSV con comas (formato estándar ManaBox) como con punto y coma
+    (exportación alternativa de ManaBox / región europea).
+    """
     print(f"\n  Procesando {label}: {csv_path.name}")
 
+    delimiter = _detect_delimiter(csv_path)
+    if delimiter != ",":
+        print(f"  [CSV] Delimitador detectado: '{delimiter}'")
+
     with open(csv_path, newline="", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
+        rows = list(csv.DictReader(f, delimiter=delimiter))
+
+    # Normalizar nombres de columna: strip espacios y manejar variantes
+    # Algunas exportaciones usan "Scryfall ID" otras "ScryfallID"
+    normalized = []
+    for row in rows:
+        clean = {k.strip(): v for k, v in row.items() if k}
+        normalized.append(clean)
+    rows = normalized
 
     print(f"  {len(rows)} filas encontradas")
 
