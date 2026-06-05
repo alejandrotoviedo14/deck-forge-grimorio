@@ -1374,33 +1374,37 @@ async function doAnalyze() {
     _analyzedCommanders = data.commanders;
     updateCommanderDropdown();
 
-const rows = data.commanders.map((c, i) => {
-      const themes = (c.themes||[]).slice(0,3).map(t=>\`<span style="font-size:0.6rem;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:3px;padding:1px 5px;margin:1px;display:inline-block">\${t}</span>\`).join('');
-      const combosBadge = c.combos_in_pool > 0 ? \`<span style="background:rgba(39,174,96,0.15);color:#27ae60;font-size:0.6rem;padding:1px 5px;border-radius:3px;margin-left:3px">⚡\${c.combos_in_pool}</span>\` : '';
-      const relPct = c.pool_relevance_pct || 0;
-      const relColor = relPct >= 60 ? '#27ae60' : relPct >= 30 ? '#f39c12' : 'var(--ink-m)';
-      const priceTxt = c.est_price_eur ? \` · €\${c.est_price_eur}\` : '';
-      return \`
-      <tr class="clickable" onclick="selectCommanderFromTable('\${c.name.replace(/'/g,"\\\\'")}')">
-        <td>
-          <div style="font-weight:500;color:var(--ink)">\${c.name}\${combosBadge}</div>
-          <div style="margin-top:3px">\${themes}</div>
-        </td>
-        <td>\${colorBadges(c.colors)}</td>
-        <td style="font-size:0.85rem">
-          <div style="color:var(--ink-m)">\${c.archetype_name || '—'}</div>
-          <div style="font-size:0.72rem;margin-top:1px">
-            <span style="color:\${relColor}">\${relPct}% relevante</span>
-            <span style="color:var(--ink-m)">\${priceTxt}</span>
-          </div>
-        </td>
-        <td>
-          <span style="color:var(--gold);font-weight:600">\${c.total_score}</span>
-          <span class="score-bar" style="width:\${Math.min(c.total_score*0.8,80)}px"></span>
-        </td>
-        <td style="color:var(--ink-m)">\${c.bracket_ceiling}</td>
-      </tr>\`
+    const rows = data.commanders.map(function(c, i) {
+      var themes = (c.themes||[]).slice(0,3).map(function(t){
+        return '<span style="font-size:0.6rem;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:3px;padding:1px 5px;margin:1px;display:inline-block">' + t + '</span>';
+      }).join('');
+      var combosBadge = c.combos_in_pool > 0
+        ? '<span style="background:rgba(39,174,96,0.15);color:#27ae60;font-size:0.6rem;padding:1px 5px;border-radius:3px;margin-left:3px">⚡' + c.combos_in_pool + '</span>'
+        : '';
+      var relPct = c.pool_relevance_pct || 0;
+      var relColor = relPct >= 60 ? '#27ae60' : relPct >= 30 ? '#f39c12' : 'var(--ink-m)';
+      var priceTxt = c.est_price_eur ? ' · €' + c.est_price_eur : '';
+      return '<tr class="clickable" data-cmdname="' + (c.name||'').replace(/"/g,'&quot;') + '">'
+        + '<td>'
+          + '<div style="font-weight:500;color:var(--ink)">' + (c.name||'') + combosBadge + '</div>'
+          + '<div style="margin-top:3px">' + themes + '</div>'
+        + '</td>'
+        + '<td>' + colorBadges(c.colors) + '</td>'
+        + '<td style="font-size:0.85rem">'
+          + '<div style="color:var(--ink-m)">' + (c.archetype_name||'—') + '</div>'
+          + '<div style="font-size:0.72rem;margin-top:1px">'
+            + '<span style="color:' + relColor + '">' + relPct + '% relevante</span>'
+            + '<span style="color:var(--ink-m)">' + priceTxt + '</span>'
+          + '</div>'
+        + '</td>'
+        + '<td>'
+          + '<span style="color:var(--gold);font-weight:600">' + c.total_score + '</span>'
+          + '<span class="score-bar" style="width:' + Math.min(c.total_score*0.8, 80) + 'px"></span>'
+        + '</td>'
+        + '<td style="color:var(--ink-m)">' + c.bracket_ceiling + '</td>'
+        + '</tr>';
     }).join('');
+
     result.innerHTML = `
       <div class="msg ok">✦ Haz click en un comandante para seleccionarlo y forjar su mazo</div>
       <div class="stat-grid">
@@ -1411,7 +1415,7 @@ const rows = data.commanders.map((c, i) => {
       <div class="table-wrap">
         <table>
           <thead><tr><th>Comandante</th><th>Colores</th><th>Arquetipo / Info</th><th>Score</th><th>Bracket</th></tr></thead>
-          <tbody>${rows}</tbody>
+          <tbody id="commanders-tbody" onclick="handleCmdTableClick(event)">${rows}</tbody>
         </table>
       </div>`;
   } catch(e) {
@@ -1422,13 +1426,2116 @@ const rows = data.commanders.map((c, i) => {
 }
 
 function selectCommanderFromTable(name) {
-  // Resaltar fila
   document.querySelectorAll('#analyze-result tr').forEach(r => r.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
-  // Seleccionar en el dropdown de forjar
+  // Find the row with this commander name and highlight it
+  var rows = document.querySelectorAll('#analyze-result tr[data-cmdname]');
+  rows.forEach(function(r){ if(r.dataset.cmdname === name) r.classList.add('selected'); });
   document.getElementById('commander-select').value = name;
   document.getElementById('commander').value = name;
-  // Cambiar a la tab de forjar
+  document.querySelectorAll('.tab')[2].click();
+}
+
+function handleCmdTableClick(event) {
+  var row = event.target.closest('tr[data-cmdname]');
+  if (!row) return;
+  var name = row.dataset.cmdname;
+  document.querySelectorAll('#commanders-tbody tr').forEach(function(r){ r.classList.remove('selected'); });
+  row.classList.add('selected');
+  document.getElementById('commander-select').value = name;
+  document.getElementById('commander').value = name;
+  document.querySelectorAll('.tab')[2].click();
+  refreshSharedManager();
+}
+
+
+function updateCommanderDropdown() {
+  const sel = document.getElementById('commander-select');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Elige del análisis o escribe abajo —</option>';
+  _analyzedCommanders.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    opt.textContent = `${c.name} — ${c.archetype_name || '?'} (Score ${c.total_score})`;
+    sel.appendChild(opt);
+  });
+  if (current) sel.value = current;
+
+  const hint = document.getElementById('commander-hint');
+  if (_analyzedCommanders.length) {
+    hint.textContent = `${_analyzedCommanders.length} comandantes disponibles del último análisis.`;
+  }
+}
+
+function onCommanderSelectChange() {
+  const val = document.getElementById('commander-select').value;
+  if (val) document.getElementById('commander').value = val;
+  refreshSharedManager();
+}
+
+// ── BUILD ──
+async function doBuild() {
+  const colId = document.getElementById('build-col-select').value || _activeColId;
+  if (!colId) { alert('Selecciona una colección primero.'); return; }
+
+  const collData = await getCollectionData(colId);
+  if (!collData) { alert('No se pudo cargar la colección.'); return; }
+
+  const btn = event.target;
+  const result = document.getElementById('build-result');
+  setLoading(btn, true, 'Forjando el Mazo...');
+  startBuildProgress(result);
+
+  const fd = new FormData();
+  fd.append('collection', JSON.stringify(collData));
+  // El CSV ya no es necesario: el servidor lo sintetiza desde la colección.
+  // Si hay un archivo en memoria, lo enviamos (más fiel para la exportación).
+  const realFileInput = document.getElementById('real-csv');
+  if (realFileInput && realFileInput.files[0]) {
+    fd.append('real_csv', realFileInput.files[0]);
+  }
+
+  const cmd = document.getElementById('commander').value.trim();
+  const colors = document.getElementById('colors').value.trim();
+  const arch = document.getElementById('archetype').value;
+  const edhrec = document.getElementById('use-edhrec').checked;
+  if (cmd) fd.append('commander', cmd);
+  if (colors) fd.append('colors', colors);
+  if (arch) fd.append('archetype', arch);
+  fd.append('use_edhrec', edhrec);
+  // PIN para guardar en Supabase
+  const activePinForBuild = _activePIN || '';
+  if (activePinForBuild) fd.append('pin', activePinForBuild);
+
+  // Cartas que el usuario PERMITE compartir aunque estén en otros mazos
+  // Las no marcadas siguen siendo reservadas (se busca alternativa)
+  const allowedShared = Object.entries(_sharedCardChoices)
+    .filter(([,allowed]) => allowed === true)
+    .map(([name]) => name);
+  if (allowedShared.length) fd.append('allowed_shared', JSON.stringify(allowedShared));
+
+  try {
+    const res = await fetch('/api/build', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail);
+
+    _lastBuild = data;
+    const pinBadge = data.saved_to_pin
+      ? `<div class="msg ok" style="margin-top:0.5rem">✦ Mazo guardado en PIN <b>${activePinForBuild}</b> — se restaurará automáticamente</div>`
+      : activePinForBuild ? `<div class="msg err" style="margin-top:0.5rem">⚠ No se pudo guardar en Supabase</div>` : '';
+
+    // Bloque de conflictos
+    const conflicts = data.conflicts || [];
+    const conflictsHtml = conflicts.length ? `
+      <div style="margin-top:1rem;background:rgba(201,168,76,0.06);border:1px solid var(--border-gold);border-radius:6px;overflow:hidden">
+        <div style="padding:0.6rem 1rem;background:rgba(201,168,76,0.1);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:0.72rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase">
+          ⚠ ${conflicts.length} conflicto${conflicts.length>1?'s':''} con otros mazos detectado${conflicts.length>1?'s':''}
+        </div>
+        <div style="padding:0.5rem 0">
+          ${conflicts.map(c => `
+            <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-bottom:1px solid var(--border);font-size:0.88rem">
+              <div>
+                <span style="color:#ca8a8a;text-decoration:line-through">${c.card}</span>
+                <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;margin-top:2px">en mazo de <b style="color:var(--text)">${c.reserved_by}</b></div>
+              </div>
+              <div style="color:var(--gold-dark);font-size:0.8rem">→</div>
+              <div>
+                ${c.alternative
+                  ? `<span style="color:#8aca8a">${c.alternative}</span>
+                     <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;margin-top:2px">mejor alternativa disponible</div>`
+                  : `<span style="color:var(--text-muted);font-style:italic">sin alternativa — básica añadida</span>`}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>` : '';
+
+    result.innerHTML = `
+      <div class="msg ok">✦ Mazo forjado: <b>${data.commander}</b></div>
+      ${pinBadge}
+      ${conflictsHtml}
+      <div class="stat-grid">
+        <div class="stat"><span class="val">${data.card_count + data.needed_basics}</span><span class="lbl">Cartas totales</span></div>
+        <div class="stat"><span class="val">${data.bracket}</span><span class="lbl">Bracket</span></div>
+        <div class="stat"><span class="val">${data.archetype}</span><span class="lbl">Arquetipo</span></div>
+      </div>
+      <div class="divider" style="margin:1.2rem 0 0.8rem">Exportar</div>
+      <div class="dl-row">
+        <button class="dl-btn" onclick="download('${data.deck_key}_moxfield.txt', _lastBuild.moxfield_txt)">⬇ Moxfield .txt</button>
+        <button class="dl-btn" onclick="download('${data.deck_key}_manabox.csv', _lastBuild.manabox_csv)">⬇ ManaBox .csv</button>
+        <button class="dl-btn" onclick="download('grimorio.html', _lastBuild.grimorio_html)">⬇ Grimorio HTML</button>
+      </div>`;
+
+    stopBuildProgress();
+    document.getElementById('grimorio-frame').srcdoc = data.grimorio_html;
+  } catch(e) {
+    stopBuildProgress();
+    msg(result, 'err', '✗ La forja ha fallado: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+// ── Indicador de progreso por etapas (el build tarda con EDHREC + Claude) ──
+let _buildProgressTimer = null;
+function startBuildProgress(resultEl) {
+  const stages = [
+    '🔍 Analizando tu colección...',
+    '📊 Consultando EDHREC para el comandante...',
+    '🃏 Seleccionando las mejores cartas por sinergia...',
+    '🧠 Claude (Sonnet) revisando y optimizando el mazo...',
+    '✍️ Generando la guía de juego...',
+    '📜 Ensamblando el grimorio...',
+  ];
+  let i = 0;
+  const render = () => {
+    resultEl.innerHTML = `<div class="msg info">
+      <span class="spinner"></span> ${stages[i]}
+      <div style="margin-top:0.5rem;height:4px;background:var(--bg2);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${Math.round((i+1)/stages.length*100)}%;background:linear-gradient(90deg,var(--gold-dark),var(--gold));transition:width 0.6s"></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.4rem;font-style:italic">
+        Esto puede tardar 20-40 segundos — Claude está construyendo un mazo de verdad.
+      </div>
+    </div>`;
+  };
+  render();
+  _buildProgressTimer = setInterval(() => {
+    if (i < stages.length - 1) { i++; render(); }
+  }, 5000);
+}
+function stopBuildProgress() {
+  if (_buildProgressTimer) { clearInterval(_buildProgressTimer); _buildProgressTimer = null; }
+}
+
+// ── GRIMORIO ──
+async function loadGrimorio() {
+  const frame = document.getElementById('grimorio-frame');
+  const res = await fetch('/api/grimorio');
+  frame.srcdoc = await res.text();
+  renderDeckManageList();
+}
+
+async function renderDeckManageList() {
+  const cont = document.getElementById('deck-manage-list');
+  if (!cont) return;
+  let decks = [];
+  try {
+    const res = await fetch('/api/decks');
+    const data = await res.json();
+    decks = data.decks || [];
+  } catch(e) {}
+  if (!decks.length) {
+    cont.innerHTML = '<div class="col-empty">No hay mazos todavía.</div>';
+    return;
+  }
+  cont.innerHTML = decks.map(d => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+      <span>
+        <b style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:0.9rem">${d.commander}</b>
+        <span style="color:var(--text-muted);font-size:0.82rem;margin-left:0.5rem">${d.archetype||''} · B${d.bracket||'?'}</span>
+      </span>
+      <button class="dl-btn" style="border-color:#8a2a2a;color:#ca8a8a" onclick="deleteDeck('${d.key}','${(d.commander||'').replace(/'/g,'')}')">🗑 Borrar</button>
+    </div>`).join('');
+}
+
+async function deleteDeck(key, name) {
+  if (!confirm(`¿Borrar el mazo "${name}"? Esta acción no se puede deshacer.`)) return;
+  const url = '/api/decks/' + encodeURIComponent(key) + (_activePIN ? `?pin=${_activePIN}` : '');
+  try {
+    await fetch(url, { method: 'DELETE' });
+    await renderDeckManageList();
+    await loadGrimorio();
+  } catch(e) { alert('Error al borrar: ' + e.message); }
+}
+
+// ── SIMULADOR ──
+const SIM = {
+  library: [], hand: [], graveyard: [], exile: [],
+  turn: 1, life: 40, mulligans: 0,
+  commander: '', deckKey: '', mullN: 1,
+};
+
+function _builtDecks() {
+  // Retorna mazos disponibles en el índice del servidor
+  return fetch('/api/decks').then(r=>r.json()).then(d=>d.decks||[]).catch(()=>[]);
+}
+
+async function refreshSimDeckSelect() {
+  const decks = await _builtDecks();
+  const sel = document.getElementById('sim-deck-select');
+  sel.innerHTML = decks.length
+    ? '<option value="">— Selecciona un mazo —</option>' + decks.map(d=>
+        `<option value="${d.key}">${d.commander} (${d.archetype}, Bracket ${d.bracket})</option>`
+      ).join('')
+    : '<option value="">— Forja un mazo primero —</option>';
+
+  // Si hay un mazo recién forjado, seleccionarlo
+  if (_lastBuild?.deck_key) sel.value = _lastBuild.deck_key;
+}
+
+async function startSim() {
+  const key = document.getElementById('sim-deck-select').value;
+  if (!key) { alert('Selecciona un mazo para simular.'); return; }
+
+  // Intentar usar cartas del último build si coincide
+  let cards;
+  if (_lastBuild?.deck_key === key && _lastBuild?.sim_cards) {
+    cards = _lastBuild.sim_cards;
+    SIM.commander = _lastBuild.commander;
+  } else {
+    const res = await fetch(`/api/decks/${key}/cards`);
+    const data = await res.json();
+    cards = data.cards;
+    SIM.commander = data.commander;
+  }
+
+  SIM.deckKey = key;
+  SIM.library = _shuffle([...cards]);
+  SIM.hand = [];
+  SIM.graveyard = [];
+  SIM.exile = [];
+  SIM.turn = 1;
+  SIM.life = 40;
+  SIM.mulligans = 0;
+
+  // Robar mano inicial
+  for (let i = 0; i < 7; i++) SIM.hand.push(SIM.library.pop());
+
+  document.getElementById('sim-table').style.display = 'block';
+  document.getElementById('sim-deck-selector').style.display = 'none';
+  renderSim();
+  simLog(`✦ Partida iniciada con <span class="log-gold">${SIM.commander}</span>. Mano de 7 cartas.`);
+}
+
+function resetSim() {
+  SIM.library=[]; SIM.hand=[]; SIM.graveyard=[]; SIM.exile=[];
+  SIM.turn=1; SIM.life=40; SIM.mulligans=0;
+  document.getElementById('sim-table').style.display='none';
+  document.getElementById('sim-deck-selector').style.display='block';
+  document.getElementById('sim-log').innerHTML='';
+  refreshSimDeckSelect();
+}
+
+function _shuffle(arr) {
+  for (let i=arr.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function simDraw() {
+  if (!SIM.library.length) { simLog('⚠ <span class="log-gold">¡Biblioteca vacía!</span>'); return; }
+  const card = SIM.library.pop();
+  SIM.hand.push(card);
+  renderSim();
+  simLog(`Robas: <span class="log-gold">${card.name}</span>`);
+}
+
+function simNextTurn() {
+  SIM.turn++;
+  simDraw();
+  setPhase(document.querySelector('.sim-phase .phase-pip'));
+  renderSim();
+  simLog(`— <span class="log-gold">Turno ${SIM.turn}</span> —`);
+}
+
+function changeLife(delta) {
+  SIM.life += delta;
+  document.getElementById('sim-life').textContent = SIM.life;
+  if (delta < 0) simLog(`Vida: <span class="log-gold">${SIM.life}</span> (${delta})`);
+  else simLog(`Vida: <span class="log-gold">${SIM.life}</span> (+${delta})`);
+}
+
+function setPhase(el) {
+  document.querySelectorAll('.phase-pip').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function simDiscardFromHand(idx) {
+  const card = SIM.hand.splice(idx,1)[0];
+  SIM.graveyard.push(card);
+  renderSim();
+  simLog(`Descarta: <span class="log-gold">${card.name}</span>`);
+}
+
+function simExileFromHand(idx) {
+  const card = SIM.hand.splice(idx,1)[0];
+  SIM.exile.push(card);
+  renderSim();
+  simLog(`Exilia: <span class="log-gold">${card.name}</span>`);
+}
+
+function simPlayFromHand(idx) {
+  const card = SIM.hand.splice(idx,1)[0];
+  if (card.is_land) {
+    simLog(`Juega tierra: <span class="log-gold">${card.name}</span>`);
+  } else {
+    SIM.graveyard.push(card);
+    simLog(`Lanza: <span class="log-gold">${card.name}</span> (CMC ${card.cmc})`);
+  }
+  renderSim();
+}
+
+function simRecurFromGY(idx) {
+  const card = SIM.graveyard.splice(idx,1)[0];
+  SIM.hand.push(card);
+  renderSim();
+  simLog(`Reanima a mano: <span class="log-gold">${card.name}</span>`);
+}
+
+// Mulligan
+function showMulliganOverlay() {
+  SIM.mullN = SIM.mulligans + 1;
+  document.getElementById('mull-n-display').textContent = SIM.mullN;
+  document.getElementById('mull-return-n').textContent = SIM.mullN;
+  document.getElementById('mull-overlay').classList.add('visible');
+}
+function hideMulliganOverlay() {
+  document.getElementById('mull-overlay').classList.remove('visible');
+}
+function changeMullN(delta) {
+  SIM.mullN = Math.max(0, Math.min(7, SIM.mullN + delta));
+  document.getElementById('mull-n-display').textContent = SIM.mullN;
+  document.getElementById('mull-return-n').textContent = SIM.mullN;
+}
+function doMulligan() {
+  // Devolver mano a biblioteca
+  SIM.library = [...SIM.hand, ...SIM.library];
+  SIM.hand = [];
+  _shuffle(SIM.library);
+  // Robar 7
+  for (let i=0; i<7; i++) {
+    if (SIM.library.length) SIM.hand.push(SIM.library.pop());
+  }
+  // Devolver N al fondo
+  const toReturn = SIM.mullN;
+  for (let i=0; i<toReturn && SIM.hand.length; i++) {
+    const card = SIM.hand.shift(); // quita de la mano (elige la primera — el jugador elige cuál)
+    SIM.library.unshift(card);
+  }
+  SIM.mulligans++;
+  hideMulliganOverlay();
+  renderSim();
+  simLog(`↩ Mulligan #${SIM.mulligans} — mano de ${SIM.hand.length} cartas (devueltas ${toReturn}).`);
+}
+
+// Render
+function renderSim() {
+  document.getElementById('sim-turn').textContent = SIM.turn;
+  document.getElementById('sim-library-count').textContent = SIM.library.length;
+  document.getElementById('sim-hand-count').textContent = SIM.hand.length;
+  document.getElementById('sim-life').textContent = SIM.life;
+  document.getElementById('hand-label').textContent = `(${SIM.hand.length})`;
+  document.getElementById('gy-label').textContent = `(${SIM.graveyard.length})`;
+  document.getElementById('exile-label').textContent = `(${SIM.exile.length})`;
+
+  document.getElementById('sim-hand').innerHTML = SIM.hand.map((c,i) => cardHtml(c,i,'hand')).join('');
+  document.getElementById('sim-gy').innerHTML = SIM.graveyard.map((c,i) => cardHtml(c,i,'gy')).join('');
+  document.getElementById('sim-exile').innerHTML = SIM.exile.map((c,i) => cardHtml(c,i,'exile')).join('');
+}
+
+function cardHtml(card, idx, zone) {
+  const imgHtml = card.img
+    ? `<img src="${card.img}" alt="${card.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const fallback = `<div class="card-name-fallback" style="${card.img?'display:none':'display:flex'}">${card.name}</div>`;
+
+  let actions = '';
+  if (zone === 'hand') {
+    actions = `<div class="sim-card-actions">
+      <button class="sim-card-action" onclick="simPlayFromHand(${idx})">▶ Jugar</button>
+      <button class="sim-card-action" onclick="simDiscardFromHand(${idx})">🗑 Descartar</button>
+      <button class="sim-card-action" onclick="simExileFromHand(${idx})">✦ Exiliar</button>
+    </div>`;
+  } else if (zone === 'gy') {
+    actions = `<div class="sim-card-actions">
+      <button class="sim-card-action" onclick="simRecurFromGY(${idx})">↩ A mano</button>
+    </div>`;
+  }
+
+  const typeTag = card.is_land
+    ? `<div style="position:absolute;top:3px;left:3px;background:rgba(40,138,40,0.8);color:#8fa;font-size:0.5rem;padding:1px 4px;border-radius:2px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">TIERRA</div>`
+    : '';
+
+  return `<div class="sim-card" title="${card.name} — ${card.type_line}" onclick="toggleSelected(this)">
+    ${typeTag}${imgHtml}${fallback}${actions}
+  </div>`;
+}
+
+function toggleSelected(el) {
+  el.classList.toggle('selected');
+}
+
+function simLog(text) {
+  const log = document.getElementById('sim-log');
+  log.innerHTML = `<p>${text}</p>` + log.innerHTML;
+}
+
+// ── IMPORTAR MAZO ──
+async function doImport() {
+  const btn = event.target;
+  const result = document.getElementById('import-result');
+  const file = document.getElementById('import-csv').files[0];
+  if (!file) { msg(result, 'err', 'Selecciona el CSV del mazo de ManaBox.'); return; }
+
+  setLoading(btn, true, 'Analizando mazo...');
+  msg(result, 'info', '<span class="spinner"></span> Procesando cartas con Scryfall...');
+
+  const fd = new FormData();
+  fd.append('deck_csv', file);
+  const deckName = document.getElementById('import-deck-name').value.trim();
+  const cmdName  = document.getElementById('import-commander').value.trim();
+  if (deckName) fd.append('deck_name', deckName);
+  if (cmdName)  fd.append('commander', cmdName);
+  if (_activePIN) fd.append('pin', _activePIN);
+
+  try {
+    const res  = await fetch('/api/import-deck', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+
+    // Actualizar grimorio
+    document.getElementById('grimorio-frame').srcdoc = data.grimorio_html;
+
+    // Bloque de conflictos
+    const conflicts = data.conflicts || [];
+    const conflictsHtml = conflicts.length ? `
+      <div style="margin-top:1rem;background:rgba(201,168,76,0.06);border:1px solid var(--border-gold);border-radius:6px;overflow:hidden">
+        <div style="padding:0.6rem 1rem;background:rgba(201,168,76,0.1);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:0.72rem;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase">
+          ⚠ ${conflicts.length} carta${conflicts.length>1?'s':''} en conflicto con otros mazos
+        </div>
+        <div style="padding:0.4rem 0">
+          ${conflicts.map(c=>`
+            <div style="display:flex;align-items:center;gap:1rem;padding:0.45rem 1rem;border-bottom:1px solid var(--border);font-size:0.88rem">
+              <span style="color:#ca8a8a;min-width:180px"><b>${c.card}</b></span>
+              <span style="color:var(--text-muted);font-size:0.8rem">→ también en mazo de <b style="color:var(--text)">${c.reserved_by}</b></span>
+            </div>`).join('')}
+        </div>
+      </div>` : `<div class="msg ok" style="margin-top:0.5rem">✓ Sin conflictos con otros mazos</div>`;
+
+    // Cartas no encontradas
+    const notFoundHtml = data.not_found?.length ? `
+      <div class="msg info" style="margin-top:0.5rem">
+        ⚠ ${data.not_found.length} carta${data.not_found.length>1?'s':''} no reconocida${data.not_found.length>1?'s':''} en Scryfall:
+        <span style="color:var(--text-muted)">${data.not_found.slice(0,5).join(', ')}${data.not_found.length>5?'...':''}</span>
+      </div>` : '';
+
+    const pinBadge = data.saved_to_pin
+      ? `<div class="msg ok" style="margin-top:0.5rem">✦ Mazo guardado en PIN <b>${_activePIN}</b></div>`
+      : _activePIN ? `<div class="msg err" style="margin-top:0.5rem">⚠ No se pudo guardar en Supabase</div>` : '';
+
+    result.innerHTML = `
+      <div class="msg ok">✦ Mazo importado: <b>${data.commander}</b></div>
+      ${pinBadge}
+      <div class="stat-grid" style="margin-top:0.75rem">
+        <div class="stat"><span class="val">${data.card_count}</span><span class="lbl">Cartas</span></div>
+        <div class="stat"><span class="val">${data.bracket}</span><span class="lbl">Bracket est.</span></div>
+        <div class="stat"><span class="val">${data.archetype}</span><span class="lbl">Arquetipo</span></div>
+      </div>
+      ${conflictsHtml}
+      ${notFoundHtml}
+      <p style="margin-top:1rem;color:var(--text-muted);font-size:0.9rem">
+        El mazo ya está disponible en el <b style="color:var(--gold-light)">Grimorio (V)</b> y en el <b style="color:var(--gold-light)">Simulador</b>.
+      </p>`;
+
+  } catch(e) {
+    msg(result, 'err', '✗ Error importando: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+// ── BÚSQUEDA SCRYFALL ──
+async function doSearch() {
+  const q = document.getElementById('search-query').value.trim();
+  if (!q) return;
+  const result = document.getElementById('search-result');
+  const grid   = document.getElementById('search-grid');
+  msg(result, 'info', '<span class="spinner"></span> Buscando en Scryfall...');
+  grid.innerHTML = '';
+
+  const colId = _activeColId || '';
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&collection_id=${colId}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+
+    const inCol = data.total_in_collection;
+    const total = data.total_scryfall;
+    result.innerHTML = `<div class="msg ok">
+      ${total} resultados en Scryfall · <b>${inCol}</b> en tu colección
+      ${data.has_more ? ' (mostrando primeros 60)' : ''}
+    </div>`;
+
+    grid.innerHTML = data.results.map(c => {
+      const border = c.in_collection
+        ? 'border:2px solid rgba(39,174,96,0.6);box-shadow:0 0 10px rgba(39,174,96,0.2)'
+        : 'border:1px solid rgba(255,255,255,0.1);opacity:0.55';
+      const badge = c.in_collection
+        ? '<div style="position:absolute;top:4px;left:4px;background:rgba(39,174,96,0.9);color:#fff;font-size:0.55rem;padding:1px 5px;border-radius:3px;font-family:\'Helvetica Neue\',sans-serif">EN COLECCIÓN</div>'
+        : '';
+      const price = c.price_eur ? `<div style="font-size:0.7rem;color:#98f098;text-align:center">€${parseFloat(c.price_eur).toFixed(2)}</div>` : '';
+      const img = c.img
+        ? `<img src="${c.img}" alt="${c.name}" style="width:100%;border-radius:6px;display:block" loading="lazy">`
+        : `<div style="width:100%;aspect-ratio:2/3;background:rgba(255,255,255,0.05);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:var(--ink-m);padding:6px;text-align:center">${c.name}</div>`;
+      return `<div style="position:relative;border-radius:8px;overflow:hidden;${border};cursor:pointer;transition:transform 0.15s"
+                   onclick="zoomGrimorioCard('${c.img||''}','${c.name.replace(/'/g,'')}')"
+                   title="${c.name} — ${c.type_line}">
+        ${badge}${img}
+        <div style="font-size:0.7rem;color:var(--ink-s);padding:4px 4px 2px;text-align:center;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${c.name}</div>
+        ${price}
+      </div>`;
+    }).join('');
+
+  } catch(e) {
+    msg(result, 'err', '✗ Error: ' + e.message);
+  }
+}
+
+function quickSearch(q) {
+  document.getElementById('search-query').value = q;
+  doSearch();
+}
+
+function zoomGrimorioCard(img, name) {
+  if (!img) return;
+  const modal = document.getElementById('card-modal');
+  if (modal) {
+    document.getElementById('card-modal-img').src = img;
+    modal.classList.add('visible');
+  }
+}
+
+// ── Simulator ──
+function openSimulator() {
+  window.open('/simulator', '_blank');
+}
+
+// ── PIN: persistencia en localStorage + auto-restauración ──
+function setActivePin(pin) {
+  _activePIN = pin;
+  try { localStorage.setItem('deckforge_pin', pin); } catch(e) {}
+  const badge = document.getElementById('active-pin-badge');
+  const val = document.getElementById('active-pin-value');
+  if (pin) { val.textContent = pin; badge.style.display = 'block'; }
+  else { badge.style.display = 'none'; }
+}
+
+function forgetPin() {
+  _activePIN = null;
+  try { localStorage.removeItem('deckforge_pin'); } catch(e) {}
+  document.getElementById('active-pin-badge').style.display = 'none';
+}
+
+async function autoRestorePin() {
+  let saved = null;
+  try { saved = localStorage.getItem('deckforge_pin'); } catch(e) {}
+  if (!saved) return;
+  // Restaurar silenciosamente la colección + mazos del PIN guardado
+  const fd = new FormData();
+  fd.append('pin', saved);
+  try {
+    const res = await fetch('/api/sessions/restore', { method: 'POST', body: fd });
+    if (!res.ok) { forgetPin(); return; }
+    const data = await res.json();
+    _collections[data.id] = { name: data.name, real_count: data.real_count, collection: data.collection };
+    _activeColId = data.id;
+    setActivePin(data.pin);
+    renderSavedCollections();
+    refreshCollectionSelects();
+    const r = document.getElementById('restore-result');
+    if (r) {
+      const nDecks = data.decks_restored?.length || 0;
+      msg(r, 'ok', `✦ Sesión restaurada automáticamente: <b>${data.name}</b>${nDecks?` y ${nDecks} mazo${nDecks>1?'s':''}`:''}.`);
+    }
+  } catch(e) { /* silencioso */ }
+}
+
+// ── Init ──
+loadCollections();
+autoRestorePin();
+</script>
+
+<!-- ═══ EFECTOS VISUALES ARCANOS ═══ -->
+<script>
+(function(){
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── Brasas flotantes en canvas ── */
+  const cv = document.getElementById('fx-embers');
+  if (cv && !reduce) {
+    const ctx = cv.getContext('2d');
+    let W, H, embers = [];
+    function resize(){ W = cv.width = innerWidth; H = cv.height = innerHeight; }
+    resize(); addEventListener('resize', resize);
+    const COUNT = Math.min(60, Math.floor(innerWidth / 22));
+    function mk(){
+      return {
+        x: Math.random()*W,
+        y: H + Math.random()*H*0.4,
+        r: Math.random()*2.2 + 0.6,
+        vy: -(Math.random()*0.5 + 0.18),
+        vx: (Math.random()-0.5)*0.3,
+        a: Math.random()*0.5 + 0.2,
+        hue: Math.random() < 0.6 ? 35 : (Math.random()<0.5 ? 24 : 270),
+        tw: Math.random()*Math.PI*2,
+      };
+    }
+    for (let i=0;i<COUNT;i++){ const e=mk(); e.y=Math.random()*H; embers.push(e); }
+    function tick(){
+      ctx.clearRect(0,0,W,H);
+      for (const e of embers){
+        e.y += e.vy; e.x += e.vx + Math.sin(e.tw)*0.15; e.tw += 0.02;
+        if (e.y < -10){ Object.assign(e, mk()); }
+        const flick = e.a * (0.7 + 0.3*Math.sin(e.tw*3));
+        const col = e.hue===270 ? `rgba(150,110,255,${flick})` : `rgba(255,${140+e.hue*1.5},${e.hue*1.2},${flick})`;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
+        ctx.fillStyle = col;
+        ctx.shadowBlur = 8; ctx.shadowColor = col;
+        ctx.fill();
+      }
+      requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  /* ── Inclinación 3D de las cartas según el ratón ── */
+  if (!reduce && window.matchMedia('(pointer:fine)').matches) {
+    document.addEventListener('mousemove', (ev) => {
+      document.querySelectorAll('.card').forEach(card => {
+        const r = card.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight) return; // fuera de vista
+        const cx = r.left + r.width/2, cy = r.top + r.height/2;
+        const dx = (ev.clientX - cx) / r.width;
+        const dy = (ev.clientY - cy) / r.height;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 1.1) { card.style.transform = ''; return; } // solo cerca
+        const rx = (-dy * 3.2).toFixed(2);
+        const ry = (dx * 3.2).toFixed(2);
+        card.style.transform = `perspective(1100px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`;
+      });
+    }, { passive: true });
+    document.addEventListener('mouseleave', () => {
+      document.querySelectorAll('.card').forEach(c => c.style.transform = '');
+    });
+  }
+
+  /* ── Parallax sutil del resplandor del header al hacer scroll ── */
+  const glow = document.querySelector('.header-glow');
+  if (glow && !reduce){
+    addEventListener('scroll', () => {
+      const y = scrollY * 0.25;
+      glow.style.transform = `translateX(-50%) translateY(${y}px)`;
+    }, { passive: true });
+  }
+})();
+</script>
+</body>
+</html>    tml>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deck Forge — Grimorio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── FUENTES LOCALES DE FANTASÍA ── */
+    @font-face { font-family:'HalfElven'; src:url('/fonts/halfelven.ttf') format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:'HalfElven'; src:url('/fonts/halfelvenbold.ttf') format('truetype'); font-weight:700; font-style:normal; font-display:swap; }
+    @font-face { font-family:'HalfElven'; src:url('/fonts/halfelvencond.ttf') format('truetype'); font-weight:300; font-style:normal; font-display:swap; }
+    @font-face { font-family:'HalfElven'; src:url('/fonts/halfelvenital.ttf') format('truetype'); font-weight:400; font-style:italic; font-display:swap; }
+    @font-face { font-family:'Immortal'; src:url('/fonts/IMMORTAL.ttf') format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Immortal'; src:url('/fonts/IMMRTLT_.ttf') format('truetype'); font-weight:300; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Endor'; src:url('/fonts/ENDOR___.ttf') format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face { font-family:'Endor'; src:url('/fonts/ENDORALT.ttf') format('truetype'); font-weight:300; font-style:normal; font-display:swap; }
+    /* ── BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold: #c9a84c; --gold-light: #e8c96a; --gold-dark: #7a5c1e;
+      --bg: #0a0806; --bg2: #100d08; --panel: #13100a; --panel2: #1a1510;
+      --border: #3a2e1a; --border-gold: #5a4520;
+      --text: #d4c4a0; --text-muted: #7a6a4a;
+      --success: #4a8a4a; --error: #8a2a2a;
+      --glow: rgba(201,168,76,0.15);
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'EB Garamond', Georgia, serif; font-size: 17px; min-height: 100vh;
+      background-image: radial-gradient(ellipse at 20% 0%, rgba(90,45,10,0.3) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 100%, rgba(30,20,60,0.3) 0%, transparent 60%);
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px),
+        repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(201,168,76,0.015) 40px, rgba(201,168,76,0.015) 41px);
+    }
+    header {
+      position: relative; text-align: center; padding: 3rem 1rem 2rem;
+      border-bottom: 1px solid var(--border-gold);
+      background: linear-gradient(180deg, rgba(201,168,76,0.06) 0%, transparent 100%); overflow: hidden;
+    }
+    header::before, header::after {
+      content: '✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦ ⁕ ✦';
+      display: block; font-size: 0.75rem; color: var(--gold-dark); letter-spacing: 0.3em; margin-bottom: 1rem;
+    }
+    header::after { margin-bottom: 0; margin-top: 1rem; }
+    .header-emblem {
+      font-size: 2.8rem; display: block; margin-bottom: 0.5rem;
+      filter: drop-shadow(0 0 20px rgba(201,168,76,0.6));
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+      0%,100% { filter: drop-shadow(0 0 15px rgba(201,168,76,0.5)); }
+      50% { filter: drop-shadow(0 0 30px rgba(201,168,76,0.9)); }
+    }
+    header h1 {
+      font-family: 'Cinzel Decorative', serif; font-size: clamp(2rem,6vw,3.5rem); font-weight: 700;
+      background: linear-gradient(135deg, #7a5c1e 0%, #c9a84c 40%, #e8c96a 60%, #c9a84c 80%, #7a5c1e 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      letter-spacing: 0.08em; line-height: 1.1;
+    }
+    header .subtitle { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.85rem; color:var(--text-muted); letter-spacing:0.3em; text-transform:uppercase; margin-top:0.5rem; }
+    .mana-deco { display:flex; justify-content:center; gap:0.8rem; margin:1.5rem 0 0; opacity:0.3; font-size:1.1rem; }
+
+    main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; position: relative; z-index: 1; }
+
+    /* TABS */
+    .tabs { display:flex; gap:0; margin-bottom:2.5rem; border:1px solid var(--border-gold); border-radius:4px; overflow:hidden; background:var(--panel); }
+    .tab { flex:1; padding:0.85rem 0.5rem; cursor:pointer; border:none; background:none; color:var(--text-muted); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.75rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; border-right:1px solid var(--border-gold); transition:all 0.2s; position:relative; }
+    .tab:last-child { border-right:none; }
+    .tab.active { color:var(--gold); background:linear-gradient(180deg,rgba(201,168,76,0.12) 0%,rgba(201,168,76,0.04) 100%); }
+    .tab.active::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+    .tab:hover:not(.active) { color:var(--text); background:rgba(201,168,76,0.05); }
+
+    .panel { display:none; }
+    .panel.active { display:block; }
+
+    /* CARD */
+    .card { background:var(--panel); border:1px solid var(--border-gold); border-radius:6px; padding:2rem; margin-bottom:2rem; position:relative; overflow:hidden; }
+    .card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+    .card-title { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:1rem; font-weight:700; color:var(--gold); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.6rem; }
+    .card-title::before { content:'◆'; font-size:0.6rem; color:var(--gold-dark); }
+
+    /* FORM */
+    label { display:block; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.72rem; color:var(--text-muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.4rem; margin-top:1.2rem; }
+    input[type="text"], input[type="number"], select {
+      width:100%; padding:0.7rem 1rem; background:var(--bg2); border:1px solid var(--border); border-radius:4px;
+      color:var(--text); font-family:'EB Garamond',serif; font-size:1rem; outline:none; transition:border-color 0.2s,box-shadow 0.2s; -webkit-appearance:none;
+    }
+    input:focus, select:focus { border-color:var(--gold-dark); box-shadow:0 0 0 2px var(--glow); }
+    select { cursor:pointer; } select option { background:var(--panel2); }
+    input[type="file"] { width:100%; padding:1.5rem; background:var(--bg2); border:1px dashed var(--border-gold); border-radius:4px; color:var(--text-muted); font-family:'EB Garamond',serif; font-size:0.95rem; cursor:pointer; transition:border-color 0.2s,background 0.2s; }
+    input[type="file"]:hover { border-color:var(--gold); background:rgba(201,168,76,0.04); }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+    @media(max-width:580px) { .row { grid-template-columns:1fr; } }
+    .checkbox-row { display:flex; align-items:center; gap:0.6rem; margin-top:1.2rem; cursor:pointer; }
+    .checkbox-row input[type="checkbox"] { accent-color:var(--gold); width:16px; height:16px; cursor:pointer; }
+    .checkbox-row label { margin:0; cursor:pointer; font-size:0.72rem; }
+
+    /* COLLECTION SELECTOR */
+    .col-selector { background:var(--bg2); border:1px solid var(--border-gold); border-radius:4px; padding:1rem 1.2rem; margin-bottom:1rem; }
+    .col-selector-header { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.7rem; color:var(--gold-dark); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.6rem; }
+    .col-selector select { margin-top:0; }
+    .col-empty { font-size:0.85rem; color:var(--text-muted); font-style:italic; padding:0.3rem 0; }
+
+    /* BUTTON */
+    button.primary {
+      margin-top:1.8rem; width:100%; padding:0.9rem 2rem;
+      background:linear-gradient(135deg,#3a2a0a 0%,#5a4015 50%,#3a2a0a 100%);
+      border:1px solid var(--gold-dark); border-radius:4px; color:var(--gold-light);
+      font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase;
+      cursor:pointer; transition:all 0.2s; position:relative; overflow:hidden;
+    }
+    button.primary::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,transparent 0%,rgba(201,168,76,0.1) 50%,transparent 100%); opacity:0; transition:opacity 0.2s; }
+    button.primary:hover:not(:disabled)::before { opacity:1; }
+    button.primary:hover:not(:disabled) { border-color:var(--gold); box-shadow:0 0 20px rgba(201,168,76,0.2),inset 0 0 20px rgba(201,168,76,0.05); color:var(--gold); }
+    button.primary:disabled { opacity:0.4; cursor:not-allowed; }
+
+    button.secondary {
+      margin-top:0.75rem; width:100%; padding:0.6rem 1.5rem;
+      background:transparent; border:1px solid var(--border-gold); border-radius:4px;
+      color:var(--text-muted); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.75rem; font-weight:600;
+      letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; transition:all 0.2s;
+    }
+    button.secondary:hover { border-color:var(--gold); color:var(--gold); }
+
+    /* STEPS */
+    .steps { margin-bottom:1.5rem; }
+    .step { display:flex; align-items:flex-start; gap:1rem; padding:0.8rem 0; border-bottom:1px solid rgba(58,46,26,0.5); }
+    .step:last-child { border-bottom:none; }
+    .step-num { width:28px; height:28px; flex-shrink:0; background:var(--bg2); border:1px solid var(--border-gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.75rem; color:var(--gold-dark); }
+    .step-done .step-num { background:rgba(74,138,74,0.2); border-color:var(--success); color:#6abf6a; }
+    .step-text { padding-top:0.3rem; line-height:1.5; font-size:0.95rem; }
+    .step-text b { color:var(--gold-light); font-weight:500; }
+
+    /* MESSAGES */
+    .msg { padding:0.8rem 1rem; border-radius:4px; font-size:0.95rem; margin-top:1rem; line-height:1.5; border-left:3px solid; }
+    .msg.ok  { background:rgba(74,138,74,0.1);  border-color:var(--success); color:#8aca8a; }
+    .msg.err { background:rgba(138,42,42,0.15); border-color:var(--error);   color:#ca8a8a; }
+    .msg.info { background:rgba(201,168,76,0.08); border-color:var(--gold-dark); color:var(--text-muted); }
+
+    /* STATS */
+    .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:1rem; margin-top:1.2rem; }
+    .stat { background:var(--bg2); border:1px solid var(--border-gold); border-radius:4px; padding:1rem 0.75rem; text-align:center; position:relative; overflow:hidden; }
+    .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dark),transparent); }
+    .stat .val { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:1.6rem; font-weight:700; color:var(--gold); display:block; line-height:1.1; }
+    .stat .lbl { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.62rem; color:var(--text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-top:0.3rem; display:block; }
+
+    /* TABLE */
+    .table-wrap { overflow-x:auto; margin-top:1rem; }
+    table { width:100%; border-collapse:collapse; font-size:0.9rem; }
+    thead tr { border-bottom:1px solid var(--border-gold); }
+    th { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold-dark); padding:0.5rem 0.75rem; text-align:left; font-weight:600; }
+    td { padding:0.55rem 0.75rem; border-bottom:1px solid rgba(58,46,26,0.4); }
+    tr:hover td { background:rgba(201,168,76,0.04); }
+    tr.clickable { cursor:pointer; }
+    tr.clickable:hover td { background:rgba(201,168,76,0.08); }
+    tr.selected td { background:rgba(201,168,76,0.12); border-left:2px solid var(--gold); }
+    .score-bar { display:inline-block; height:4px; background:linear-gradient(90deg,var(--gold-dark),var(--gold)); border-radius:2px; vertical-align:middle; margin-left:0.4rem; }
+
+    /* DOWNLOADS */
+    .dl-row { display:flex; gap:0.75rem; margin-top:1rem; flex-wrap:wrap; }
+    .dl-btn { padding:0.5rem 1rem; border:1px solid var(--border-gold); border-radius:4px; background:var(--bg2); color:var(--text-muted); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; text-decoration:none; transition:all 0.2s; }
+    .dl-btn:hover { border-color:var(--gold); color:var(--gold); }
+
+    /* SPINNER */
+    .spinner { display:inline-block; width:14px; height:14px; border:2px solid var(--border-gold); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:0.4rem; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* GRIMORIO */
+    .grimorio-wrap { border:1px solid var(--border-gold); border-radius:4px; overflow:hidden; margin-top:1rem; position:relative; }
+    .grimorio-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); z-index:1; }
+    iframe { width:100%; height:680px; border:none; display:block; }
+
+    /* DIVIDER */
+    .divider { display:flex; align-items:center; gap:1rem; margin:1.5rem 0; color:var(--border-gold); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; }
+    .divider::before, .divider::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--border-gold)); }
+    .divider::after { background:linear-gradient(90deg,var(--border-gold),transparent); }
+
+    /* COLOR BADGES */
+    .color-badge { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; font-size:0.7rem; font-weight:700; margin:0 1px; }
+    .c-W { background:#f8f6e3; color:#333; } .c-U { background:#1a4a8a; color:#9cc; }
+    .c-B { background:#2a1a2a; color:#c0a0c8; border:1px solid #5a3a5a; } .c-R { background:#7a1a0a; color:#fca; } .c-G { background:#0a3a0a; color:#8fa; }
+
+    /* PIN DISPLAY */
+    .pin-box {
+      margin-top:1.2rem; background:var(--bg2); border:2px solid var(--gold-dark);
+      border-radius:8px; padding:1.5rem; text-align:center;
+    }
+    .pin-box p { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.7rem; color:var(--text-muted); letter-spacing:0.2em; text-transform:uppercase; margin-bottom:0.5rem; }
+    .pin-number { font-family:'Cinzel Decorative',serif; font-size:2.8rem; color:var(--gold); letter-spacing:0.4em; display:block; margin:0.3rem 0; cursor:pointer; transition:color 0.15s; }
+    .pin-number:hover { color:var(--gold-light); }
+    .pin-copy-hint { font-size:0.8rem; color:var(--text-muted); }
+    .pin-warning { margin-top:0.75rem; font-size:0.82rem; color:#ca8a8a; }
+
+    /* COMMANDER SELECT HINT */
+    .hint { font-size:0.85rem; color:var(--text-muted); font-style:italic; margin-top:0.5rem; }
+
+    footer { text-align:center; padding:2rem 1rem; border-top:1px solid var(--border); color:var(--text-muted); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; }
+
+    /* ── SIMULADOR ── */
+    .sim-controls { display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .sim-btn {
+      padding:0.5rem 1.1rem; border:1px solid var(--border-gold); border-radius:4px;
+      background:var(--bg2); color:var(--gold-light); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
+      font-size:0.72rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;
+      cursor:pointer; transition:all 0.2s;
+    }
+    .sim-btn:hover { border-color:var(--gold); background:rgba(201,168,76,0.08); }
+    .sim-btn:disabled { opacity:0.3; cursor:not-allowed; }
+    .sim-btn.danger { border-color:#8a2a2a; color:#ca8a8a; }
+    .sim-btn.danger:hover { background:rgba(138,42,42,0.15); }
+
+    .sim-stat { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem; }
+    .sim-stat b { color:var(--gold); font-size:1.1rem; }
+
+    .sim-life-area { display:flex; align-items:center; gap:0.5rem; margin-left:auto; }
+    .sim-life-btn { width:28px; height:28px; border:1px solid var(--border-gold); border-radius:50%; background:var(--bg2); color:var(--gold); font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+    .sim-life-btn:hover { border-color:var(--gold); background:rgba(201,168,76,0.1); }
+    .sim-life-val { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:1.5rem; font-weight:700; color:var(--gold); min-width:3ch; text-align:center; }
+
+    .sim-zones { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+    @media(max-width:600px) { .sim-zones { grid-template-columns:1fr; } }
+    .sim-zone-label { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.65rem; color:var(--gold-dark); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.5rem; }
+    .sim-zone-count { font-size:0.8rem; color:var(--text-muted); float:right; }
+
+    .sim-hand {
+      display:flex; flex-wrap:wrap; gap:8px; min-height:180px;
+      background:var(--bg2); border:1px solid var(--border-gold); border-radius:6px; padding:1rem;
+    }
+    .sim-card {
+      width:80px; border-radius:6px; overflow:hidden; cursor:pointer;
+      border:2px solid transparent; transition:all 0.2s; position:relative; flex-shrink:0;
+    }
+    .sim-card:hover { border-color:var(--gold); transform:translateY(-8px); z-index:10; }
+    .sim-card.selected { border-color:var(--gold); transform:translateY(-12px); box-shadow:0 8px 20px rgba(201,168,76,0.3); }
+    .sim-card.tapped { transform:rotate(7deg); opacity:0.8; }
+    .sim-card.tapped:hover { transform:rotate(7deg) translateY(-4px); }
+    .sim-card img { width:100%; display:block; border-radius:4px; }
+    .sim-card .card-name-fallback {
+      background:var(--panel2); border:1px solid var(--border); border-radius:4px;
+      padding:4px; font-size:0.6rem; color:var(--text); min-height:110px;
+      display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.3;
+    }
+
+    .sim-card-actions {
+      position:absolute; bottom:0; left:0; right:0;
+      background:linear-gradient(0deg,rgba(0,0,0,0.9) 0%,transparent 100%);
+      padding:20px 4px 4px; display:none; gap:2px; flex-direction:column;
+    }
+    .sim-card:hover .sim-card-actions { display:flex; }
+    .sim-card-action {
+      background:rgba(201,168,76,0.2); border:none; color:var(--gold-light);
+      font-size:0.55rem; padding:2px 4px; border-radius:2px; cursor:pointer;
+      font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; letter-spacing:0.05em; text-transform:uppercase;
+      transition:background 0.15s; text-align:center;
+    }
+    .sim-card-action:hover { background:rgba(201,168,76,0.4); }
+
+    .sim-gy {
+      display:flex; flex-wrap:wrap; gap:6px; min-height:60px;
+      background:var(--bg2); border:1px solid var(--border); border-radius:6px; padding:0.75rem;
+    }
+    .sim-gy .sim-card { width:50px; opacity:0.6; }
+    .sim-gy .sim-card:hover { opacity:1; transform:translateY(-4px) scale(1.3); z-index:20; }
+
+    .sim-phase {
+      display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:1rem;
+    }
+    .phase-pip {
+      padding:0.25rem 0.7rem; border-radius:99px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
+      font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase;
+      border:1px solid var(--border); color:var(--text-muted); cursor:pointer; transition:all 0.15s;
+    }
+    .phase-pip.active { background:rgba(201,168,76,0.15); border-color:var(--gold); color:var(--gold); }
+
+    .sim-log {
+      background:var(--bg2); border:1px solid var(--border); border-radius:4px;
+      padding:0.75rem 1rem; max-height:120px; overflow-y:auto; margin-top:1rem;
+      font-size:0.82rem; color:var(--text-muted); font-style:italic; line-height:1.6;
+    }
+    .sim-log p { margin:0; }
+    .sim-log p + p { border-top:1px solid var(--border); margin-top:0.3rem; padding-top:0.3rem; }
+    .log-gold { color:var(--gold-light); font-style:normal; }
+
+    .sim-empty { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:1rem; min-height:300px; color:var(--text-muted); text-align:center; }
+    .sim-empty p { font-size:0.95rem; line-height:1.6; }
+
+    .sim-mulligan-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85);
+      z-index:100; align-items:center; justify-content:center; flex-direction:column; gap:1.5rem;
+    }
+    .sim-mulligan-overlay.visible { display:flex; }
+    .sim-mulligan-box { background:var(--panel); border:1px solid var(--border-gold); border-radius:8px; padding:2rem; max-width:500px; width:90%; text-align:center; }
+    .sim-mulligan-box h3 { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:var(--gold); margin-bottom:1rem; }
+    .sim-mulligan-input { display:flex; align-items:center; justify-content:center; gap:1rem; margin:1rem 0; }
+    .sim-mulligan-n { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:2rem; color:var(--gold); min-width:2ch; }
+    .sim-mull-btn-row { display:flex; gap:0.75rem; justify-content:center; margin-top:1rem; }
+    .keep-btn { background:linear-gradient(135deg,#1a3a1a,#2a5a2a); border-color:#4a8a4a; color:#8aca8a; }
+  /* ═══════════════════════════════════════════════════════════
+     DECK FORGE v4 — CSS único, sin conflictos
+  ═══════════════════════════════════════════════════════════ */
+
+  /* VARIABLES */
+  :root {
+    --gold: #c9a84c; --gold-l: #e8c96a; --gold-d: #7a5c1e; --gold-dk: #3a2a0a;
+    --ember: #c04a18;
+    --bg-0: #07050a; --bg-1: #0d0b10; --bg-2: #141218; --bg-3: #1c1824;
+    --border: rgba(201,168,76,0.22);
+    --ink: #e8dcc8; --ink-s: #b0a080; --ink-m: #706050;
+    --glass: rgba(10,8,14,0.72);
+    --r: 12px; --ok: #5bbf6a; --err: #e0563f;
+  }
+
+  /* CURSOR MARTILLO */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html {
+    background: var(--bg-0);
+    cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cmVjdCB4PSI0IiB5PSIzIiB3aWR0aD0iMjQiIGhlaWdodD0iMTIiIHJ4PSIzIiBmaWxsPSIjYzlhODRjIiBzdHJva2U9IiNlOGM5NmEiIHN0cm9rZS13aWR0aD0iMSIvPjxyZWN0IHg9IjQiIHk9IjMiIHdpZHRoPSIyNCIgaGVpZ2h0PSI1IiByeD0iMyIgZmlsbD0iI2U4Yzk2YSIgb3BhY2l0eT0iMC40Ii8+PHJlY3QgeD0iMTMiIHk9IjE1IiB3aWR0aD0iNiIgaGVpZ2h0PSIxNSIgcng9IjIiIGZpbGw9IiM0YTJmMGUiLz48cmVjdCB4PSIxMCIgeT0iOCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjUiIHJ4PSIxIiBmaWxsPSIjODA2MDEwIiBvcGFjaXR5PSIwLjYiLz48L3N2Zz4=") 16 3, crosshair;
+  }
+  a, button, input, select, .tab, .dl-btn, tr.clickable, .stk {
+    cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cmVjdCB4PSI0IiB5PSIzIiB3aWR0aD0iMjQiIGhlaWdodD0iMTIiIHJ4PSIzIiBmaWxsPSIjZThjOTZhIiBzdHJva2U9IiNmZmUwOTAiIHN0cm9rZS13aWR0aD0iMSIvPjxyZWN0IHg9IjQiIHk9IjMiIHdpZHRoPSIyNCIgaGVpZ2h0PSI1IiByeD0iMyIgZmlsbD0iI2ZmZjBiMCIgb3BhY2l0eT0iMC41Ii8+PHJlY3QgeD0iMTMiIHk9IjE1IiB3aWR0aD0iNiIgaGVpZ2h0PSIxNSIgcng9IjIiIGZpbGw9IiM0YTJmMGUiLz48cmVjdCB4PSIxMCIgeT0iOCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjUiIHJ4PSIxIiBmaWxsPSIjODA2MDEwIiBvcGFjaXR5PSIwLjYiLz48L3N2Zz4=") 16 3, pointer;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg-0); }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(var(--gold-d), var(--gold)); border-radius: 6px; border: 2px solid var(--bg-0); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold-l); }
+
+  body {
+    background: transparent; color: var(--ink);
+    font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-size: 17px; line-height: 1.6; min-height: 100vh;
+  }
+  body::before { content: none !important; }
+
+  /* FX */
+  .fx-bg { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
+  .fx-mesh {
+    position: absolute; inset: -20%;
+    background:
+      radial-gradient(45% 55% at 15% 10%, rgba(192,74,24,0.18), transparent 60%),
+      radial-gradient(40% 50% at 82% 15%, rgba(100,60,160,0.15), transparent 60%),
+      radial-gradient(55% 55% at 50% 108%, rgba(201,168,76,0.12), transparent 60%);
+    filter: blur(28px); animation: meshDrift 28s ease-in-out infinite alternate;
+  }
+  @keyframes meshDrift { 0%{transform:translate3d(0,0,0);} 100%{transform:translate3d(-3%,2%,0) scale(1.06);} }
+  .fx-runes { display: none; }
+  .fx-vignette { position: absolute; inset: 0; background: radial-gradient(130% 90% at 50% 0%, transparent 38%, rgba(0,0,0,0.5) 100%); }
+  #fx-embers { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* HEADER */
+  header {
+    position: relative; text-align: center;
+    padding: 4rem 1.5rem 3rem;
+    border-bottom: 1px solid rgba(201,168,76,0.18);
+    overflow: hidden; z-index: 1;
+  }
+  header::before, header::after { content: none !important; }
+  .hdr-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background: radial-gradient(75% 90% at 50% 0%, rgba(58,34,6,0.50), transparent 70%);
+  }
+  .hdr-vignette { position: absolute; inset: 0; z-index: 0; background: linear-gradient(180deg, rgba(7,5,10,0.25) 0%, transparent 45%, rgba(7,5,10,0.55) 100%); pointer-events: none; }
+  .hdr-embers { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  .hdr-inner { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+
+  .hdr-seal {
+    width: 68px; height: 68px; border-radius: 50%; margin-bottom: 1.4rem; position: relative;
+    background: radial-gradient(circle at 35% 30%, #d43828, #780800);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6), 0 0 0 3px rgba(212,56,40,0.22),
+                inset 0 3px 8px rgba(255,90,70,0.28), inset 0 -3px 8px rgba(0,0,0,0.4);
+    display: grid; place-items: center; font-size: 1.8rem;
+    animation: sealPulse 6s ease-in-out infinite;
+  }
+  .hdr-seal::before {
+    content: ''; position: absolute; width: 82px; height: 82px; border-radius: 50%;
+    border: 1px solid rgba(212,56,40,0.2); animation: sealRing 6s ease-in-out infinite;
+  }
+  @keyframes sealPulse {
+    0%,100%{ box-shadow: 0 6px 20px rgba(0,0,0,0.6), 0 0 0 3px rgba(212,56,40,0.22), inset 0 3px 8px rgba(255,90,70,0.28), inset 0 -3px 8px rgba(0,0,0,0.4); }
+    50%{ box-shadow: 0 6px 20px rgba(0,0,0,0.7), 0 0 0 6px rgba(212,56,40,0.1), 0 0 36px rgba(180,40,20,0.22), inset 0 3px 8px rgba(255,90,70,0.28), inset 0 -3px 8px rgba(0,0,0,0.4); }
+  }
+  @keyframes sealRing { 0%,100%{ transform: scale(1); opacity: 0.4; } 50%{ transform: scale(1.15); opacity: 0; } }
+
+  .hdr-rune-top { font-size: 0.58rem; letter-spacing: 0.65em; color: var(--gold-d); margin-bottom: 0.5rem; }
+
+  header h1 {
+    font-family: 'Immortal', 'Cinzel Decorative', serif; font-weight: 400;
+    font-size: clamp(2.2rem, 7vw, 4.8rem); letter-spacing: 0.06em; line-height: 1.05;
+    background: linear-gradient(180deg, #fff8e0 0%, #f0d060 25%, #c9a84c 50%, #7a5c1e 70%, #e8c96a 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 3px 2px rgba(0,0,0,0.7)) drop-shadow(0 0 30px rgba(201,168,76,0.26));
+  }
+
+  .hdr-rule { display: flex; align-items: center; gap: 0.8rem; margin: 0.8rem auto 0.6rem; width: min(380px,78vw); }
+  .hdr-rule span:not(.hdr-diamond) { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-d), var(--gold), var(--gold-d), transparent); }
+  .hdr-diamond { color: var(--gold); font-size: 0.7rem; text-shadow: 0 0 10px var(--gold); }
+
+  .subtitle { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 0.82rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-s); }
+
+  .mana-deco { display: flex; justify-content: center; gap: 0.85rem; margin-top: 1.6rem; }
+  .mana-orb {
+    width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+    font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 0.78rem; font-weight: 700;
+    border: 2px solid transparent;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.15);
+    transition: transform 0.2s cubic-bezier(.2,.9,.3,1.4), box-shadow 0.2s;
+    animation: orbBob 5s ease-in-out infinite;
+  }
+  .mana-orb:nth-child(2){animation-delay:.4s;} .mana-orb:nth-child(3){animation-delay:.8s;}
+  .mana-orb:nth-child(4){animation-delay:1.2s;} .mana-orb:nth-child(5){animation-delay:1.6s;}
+  @keyframes orbBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+  .mana-orb:hover{transform:translateY(-9px) scale(1.18);}
+  .m-w{background:radial-gradient(circle at 35% 30%,#f6f2e0,#c8c0a0);color:#2a2818;border-color:rgba(248,244,224,0.7);}
+  .m-u{background:radial-gradient(circle at 35% 30%,#3a7ab8,#0a2a58);color:#b0d8ff;border-color:rgba(58,122,184,0.8);}
+  .m-b{background:radial-gradient(circle at 35% 30%,#3a1858,#0e0618);color:#d0b0e8;border-color:rgba(58,24,88,0.9);}
+  .m-r{background:radial-gradient(circle at 35% 30%,#c04820,#580800);color:#ffb890;border-color:rgba(192,72,32,0.8);}
+  .m-g{background:radial-gradient(circle at 35% 30%,#287840,#082a10);color:#98f098;border-color:rgba(40,120,64,0.8);}
+  .m-w:hover{box-shadow:0 0 22px rgba(248,244,224,0.9);}
+  .m-u:hover{box-shadow:0 0 22px rgba(58,122,184,1);}
+  .m-b:hover{box-shadow:0 0 22px rgba(140,80,200,1);}
+  .m-r:hover{box-shadow:0 0 22px rgba(192,72,32,1);}
+  .m-g:hover{box-shadow:0 0 22px rgba(64,168,80,1);}
+
+  .pin-badge { margin: 1.2rem auto 0; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; color: var(--gold-l); background: var(--glass); border: 1px solid rgba(201,168,76,0.25); border-radius: 99px; padding: 0.5rem 1.2rem; backdrop-filter: blur(10px); display: none; }
+  .pin-mini-btn { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.28); color: var(--gold-l); border-radius: 99px; font-size: 0.62rem; padding: 2px 10px; margin-left: 6px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; transition: all .2s; }
+  .pin-mini-btn:hover { background: rgba(201,168,76,0.25); }
+
+  /* MAIN */
+  main { max-width: 920px; margin: 0 auto; padding: 2rem 1.4rem 5rem; position: relative; z-index: 1; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 2.4rem; padding: 5px; background: rgba(10,8,14,0.82); border: 1px solid rgba(201,168,76,0.2); border-radius: 99px; backdrop-filter: blur(12px); box-shadow: 0 16px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04); position: sticky; top: 10px; z-index: 30; flex-wrap: wrap; }
+  .tab { flex: 1 1 auto; min-width: 80px; padding: 0.75rem 0.5rem; border-radius: 99px; background: none; border: 1px solid transparent; color: var(--ink-m); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 0.72rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.2s; }
+  .tab::after { content: none; }
+  .tab:hover:not(.active) { color: var(--ink); background: rgba(201,168,76,0.08); }
+  .tab.active { color: #1a1206; font-weight: 700; background: linear-gradient(180deg, #ffe090, #c9a84c 55%, #7a5c1e); border-color: rgba(255,240,160,0.3); box-shadow: 0 4px 16px rgba(201,168,76,0.35), inset 0 1px 2px rgba(255,255,255,0.5); transform: translateY(-1px); }
+
+  /* PANELS */
+  .panel { display: none; animation: panelIn 0.4s cubic-bezier(.2,.8,.2,1); }
+  .panel.active { display: block; }
+  @keyframes panelIn { from{opacity:0;transform:translateY(14px) scale(.99);} to{opacity:1;transform:none;} }
+
+  /* CARD */
+  .card { position: relative; margin-bottom: 1.8rem; padding: 2rem; background: linear-gradient(160deg, rgba(20,18,26,0.84), rgba(10,8,16,0.90)); border: 1px solid rgba(201,168,76,0.18); border-radius: var(--r); overflow: hidden; backdrop-filter: blur(8px); box-shadow: 0 20px 50px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.04); transition: transform .3s, box-shadow .3s; }
+  .card::before { content: ''; position: absolute; top:0; left:0; right:0; height:2px; pointer-events:none; background: linear-gradient(90deg, transparent, var(--gold), var(--gold-l), var(--gold), transparent); opacity: 0.65; }
+  .card::after { content: ''; position: absolute; inset: 10px; border-radius: calc(var(--r)-6px); pointer-events: none; background: linear-gradient(var(--gold-d),var(--gold-d)) left top/18px 1px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) left top/1px 18px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) right top/18px 1px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) right top/1px 18px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) left bottom/18px 1px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) left bottom/1px 18px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) right bottom/18px 1px no-repeat, linear-gradient(var(--gold-d),var(--gold-d)) right bottom/1px 18px no-repeat; opacity: 0.32; }
+  .card-title { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1.5rem; background: linear-gradient(90deg, #e8c96a, #c9a84c); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 0.6rem; }
+  .card-title::before { content: '◈'; -webkit-text-fill-color: var(--gold-d); font-size: 0.72rem; }
+
+  /* FORM */
+  label { display: block; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 1rem; font-weight: 600; color: var(--gold-l); margin: 1.2rem 0 0.4rem; text-transform: none; }
+  input[type="text"], input[type="number"], select { width:100%; padding:0.78rem 1rem; background:rgba(5,4,8,0.75); border:1px solid rgba(201,168,76,0.2); border-radius:10px; color:var(--ink); font-family:'Cormorant Garamond',serif; font-size:1.05rem; outline:none; -webkit-appearance:none; transition:border-color .2s, box-shadow .2s; }
+  input:focus, select:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,168,76,0.14), 0 0 16px rgba(201,168,76,0.09); }
+  select option { background: var(--bg-2); }
+  input[type="file"] { width:100%; padding:1.5rem; background:rgba(5,4,8,0.6); border:1.5px dashed rgba(201,168,76,0.35); border-radius:12px; color:var(--ink-m); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:1rem; transition:all .2s; }
+  input[type="file"]:hover { border-color:var(--gold); color:var(--ink); background:rgba(201,168,76,0.05); }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; }
+  .checkbox-row { display:flex; align-items:center; gap:0.6rem; margin-top:1.2rem; }
+  .checkbox-row input[type="checkbox"] { accent-color:var(--gold); width:17px; height:17px; }
+  .checkbox-row label { margin:0; font-size:0.9rem; color:var(--ink-s); }
+
+  /* BUTTONS */
+  button.primary { margin-top:1.8rem; width:100%; padding:1rem 2rem; border-radius:99px; background:linear-gradient(180deg,#2a2010,#47320e 48%,#2a2010); border:1.5px solid var(--gold-d); position:relative; overflow:hidden; color:var(--gold-l); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; box-shadow:0 10px 26px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1); transition:transform .15s, box-shadow .25s, color .2s; }
+  button.primary::before { content:''; position:absolute; top:0; left:-120%; width:60%; height:100%; background:linear-gradient(105deg,transparent,rgba(232,201,106,0.4),transparent); transform:skewX(-18deg); transition:left .55s ease; }
+  button.primary:hover:not(:disabled) { color:#fff8e0; transform:translateY(-2px); border-color:var(--gold-l); box-shadow:0 0 26px rgba(201,168,76,0.28), 0 16px 36px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18); }
+  button.primary:hover:not(:disabled)::before { left:130%; }
+  button.primary:active:not(:disabled) { transform:translateY(1px); }
+  button.primary:disabled { opacity:0.4; }
+  button.secondary { margin-top:0.75rem; width:100%; padding:0.62rem 1.4rem; border-radius:99px; border:1px solid rgba(201,168,76,0.25); background:rgba(201,168,76,0.05); color:var(--gold-l); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.73rem; letter-spacing:0.12em; text-transform:uppercase; transition:all .2s; }
+  button.secondary:hover { border-color:var(--gold); background:rgba(201,168,76,0.12); }
+  .dl-row { display:flex; gap:0.7rem; margin-top:1rem; flex-wrap:wrap; }
+  .dl-btn { padding:0.5rem 1.1rem; border-radius:99px; border:1px solid rgba(201,168,76,0.28); background:rgba(201,168,76,0.06); color:var(--gold-l); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; transition:all .2s; text-decoration:none; }
+  .dl-btn:hover { border-color:var(--gold-l); background:rgba(201,168,76,0.16); transform:translateY(-1px); }
+
+  /* MISC */
+  .divider { display:flex; align-items:center; gap:1rem; margin:1.5rem 0; color:var(--gold-d); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.64rem; letter-spacing:0.2em; text-transform:uppercase; }
+  .divider::before,.divider::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--gold-d),transparent); }
+  .steps { margin-bottom:1.4rem; }
+  .step { display:flex; align-items:flex-start; gap:1rem; padding:0.82rem 0; border-bottom:1px solid rgba(201,168,76,0.1); }
+  .step:last-child { border-bottom:none; }
+  .step-num { width:30px; height:30px; flex-shrink:0; border-radius:50%; background:rgba(5,4,8,0.8); border:1px solid rgba(201,168,76,0.25); color:var(--gold-d); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.78rem; display:grid; place-items:center; }
+  .step-done .step-num { background:rgba(91,191,106,0.15); border-color:var(--ok); color:#8fe09c; box-shadow:0 0 12px rgba(91,191,106,0.28); }
+  .step-text b { color:var(--gold-l); }
+  .hint { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:1rem; color:var(--ink-m); margin-top:0.5rem; }
+  .col-selector { background:rgba(5,4,8,0.55); border:1px solid rgba(201,168,76,0.18); border-radius:12px; padding:1rem 1.2rem; margin-bottom:1rem; }
+  .col-selector-header { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:1rem; font-weight:600; color:var(--gold); margin-bottom:0.6rem; }
+  .col-empty { font-size:0.9rem; color:var(--ink-m); font-style:italic; }
+
+  /* MSGS */
+  .msg { padding:0.82rem 1.1rem; border-radius:10px; margin-top:1rem; line-height:1.55; border-left:3px solid; font-size:0.96rem; }
+  .msg.ok  { background:rgba(91,191,106,0.1);  border-color:var(--ok);  color:#a7dcb0; }
+  .msg.err { background:rgba(224,86,63,0.12);  border-color:var(--err); color:#e8a99a; }
+  .msg.info{ background:rgba(201,168,76,0.07); border-color:var(--gold-d); color:var(--ink-s); }
+
+  /* STATS */
+  .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:1rem; margin-top:1.2rem; }
+  .stat { background:linear-gradient(160deg,rgba(20,18,26,0.82),rgba(10,8,16,0.88)); border:1px solid rgba(201,168,76,0.18); border-radius:12px; padding:1.2rem 0.8rem; text-align:center; position:relative; overflow:hidden; transition:transform .25s, box-shadow .25s; }
+  .stat:hover { transform:translateY(-3px); box-shadow:0 14px 30px rgba(0,0,0,0.5); }
+  .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+  .stat .val { display:block; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:1.8rem; font-weight:800; background:linear-gradient(180deg,#ffe090,#c9a84c); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; line-height:1.1; }
+  .stat .lbl { display:block; margin-top:0.4rem; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-m); }
+
+  /* TABLE */
+  .table-wrap { overflow-x:auto; margin-top:1rem; border:1px solid rgba(201,168,76,0.15); border-radius:12px; }
+  table { width:100%; border-collapse:collapse; font-size:0.92rem; }
+  thead tr { background:rgba(201,168,76,0.06); }
+  th { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.64rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold-d); padding:0.7rem 0.85rem; text-align:left; }
+  td { padding:0.58rem 0.85rem; border-bottom:1px solid rgba(201,168,76,0.08); }
+  tr.clickable:hover td { background:rgba(201,168,76,0.07); }
+  tr.selected td { background:rgba(201,168,76,0.13); box-shadow:inset 2px 0 0 var(--gold); }
+  .score-bar { display:inline-block; height:5px; background:linear-gradient(90deg,var(--gold-d),var(--gold-l)); border-radius:3px; vertical-align:middle; margin-left:0.4rem; }
+
+  /* COLOR BADGES */
+  .color-badge { display:inline-flex; align-items:center; justify-content:center; width:21px; height:21px; border-radius:50%; font-size:0.7rem; font-weight:700; margin:0 1px; }
+  .c-W{background:#f6f2e0;color:#2a2818;} .c-U{background:#1a4a88;color:#b0d8ff;} .c-B{background:#200a30;color:#d0b0e8;border:1px solid #5a3a6a;} .c-R{background:#8a2000;color:#ffb890;} .c-G{background:#0a3a10;color:#98f098;}
+
+  /* PIN BOX */
+  .pin-box { margin-top:1.2rem; padding:1.6rem; text-align:center; border-radius:14px; background:radial-gradient(circle at 50% 0%,rgba(201,168,76,0.1),rgba(5,4,8,0.65)); border:1.5px solid var(--gold-d); box-shadow:0 0 28px rgba(201,168,76,0.12) inset; }
+  .pin-box p { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.95rem; color:var(--ink-m); }
+  .pin-number { display:block; font-family:'Cinzel Decorative',serif; font-size:3.2rem; letter-spacing:0.3em; background:linear-gradient(180deg,#ffe090,#c9a84c 60%,#7a5c1e); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; filter:drop-shadow(0 0 18px rgba(201,168,76,0.4)); transition:filter .2s; margin:0.4rem 0; }
+  .pin-number:hover { filter:drop-shadow(0 0 28px rgba(201,168,76,0.7)); }
+  .pin-copy-hint { font-size:0.78rem; color:var(--ink-m); }
+  .pin-warning { margin-top:0.7rem; font-size:0.82rem; color:#e8a99a; }
+
+  /* GRIMORIO */
+  .grimorio-wrap { margin-top:1rem; border:1px solid rgba(201,168,76,0.18); border-radius:14px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,0.7); position:relative; }
+  .grimorio-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); z-index:1; }
+  iframe { width:100%; height:730px; border:none; display:block; background:var(--bg-1); }
+
+  .spinner { display:inline-block; width:15px; height:15px; border:2px solid rgba(201,168,76,0.2); border-top-color:var(--gold); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:0.4rem; }
+  footer { text-align:center; padding:2.5rem 1rem; border-top:1px solid rgba(201,168,76,0.1); color:var(--ink-m); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.64rem; letter-spacing:0.22em; text-transform:uppercase; }
+
+  @media(max-width:580px){.row{grid-template-columns:1fr;}}
+  @media(max-width:640px){ .tab{font-size:0.58rem; padding:0.6rem 0.25rem; letter-spacing:0.04em;} .card{padding:1.3rem 1.1rem;} header{padding:3rem 1rem 2.2rem;} header h1{font-size:clamp(1.8rem,10vw,3rem);} }
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
+  
+  /* ── HERO BACKGROUND (Wrath of God, Kev Walker) ── */
+  .hdr-art {
+    position: absolute; inset: 0; z-index: 0;
+    background-image: url('https://i.pinimg.com/736x/b6/2a/52/b62a524d53c0e66c0318c02aff4018cf.jpg');
+    background-size: cover;
+    background-position: center 20%;
+    background-repeat: no-repeat;
+    image-rendering: -webkit-optimize-contrast;
+    filter: brightness(0.55) contrast(1.1) saturate(0.7);
+    transition: filter 2s ease;
+  }
+  header:hover .hdr-art { filter: brightness(0.65) contrast(1.08) saturate(0.75); }
+
+  /* ── LOGO 5 COLORES ── */
+  .mtg-5color {
+    width: 110px; height: 110px;
+    margin-bottom: 1.4rem;
+    filter: drop-shadow(0 0 16px rgba(201,168,76,0.45)) drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+    animation: logoFloat 5s ease-in-out infinite;
+  }
+  @keyframes logoFloat {
+    0%,100% { transform: translateY(0) rotate(-1deg); }
+    50%      { transform: translateY(-8px) rotate(1deg); }
+  }
+
+  /* ── PERGAMINO en los módulos ── */
+  .card {
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E"),
+      linear-gradient(160deg, #f5e9cc 0%, #ecd9b0 35%, #e2cc98 65%, #d8c090 100%);
+    border: 1.5px solid #8b6a28;
+    color: #2a1808 !important;
+    box-shadow:
+      0 20px 50px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset 0 -1px 0 rgba(80,40,0,0.2),
+      4px 4px 12px rgba(0,0,0,0.3);
+    backdrop-filter: none;
+  }
+  .card::before {
+    background: linear-gradient(90deg, transparent, rgba(139,106,40,0.7), rgba(201,168,76,0.9), rgba(139,106,40,0.7), transparent);
+    opacity: 1;
+  }
+  .card::after {
+    background:
+      linear-gradient(#8b6a28,#8b6a28) left top/20px 1px no-repeat,
+      linear-gradient(#8b6a28,#8b6a28) left top/1px 20px no-repeat,
+      linear-gradient(#8b6a28,#8b6a28) right top/20px 1px no-repeat,
+      linear-gradient(#8b6a28,#8b6a28) right top/1px 20px no-repeat,
+      linear-gradient(#8b6a28,#8b6a28) left bottom/20px 1px no-repeat,
+      linear-gradient(#8b6a28,#8b6a28) left bottom/1px 20px no-repeat,
+      linear-gradient(#8b6a28,#8b6a28) right bottom/20px 1px no-repeat,
+      linear-gradient(#8b6a28,#8b6a28) right bottom/1px 18px no-repeat;
+    opacity: 0.55;
+  }
+  /* Texto dentro de los módulos de pergamino */
+  .card .card-title {
+    background: linear-gradient(90deg, #5a3208, #8b5a18);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .card .card-title::before { -webkit-text-fill-color: #8b6a28; }
+  .card label { color: #4a2c10 !important; }
+  .card .step-text { color: #2a1808; }
+  .card .step-text b { color: #6a3a10 !important; }
+  .card .hint { color: #6a5030 !important; }
+  .card .col-empty { color: #6a5030; }
+  .card .col-selector-header { color: #5a3a10 !important; }
+  .card .col-selector { background: rgba(120,80,20,0.08); border-color: rgba(139,106,40,0.35); }
+  .card input[type="text"], .card input[type="number"], .card select {
+    background: rgba(250,240,218,0.9) !important;
+    border-color: rgba(139,106,40,0.4) !important;
+    color: #1a0e04 !important;
+    box-shadow: inset 0 2px 4px rgba(80,40,0,0.1);
+  }
+  .card input:focus, .card select:focus {
+    border-color: #8b6a28 !important;
+    box-shadow: 0 0 0 3px rgba(139,106,40,0.2) !important;
+  }
+  .card select option { background: #f5e9cc; color: #1a0e04; }
+  .card input[type="file"] {
+    background: rgba(250,240,218,0.7) !important;
+    border-color: rgba(139,106,40,0.45) !important;
+    color: #4a3018 !important;
+  }
+  .card input[type="file"]:hover { background: rgba(250,240,218,0.9) !important; }
+  .card .checkbox-row label { color: #3a2010 !important; }
+  .card .stat { background: rgba(240,225,190,0.6); border-color: rgba(139,106,40,0.35); }
+  .card .stat .lbl { color: #6a5030 !important; }
+  .card .stat .val {
+    background: linear-gradient(180deg, #5a3208, #8b5a18);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .card .divider { color: #8b6a28 !important; }
+  .card .divider::before, .card .divider::after { background: linear-gradient(90deg,transparent,#8b6a28,transparent) !important; }
+  .card .msg.ok  { background: rgba(40,120,40,0.12); color: #1a5a1a; }
+  .card .msg.err { background: rgba(140,20,20,0.12); color: #8a1a1a; }
+  .card .msg.info{ background: rgba(100,70,10,0.1);  color: #5a3a10; }
+  .card td { border-bottom-color: rgba(139,106,40,0.15); color: #2a1808; }
+  .card th { color: #7a5018 !important; }
+  .card thead tr { background: rgba(139,106,40,0.1); }
+  .card tr.clickable:hover td { background: rgba(139,106,40,0.1); }
+  .card .table-wrap { border-color: rgba(139,106,40,0.3); }
+
+  /* ── SIMPLIFICACIONES UI ── */
+  .card-desc { font-size:0.92rem; color:var(--ink-m); line-height:1.6; margin-bottom:0.4rem; }
+
+  /* Chips de búsqueda rápida */
+  .chip {
+    padding:0.38rem 0.9rem; border-radius:99px; font-size:0.72rem; font-family:'Cinzel',serif;
+    letter-spacing:0.06em; cursor:pointer; transition:all .18s;
+    background:rgba(212,168,67,0.08); border:1px solid rgba(212,168,67,0.28); color:var(--gold-l);
+  }
+  .chip:hover { background:rgba(212,168,67,0.2); border-color:var(--gold-l); }
+
+  /* Tabs con emojis — más legibles */
+  .tabs { flex-wrap:wrap; gap:3px; }
+  .tab { font-size:0.75rem; letter-spacing:0.04em; }
+  @media(max-width:600px){ .tab{font-size:0.65rem;padding:0.6rem 0.3rem;} }
+
+  /* Gestor de cartas compartidas */
+  .shared-deck-block { margin-bottom:1rem; }
+  .shared-deck-name { font-family:'Cinzel',serif; font-size:0.78rem; color:var(--gold); margin-bottom:0.5rem; font-weight:600; }
+  .shared-card-row {
+    display:flex; align-items:center; gap:0.7rem; padding:0.45rem 0;
+    border-bottom:1px solid rgba(212,168,67,0.1); font-size:0.88rem;
+  }
+  .shared-card-row:last-child { border-bottom:none; }
+  .shared-card-img { width:32px; height:44px; border-radius:3px; object-fit:cover; flex-shrink:0; }
+  .shared-card-info { flex:1; min-width:0; }
+  .shared-card-name { color:var(--ink); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .shared-card-type { font-size:0.72rem; color:var(--ink-m); }
+  .shared-toggle {
+    appearance:none; width:36px; height:20px; border-radius:99px; flex-shrink:0;
+    background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.2);
+    position:relative; cursor:pointer; transition:background .2s;
+  }
+  .shared-toggle:checked { background:rgba(39,174,96,0.7); border-color:#27ae60; }
+  .shared-toggle::before {
+    content:''; position:absolute; top:2px; left:2px; width:14px; height:14px;
+    border-radius:50%; background:#fff; transition:transform .2s;
+  }
+  .shared-toggle:checked::before { transform:translateX(16px); }
+
+</style>
+</head>
+<body>
+
+<!-- ═══ CAPAS DE FONDO ARCANO ═══ -->
+<div class="fx-bg">
+  <div class="fx-mesh"></div>
+  <div class="fx-runes"></div>
+  <div class="fx-vignette"></div>
+  <canvas id="fx-embers"></canvas>
+</div>
+
+<header>
+  <div class="hdr-art"></div>
+  <div class="hdr-vignette"></div>
+  <canvas id="fx-embers" class="hdr-embers"></canvas>
+  <div class="hdr-inner">
+    <svg class="mtg-5color" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="gW" cx="35%" cy="30%"><stop offset="0%" stop-color="#f6f2e0"/><stop offset="100%" stop-color="#b0a878"/></radialGradient>
+        <radialGradient id="gU" cx="35%" cy="30%"><stop offset="0%" stop-color="#4a8ad0"/><stop offset="100%" stop-color="#0a1e50"/></radialGradient>
+        <radialGradient id="gB" cx="35%" cy="30%"><stop offset="0%" stop-color="#5a2880"/><stop offset="100%" stop-color="#080210"/></radialGradient>
+        <radialGradient id="gR" cx="35%" cy="30%"><stop offset="0%" stop-color="#e05020"/><stop offset="100%" stop-color="#500800"/></radialGradient>
+        <radialGradient id="gG" cx="35%" cy="30%"><stop offset="0%" stop-color="#30904a"/><stop offset="100%" stop-color="#082010"/></radialGradient>
+        <filter id="glow"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <circle cx="60" cy="60" r="57" fill="none" stroke="rgba(201,168,76,0.45)" stroke-width="1"/>
+      <circle cx="60" cy="60" r="51" fill="rgba(5,4,8,0.72)" stroke="rgba(201,168,76,0.2)" stroke-width="0.6"/>
+      <polygon points="60,23 95,49 82,91 38,91 25,49" fill="none" stroke="rgba(201,168,76,0.3)" stroke-width="0.8"/>
+      <polygon points="60,23 82,91 25,49 95,49 38,91" fill="none" stroke="rgba(201,168,76,0.14)" stroke-width="0.5"/>
+      <circle cx="60" cy="23" r="13" fill="url(#gW)" stroke="#e8e0c0" stroke-width="1.2" filter="url(#glow)"/>
+      <text x="60" y="28" text-anchor="middle" font-size="11" font-weight="bold" font-family="serif" fill="#1a180a">W</text>
+      <circle cx="95" cy="49" r="13" fill="url(#gU)" stroke="#4a8ad0" stroke-width="1.2" filter="url(#glow)"/>
+      <text x="95" y="54" text-anchor="middle" font-size="11" font-weight="bold" font-family="serif" fill="#c0deff">U</text>
+      <circle cx="82" cy="91" r="13" fill="url(#gB)" stroke="#7a40a8" stroke-width="1.2" filter="url(#glow)"/>
+      <text x="82" y="96" text-anchor="middle" font-size="11" font-weight="bold" font-family="serif" fill="#d8b8f0">B</text>
+      <circle cx="38" cy="91" r="13" fill="url(#gR)" stroke="#d05020" stroke-width="1.2" filter="url(#glow)"/>
+      <text x="38" y="96" text-anchor="middle" font-size="11" font-weight="bold" font-family="serif" fill="#ffc0a0">R</text>
+      <circle cx="25" cy="49" r="13" fill="url(#gG)" stroke="#308848" stroke-width="1.2" filter="url(#glow)"/>
+      <text x="25" y="54" text-anchor="middle" font-size="11" font-weight="bold" font-family="serif" fill="#a8f0b0">G</text>
+      <circle cx="60" cy="60" r="12" fill="rgba(5,4,8,0.9)" stroke="rgba(201,168,76,0.7)" stroke-width="1.2"/>
+      <text x="60" y="65" text-anchor="middle" font-size="14" fill="#c9a84c">⚜</text>
+    </svg>
+    <div class="hdr-rune-top">✦ &nbsp; ✦ &nbsp; ✦</div>
+    <h1>Deck Forge</h1>
+    <div class="hdr-rule"><span></span><span class="hdr-diamond">◆</span><span></span></div>
+    <div id="active-pin-badge" class="pin-badge" style="display:none">
+      🔑 PIN: <b id="active-pin-value"></b>
+      <button onclick="copyPin(_activePIN)" class="pin-mini-btn">copiar</button>
+      <button onclick="forgetPin()" class="pin-mini-btn">salir</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <nav class="tabs">
+    <button class="tab active" onclick="showTab('setup',this)">📦 Colección</button>
+    <button class="tab" onclick="showTab('analyze',this)">🔮 Analizar</button>
+    <button class="tab" onclick="showTab('build',this)">⚔ Forjar</button>
+    <button class="tab" onclick="showTab('grimorio',this)">📖 Grimorio</button>
+    <button class="tab" onclick="showTab('search',this)">🔍 Buscar</button>
+    <button class="tab" onclick="showTab('import',this)">⬆ Importar</button>
+    <button class="tab" onclick="openSimulator()">🎮 Simular</button>
+  </nav>
+
+  <!-- ══ COLECCIÓN ══ -->
+  <div class="panel active" id="panel-setup">
+
+    <!-- Restaurar PIN primero (más común después de la primera vez) -->
+    <div class="card">
+      <div class="card-title">Restaurar sesión</div>
+      <p class="card-desc">¿Ya tienes un PIN? Introdúcelo para recuperar tu colección y mazos en cualquier dispositivo.</p>
+      <div style="display:flex;gap:0.75rem;align-items:flex-end">
+        <div style="flex:1">
+          <label>PIN de 6 dígitos</label>
+          <input type="text" id="pin-input" placeholder="482931" maxlength="6"
+                 style="text-align:center;letter-spacing:0.4em;font-size:1.5rem"/>
+        </div>
+        <button class="primary" style="margin-top:0;width:auto;padding:0.8rem 1.4rem" onclick="doRestorePin()">Restaurar</button>
+      </div>
+      <div id="restore-result"></div>
+    </div>
+
+    <!-- Nueva colección -->
+    <div class="card">
+      <div class="card-title">Nueva colección</div>
+      <p class="card-desc">Exporta tu colección desde ManaBox: <strong>Settings → Export → CSV</strong></p>
+
+      <label>Nombre</label>
+      <input type="text" id="col-name" placeholder="Mi Colección — Junio 2026"/>
+
+      <label>Archivo CSV de ManaBox</label>
+      <input type="file" id="real-csv" accept=".csv"/>
+
+      <button class="primary" id="btn-ingest" onclick="doIngest()">✦ Subir Colección ✦</button>
+      <div id="ingest-result"></div>
+    </div>
+
+    <!-- Colecciones guardadas -->
+    <div class="card" id="saved-collections-card">
+      <div class="card-title">Mis colecciones</div>
+      <div id="saved-collections-list"><p class="col-empty">Ninguna colección cargada aún.</p></div>
+    </div>
+
+  </div>
+
+  <!-- ══ ANALIZAR ══ -->
+  <div class="panel" id="panel-analyze">
+    <div class="card">
+      <div class="card-title">Analizar comandantes</div>
+      <p class="card-desc">Descubre qué comandantes encajan mejor con las cartas de tu colección.</p>
+
+      <label>Colección</label>
+      <select id="analyze-col-select" onchange="onAnalyzeColChange()">
+        <option value="">— Selecciona una colección —</option>
+      </select>
+
+      <div class="row" style="margin-top:1rem">
+        <div>
+          <label>Colores mínimos</label>
+          <select id="min-colors">
+            <option value="2">Bicolor o más</option>
+            <option value="3">Tricolor o más</option>
+            <option value="1">Monocolor o más</option>
+          </select>
+        </div>
+        <div>
+          <label>Mostrar top</label>
+          <input type="number" id="top-n" value="20" min="5" max="100"/>
+        </div>
+      </div>
+
+      <button class="primary" onclick="doAnalyze()">✦ Analizar ✦</button>
+      <div id="analyze-result"></div>
+    </div>
+  </div>
+
+  <!-- ══ FORJAR ══ -->
+  <div class="panel" id="panel-build">
+    <div class="card">
+      <div class="card-title">Forjar un mazo</div>
+
+      <label>Colección</label>
+      <select id="build-col-select" onchange="onBuildColChange()">
+        <option value="">— Selecciona una colección —</option>
+      </select>
+
+      <label>Comandante</label>
+      <select id="commander-select" onchange="onCommanderSelectChange()">
+        <option value="">— Elige del análisis o escribe abajo —</option>
+      </select>
+      <p class="hint" id="commander-hint">Analiza tu colección primero para ver sugerencias aquí.</p>
+
+      <label>O escribe el nombre exacto</label>
+      <input type="text" id="commander" placeholder="ej. Vorel of the Hull Clade"/>
+
+      <div class="row" style="margin-top:1rem">
+        <div>
+          <label>Identidad de color (opcional)</label>
+          <input type="text" id="colors" placeholder="ej. GU, WUB"/>
+        </div>
+        <div>
+          <label>Arquetipo</label>
+          <select id="archetype">
+            <option value="">Auto-detectar</option>
+            <option value="counters">+1/+1 Counters</option>
+            <option value="equipment">Equipment Voltron</option>
+            <option value="aristocrats">Tokens / Sacrificio</option>
+            <option value="spellslinger">Spellslinger</option>
+            <option value="tribal">Tribal / Kindred</option>
+            <option value="blink">Blink / ETB</option>
+            <option value="landfall">Landfall</option>
+            <option value="lifegain">Lifegain</option>
+            <option value="reanimator">Reanimador</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="checkbox-row" style="margin-top:1rem">
+        <input type="checkbox" id="use-edhrec" checked/>
+        <label for="use-edhrec">Usar EDHREC para mejorar la selección de cartas</label>
+      </div>
+
+      <!-- ══ GESTOR DE CARTAS COMPARTIDAS ══ -->
+      <div id="shared-cards-manager" style="display:none;margin-top:1.4rem">
+        <div style="background:rgba(212,168,67,0.07);border:1px solid rgba(212,168,67,0.25);border-radius:10px;overflow:hidden">
+          <div style="padding:0.9rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none"
+               onclick="toggleSharedManager()">
+            <div>
+              <span style="font-weight:600;color:var(--gold)">🔗 Cartas de otros mazos</span>
+              <span id="shared-summary" style="font-size:0.82rem;color:var(--ink-m);margin-left:0.6rem"></span>
+            </div>
+            <span id="shared-toggle-icon" style="color:var(--gold)">▼</span>
+          </div>
+          <div id="shared-cards-body" style="display:none;padding:0 1rem 1rem">
+            <p style="font-size:0.85rem;color:var(--ink-m);margin-bottom:0.8rem;line-height:1.5">
+              Estas cartas ya las usas en otros mazos. Marca las que quieres <strong>permitir</strong> en este también
+              (se incluirán aunque estén repetidas). Las no marcadas se sustituirán por la mejor alternativa disponible.
+            </p>
+            <div id="shared-cards-list"></div>
+            <button class="secondary" style="margin-top:0.8rem;width:auto;padding:0.5rem 1.2rem;font-size:0.78rem"
+                    onclick="selectAllShared(true)">Permitir todas</button>
+            <button class="secondary" style="margin-top:0;margin-left:0.5rem;width:auto;padding:0.5rem 1.2rem;font-size:0.78rem"
+                    onclick="selectAllShared(false)">Excluir todas</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="primary" onclick="doBuild()">✦ Forjar el Mazo ✦</button>
+      <div id="build-result"></div>
+    </div>
+  </div>
+
+  <!-- ══ GRIMORIO ══ -->
+  <div class="panel" id="panel-grimorio">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+        <div class="card-title" style="margin:0">Mis mazos</div>
+        <button class="primary" style="margin:0;width:auto;padding:0.7rem 1.4rem" onclick="loadGrimorio()">Abrir grimorio ✦</button>
+      </div>
+      <div id="deck-manage-list" style="margin-top:1rem"><p class="col-empty">No hay mazos todavía.</p></div>
+    </div>
+    <div class="grimorio-wrap">
+      <iframe id="grimorio-frame" src="about:blank"></iframe>
+    </div>
+  </div>
+
+  <!-- ══ BÚSQUEDA ══ -->
+  <div class="panel" id="panel-search">
+    <div class="card">
+      <div class="card-title">Buscar en Scryfall</div>
+      <p class="card-desc">Sintaxis Scryfall completa. Las cartas de tu colección aparecen resaltadas en verde.</p>
+      <div style="display:flex;gap:0.75rem;align-items:flex-end">
+        <div style="flex:1">
+          <label>Búsqueda</label>
+          <input type="text" id="search-query" placeholder='t:instant c:u cmc<=2 o:"draw a card"'
+                 onkeydown="if(event.key==='Enter')doSearch()"/>
+        </div>
+        <button class="primary" style="margin-top:0;width:auto;padding:0.8rem 1.4rem" onclick="doSearch()">Buscar</button>
+      </div>
+      <div style="display:flex;gap:0.45rem;flex-wrap:wrap;margin-top:0.75rem">
+        <button class="chip" onclick="quickSearch('type:instant color:u cmc<=2 oracle:\"draw a card\"')">Cantrips U</button>
+        <button class="chip" onclick="quickSearch('type:artifact cmc<=3 oracle:\"add {\"')">Mana Rocks</button>
+        <button class="chip" onclick="quickSearch('type:sorcery oracle:\"search your library\" oracle:\"basic land\"')">Land Ramp</button>
+        <button class="chip" onclick="quickSearch('type:instant oracle:\"destroy target\" cmc<=3')">Removal</button>
+        <button class="chip" onclick="quickSearch('oracle:\"destroy all creatures\"')">Board Wipes</button>
+        <button class="chip" onclick="quickSearch('type:instant oracle:\"counter target\" cmc<=3')">Counterspells</button>
+      </div>
+      <div id="search-result" style="margin-top:0.8rem"></div>
+    </div>
+    <div id="search-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:0.5rem"></div>
+  </div>
+
+  <!-- ══ IMPORTAR ══ -->
+  <div class="panel" id="panel-import">
+    <div class="card">
+      <div class="card-title">Importar mazo existente</div>
+      <p class="card-desc">Exporta un mazo desde ManaBox (<strong>Mi Mazo → ··· → Exportar → CSV</strong>) y súbelo para analizarlo.</p>
+
+      <label>Nombre del mazo (opcional)</label>
+      <input type="text" id="import-deck-name" placeholder="Mi Mazo Vorel"/>
+
+      <label>Comandante (si no se detecta solo)</label>
+      <input type="text" id="import-commander" placeholder="ej. Vorel of the Hull Clade"/>
+
+      <label>CSV del mazo</label>
+      <input type="file" id="import-csv" accept=".csv"/>
+
+      <button class="primary" onclick="doImport()">✦ Importar mazo ✦</button>
+      <div id="import-result"></div>
+    </div>
+  </div>
+
+  <!-- ══ SIMULADOR (básico inline) ══ -->
+  <div class="panel" id="panel-sim">
+    <div class="card">
+      <div class="card-title">Mesa de juego</div>
+      <p class="card-desc">El simulador completo se abre en una ventana nueva para aprovechar toda la pantalla.</p>
+      <div class="col-selector" id="sim-deck-selector">
+        <label>Mazo a simular</label>
+        <select id="sim-deck-select">
+          <option value="">— Forja un mazo primero —</option>
+        </select>
+        <button class="primary" style="margin-top:0.9rem" onclick="startSim()">✦ Comenzar Partida ✦</button>
+      </div>
+      <div id="sim-table" style="display:none">
+        <div class="sim-controls">
+          <button class="sim-btn" onclick="simDraw()" id="btn-draw">⬇ Robar</button>
+          <button class="sim-btn" onclick="simNextTurn()" id="btn-next">→ Siguiente Turno</button>
+          <button class="sim-btn" onclick="showMulliganOverlay()" id="btn-mull">↩ Mulligan</button>
+          <button class="sim-btn danger" onclick="resetSim()">↺ Reset</button>
+          <div class="sim-stat">Turno <b id="sim-turn">1</b></div>
+          <div class="sim-stat">Mazo <b id="sim-library-count">99</b></div>
+          <div class="sim-stat">Mano <b id="sim-hand-count">7</b></div>
+          <div class="sim-life-area">
+            <button class="sim-life-btn" onclick="changeLife(-1)">−</button>
+            <div class="sim-life-val" id="sim-life">40</div>
+            <button class="sim-life-btn" onclick="changeLife(+1)">+</button>
+          </div>
+        </div>
+        <div class="sim-phase" id="sim-phases">
+          <span class="phase-pip active" onclick="setPhase(this)">Inicio</span>
+          <span class="phase-pip" onclick="setPhase(this)">Mantenimiento</span>
+          <span class="phase-pip" onclick="setPhase(this)">Robar</span>
+          <span class="phase-pip" onclick="setPhase(this)">Principal I</span>
+          <span class="phase-pip" onclick="setPhase(this)">Combate</span>
+          <span class="phase-pip" onclick="setPhase(this)">Principal II</span>
+          <span class="phase-pip" onclick="setPhase(this)">Final</span>
+        </div>
+        <div class="sim-zone-label">Mano <span class="sim-zone-count" id="hand-label"></span></div>
+        <div class="sim-hand" id="sim-hand"></div>
+        <div class="sim-zones" style="margin-top:1rem">
+          <div>
+            <div class="sim-zone-label">Cementerio <span class="sim-zone-count" id="gy-label"></span></div>
+            <div class="sim-gy" id="sim-gy"></div>
+          </div>
+          <div>
+            <div class="sim-zone-label">Exilio <span class="sim-zone-count" id="exile-label"></span></div>
+            <div class="sim-gy" id="sim-exile"></div>
+          </div>
+        </div>
+        <div class="sim-log" id="sim-log"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sim-mulligan-overlay" id="mull-overlay">
+    <div class="sim-mulligan-box">
+      <h3>Mulligan de Londres</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">Robas 7 cartas y devuelves <b id="mull-return-n">N</b> al fondo.</p>
+      <div class="sim-mulligan-input">
+        <button class="sim-life-btn" onclick="changeMullN(-1)">−</button>
+        <div class="sim-mulligan-n" id="mull-n-display">1</div>
+        <button class="sim-life-btn" onclick="changeMullN(+1)">+</button>
+      </div>
+      <div class="sim-mull-btn-row">
+        <button class="sim-btn keep-btn" onclick="doMulligan()">✦ Hacer Mulligan</button>
+        <button class="sim-btn" onclick="hideMulliganOverlay()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</main>
+<footer>Deck Forge — Constructor de Mazos Commander &nbsp;✦&nbsp; Forjado con fuego arcano</footer>
+
+<script>
+// ── Estado global ──
+let _collections = {};       // id → { name, real_count, collection (JSON) }
+let _activeColId = null;     // colección activa para ingest/build
+let _activePIN = null;       // PIN activo — se pasa al build para guardar en Supabase
+let _analyzeColId = null;    // colección seleccionada en analizar
+let _buildColId = null;      // colección seleccionada en forjar
+let _analyzedCommanders = []; // lista de comandantes del último análisis
+let _lastBuild = null;
+
+// ── Tabs ──
+function showTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'analyze' || name === 'build') refreshCollectionSelects();
+  if (name === 'build') refreshSharedManager();
+  if (name === 'sim') refreshSimDeckSelect();
+  if (name === 'grimorio') renderDeckManageList();
+  if (name === 'import' && _activePIN) {
+    // Mostrar hint del PIN activo
+    const r = document.getElementById('import-result');
+    if (r && !r.innerHTML) {
+      r.innerHTML = `<div class="msg info">PIN activo: <b>${_activePIN}</b> — los conflictos se detectarán automáticamente contra tus otros mazos.</div>`;
+    }
+  }
+}
+
+// ── Helpers ──
+function setLoading(btn, loading, label) {
+  btn.disabled = loading;
+  if (!btn.dataset.orig) btn.dataset.orig = btn.innerHTML;
+  btn.innerHTML = loading ? `<span class="spinner"></span> ${label || 'Invocando...'}` : btn.dataset.orig;
+}
+
+function msg(id, type, html) {
+  const el = typeof id === 'string' ? document.getElementById(id) : id;
+  if (el) el.innerHTML = `<div class="msg ${type}">${html}</div>`;
+}
+
+function download(filename, content) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content]));
+  a.download = filename; a.click();
+}
+
+function colorBadges(colors) {
+  if (!colors) return '—';
+  return [...colors].map(c => `<span class="color-badge c-${c}">${c}</span>`).join('');
+}
+
+// ── Colecciones guardadas ──
+async function loadCollections() {
+  try {
+    const res = await fetch('/api/collections');
+    const data = await res.json();
+    for (const col of data.collections) {
+      if (!_collections[col.id]) {
+        _collections[col.id] = { name: col.name, real_count: col.real_count, collection: null };
+      }
+    }
+    renderSavedCollections();
+    refreshCollectionSelects();
+  } catch(e) {}
+}
+
+function renderSavedCollections() {
+  const container = document.getElementById('saved-collections-list');
+  const ids = Object.keys(_collections);
+  if (!ids.length) {
+    container.innerHTML = '<div class="col-empty">Ninguna colección guardada aún.</div>';
+    return;
+  }
+  container.innerHTML = ids.map(id => {
+    const col = _collections[id];
+    const active = id === _activeColId ? ' style="color:var(--gold)"' : '';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+      <span${active}>
+        <b style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:0.9rem">${col.name}</b>
+        <span style="color:var(--text-muted);font-size:0.82rem;margin-left:0.5rem">${col.real_count} cartas</span>
+      </span>
+      <button class="dl-btn" onclick="selectCollection('${id}')">Usar esta</button>
+    </div>`;
+  }).join('');
+}
+
+function refreshCollectionSelects() {
+  const ids = Object.keys(_collections);
+  ['analyze-col-select', 'build-col-select'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Selecciona una colección —</option>';
+    ids.forEach(id => {
+      const opt = document.createElement('option');
+      opt.value = id; opt.textContent = `${_collections[id].name} (${_collections[id].real_count} cartas)`;
+      sel.appendChild(opt);
+    });
+    if (current && _collections[current]) sel.value = current;
+    else if (_activeColId && _collections[_activeColId]) sel.value = _activeColId;
+  });
+}
+
+function selectCollection(id) {
+  _activeColId = id;
+  renderSavedCollections();
+  refreshCollectionSelects();
+  msg('ingest-result', 'ok', `✦ Colección activa: <b>${_collections[id].name}</b>`);
+}
+
+async function getCollectionData(id) {
+  if (_collections[id]?.collection) return _collections[id].collection;
+  try {
+    const res = await fetch(`/api/collections/${id}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    _collections[id].collection = data;
+    return data;
+  } catch(e) { return null; }
+}
+
+async function onAnalyzeColChange() {
+  _analyzeColId = document.getElementById('analyze-col-select').value || null;
+}
+
+async function onBuildColChange() {
+  _buildColId = document.getElementById('build-col-select').value || null;
+}
+
+// ── GESTOR DE CARTAS COMPARTIDAS ──────────────────────────────────────────
+// Guarda {card_name_lower → true/false} donde true=permitir aunque esté en otro mazo
+let _sharedCardChoices = {};  // true = el usuario PERMITE compartir; false = excluir (default)
+let _sharedManagerOpen = false;
+
+async function loadSharedCardsManager() {
+  if (!_activePIN) { document.getElementById('shared-cards-manager').style.display = 'none'; return; }
+
+  // Obtener la identidad de color del comandante seleccionado
+  const cmd = document.getElementById('commander').value.trim();
+  const colors = document.getElementById('colors').value.trim() || '';
+
+  let colorParam = colors;
+  if (!colorParam && cmd) {
+    // Intentar detectar del dropdown de análisis
+    const analyzed = _analyzedCommanders.find(c => c.name === cmd);
+    if (analyzed) colorParam = analyzed.colors || '';
+  }
+
+  try {
+    const url = `/api/pin-shared-cards?pin=${encodeURIComponent(_activePIN)}${colorParam ? '&colors=' + encodeURIComponent(colorParam) : ''}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const decks = data.decks || [];
+
+    const mgr = document.getElementById('shared-cards-manager');
+    const body = document.getElementById('shared-cards-list');
+    const summary = document.getElementById('shared-summary');
+
+    if (!decks.length || decks.every(d => !d.cards.length)) {
+      mgr.style.display = 'none';
+      return;
+    }
+
+    const totalCards = decks.reduce((s, d) => s + d.cards.length, 0);
+    summary.textContent = `${totalCards} carta${totalCards !== 1 ? 's' : ''} en ${decks.length} mazo${decks.length !== 1 ? 's' : ''}`;
+    mgr.style.display = 'block';
+
+    // Render cada deck y sus cartas
+    body.innerHTML = decks.map(deck => `
+      <div class="shared-deck-block">
+        <div class="shared-deck-name">⚔ ${deck.commander}</div>
+        ${deck.cards.map(card => {
+          const key = card.name.toLowerCase();
+          const checked = _sharedCardChoices[key] !== false ? '' : '';  // default: excluir (off)
+          return `
+          <div class="shared-card-row">
+            ${card.img ? `<img class="shared-card-img" src="${card.img}" alt="${card.name}" loading="lazy">` : '<div class="shared-card-img" style="background:rgba(255,255,255,0.05)"></div>'}
+            <div class="shared-card-info">
+              <div class="shared-card-name">${card.name}</div>
+              <div class="shared-card-type">${card.type || ''} · CMC ${card.cmc}</div>
+            </div>
+            <label style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;font-size:0.75rem;color:var(--ink-m)">
+              <input type="checkbox" class="shared-toggle" data-card="${card.name.toLowerCase()}"
+                     onchange="onSharedToggle(this)" ${_sharedCardChoices[key] === true ? 'checked' : ''}>
+              Permitir
+            </label>
+          </div>`;
+        }).join('')}
+      </div>`
+    ).join('');
+
+  } catch(e) {
+    document.getElementById('shared-cards-manager').style.display = 'none';
+  }
+}
+
+function onSharedToggle(checkbox) {
+  _sharedCardChoices[checkbox.dataset.card] = checkbox.checked;
+}
+
+function toggleSharedManager() {
+  _sharedManagerOpen = !_sharedManagerOpen;
+  document.getElementById('shared-cards-body').style.display = _sharedManagerOpen ? 'block' : 'none';
+  document.getElementById('shared-toggle-icon').textContent = _sharedManagerOpen ? '▲' : '▼';
+}
+
+function selectAllShared(allow) {
+  document.querySelectorAll('.shared-toggle').forEach(cb => {
+    cb.checked = allow;
+    _sharedCardChoices[cb.dataset.card] = allow;
+  });
+}
+
+// Se llama cuando el usuario selecciona un comandante o colección en Forjar
+function refreshSharedManager() {
+  // Pequeño delay para que los valores del form se actualicen primero
+  setTimeout(loadSharedCardsManager, 200);
+}
+
+// ── INGEST ──
+async function doIngest() {
+  const btn = document.getElementById('btn-ingest');
+  const result = document.getElementById('ingest-result');
+  const realFile = document.getElementById('real-csv').files[0];
+  const colName = document.getElementById('col-name').value.trim() || (realFile?.name.replace('.csv','') || 'Mi Colección');
+
+  if (!realFile) { msg(result, 'err', 'Debes seleccionar tu CSV de ManaBox.'); return; }
+
+  setLoading(btn, true, 'Consultando los Pergaminos de Scryfall...');
+  msg(result, 'info', '<span class="spinner"></span> Descargando el catálogo de Scryfall — puede tardar 1-2 minutos la primera vez...');
+
+  const fd = new FormData();
+  fd.append('real_csv', realFile);
+
+  try {
+    const res = await fetch('/api/ingest', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+
+    // Guardar en servidor con nombre
+    const colJson = JSON.stringify(data.collection);
+    const saveFd = new FormData();
+    saveFd.append('collection', colJson);
+    saveFd.append('name', colName);
+    const saveRes = await fetch('/api/collections/save', { method: 'POST', body: saveFd });
+    const saveData = await saveRes.json();
+
+    const colId = saveData.id;
+    const pin = saveData.pin;
+    _collections[colId] = { name: colName, real_count: data.real_count, collection: data.collection };
+    _activeColId = colId;
+    setActivePin(pin);
+
+    document.getElementById('step1').classList.add('step-done');
+    renderSavedCollections();
+    refreshCollectionSelects();
+
+    result.innerHTML = `
+      <div class="msg ok">✦ Colección "<b>${colName}</b>" guardada</div>
+      <div class="stat-grid">
+        <div class="stat"><span class="val">${data.real_count}</span><span class="lbl">Cartas reales</span></div>
+        <div class="stat"><span class="val">${data.fake_count}</span><span class="lbl">Proxies excluidas</span></div>
+      </div>
+      <div class="pin-box">
+        <p>Tu PIN — guárdalo para restaurar desde cualquier dispositivo</p>
+        <span class="pin-number" onclick="copyPin('${pin}')" title="Haz click para copiar">${pin}</span>
+        <span class="pin-copy-hint">Haz click para copiar</span>
+        <p class="pin-warning">⚠ Anota este PIN — no se puede recuperar si lo pierdes</p>
+      </div>`;
+  } catch(e) {
+    msg(result, 'err', '✗ El ritual ha fallado: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+// ── PIN helpers ──
+function copyPin(pin) {
+  navigator.clipboard.writeText(pin).then(() => {
+    const el = document.querySelector('.pin-number');
+    if (el) { el.textContent = '✓ Copiado'; setTimeout(() => el.textContent = pin, 1500); }
+  });
+}
+
+async function doRestorePin() {
+  const pin = document.getElementById('pin-input').value.trim();
+  if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+    msg('restore-result', 'err', 'El PIN debe ser exactamente 6 dígitos.');
+    return;
+  }
+  const btn = event.target;
+  setLoading(btn, true, 'Buscando en los archivos...');
+  msg('restore-result', 'info', '<span class="spinner"></span> Restaurando colección...');
+
+  const fd = new FormData();
+  fd.append('pin', pin);
+
+  try {
+    const res = await fetch('/api/sessions/restore', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail);
+
+    _collections[data.id] = { name: data.name, real_count: data.real_count, collection: data.collection };
+    _activeColId = data.id;
+    setActivePin(data.pin);
+    renderSavedCollections();
+    refreshCollectionSelects();
+
+    const decksMsg = data.decks_restored?.length
+      ? ` y <b>${data.decks_restored.length} mazo${data.decks_restored.length>1?'s':''}</b> restaurado${data.decks_restored.length>1?'s':''}`
+      : '';
+    msg('restore-result', 'ok', `✦ Colección "<b>${data.name}</b>"${decksMsg} restaurada — ${data.real_count} cartas listas.`);
+    document.getElementById('pin-input').value = '';
+  } catch(e) {
+    msg('restore-result', 'err', '✗ ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+// ── ANALYZE ──
+async function doAnalyze() {
+  const colId = document.getElementById('analyze-col-select').value;
+  if (!colId) { alert('Selecciona una colección primero.'); return; }
+
+  const collData = await getCollectionData(colId);
+  if (!collData) { alert('No se pudo cargar la colección.'); return; }
+
+  const btn = event.target;
+  const result = document.getElementById('analyze-result');
+  setLoading(btn, true, 'Consultando el Oráculo...');
+  msg(result, 'info', '<span class="spinner"></span> El oráculo estudia tus cartas...');
+
+  const fd = new FormData();
+  fd.append('collection', JSON.stringify(collData));
+  fd.append('min_colors', document.getElementById('min-colors').value);
+  fd.append('top', document.getElementById('top-n').value);
+
+  try {
+    const res = await fetch('/api/analyze', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail);
+
+    _analyzedCommanders = data.commanders;
+    updateCommanderDropdown();
+
+
+    result.innerHTML = `
+      <div class="msg ok">✦ Haz click en un comandante para seleccionarlo y forjar su mazo</div>
+      <div class="stat-grid">
+        <div class="stat"><span class="val">${data.pool_size}</span><span class="lbl">Cartas en pool</span></div>
+        <div class="stat"><span class="val">${data.max_bracket}</span><span class="lbl">Bracket máximo</span></div>
+        <div class="stat"><span class="val">${data.commanders.length}</span><span class="lbl">Comandantes</span></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Comandante</th><th>Colores</th><th>Arquetipo / Info</th><th>Score</th><th>Bracket</th></tr></thead>
+          <tbody id="commanders-tbody" onclick="handleCmdTableClick(event)">${rows}</tbody>
+        </table>
+      </div>`;
+  } catch(e) {
+    msg(result, 'err', '✗ El oráculo no pudo responder: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+function selectCommanderFromTable(name) {
+  document.querySelectorAll('#analyze-result tr').forEach(r => r.classList.remove('selected'));
+  // Find the row with this commander name and highlight it
+  var rows = document.querySelectorAll('#analyze-result tr[data-cmdname]');
+  rows.forEach(function(r){ if(r.dataset.cmdname === name) r.classList.add('selected'); });
+  document.getElementById('commander-select').value = name;
+  document.getElementById('commander').value = name;
   document.querySelectorAll('.tab')[2].click();
 }
 
