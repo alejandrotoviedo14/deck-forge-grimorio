@@ -656,6 +656,7 @@ async def build(
     csv_path.write_text(to_manabox_csv(deck, str(tmp_real), basics), encoding="utf-8")
 
     html_data = _build_deck_data_json(deck, bracket)
+
     # Añadir conflictos al html_data para mostrarlos en el grimorio
     html_data["conflicts"] = [
         {
@@ -666,6 +667,29 @@ async def build(
         }
         for c in deck.conflicts
     ]
+
+    # ── PRECIOS del mazo ──────────────────────────────────────────────────
+    try:
+        from core.price_advisor import calculate_deck_price
+        all_deck_cards = [dc.card for dc in deck.cards]
+        price_stats = calculate_deck_price(all_deck_cards)
+        html_data["price"] = price_stats
+    except Exception as e:
+        print(f"  [PRICE] Error calculando precios: {e}")
+        html_data["price"] = {}
+
+    # ── COMBOS del mazo (Commander Spellbook) ─────────────────────────────
+    try:
+        from core.combo_advisor import find_combos_in_pool
+        pool_names = {dc.card.get("name","") for dc in deck.cards} | {deck.commander.get("name","")}
+        combo_results = find_combos_in_pool(
+            pool_names, deck.colors, deck.commander.get("name",""), verbose=True
+        )
+        html_data["combos"] = combo_results
+    except Exception as e:
+        print(f"  [COMBOS] Error detectando combos: {e}")
+        html_data["combos"] = {"complete": [], "near_1": [], "near_2": []}
+
     register_deck(
         output_dir=deck_dir,
         deck_key=safe,

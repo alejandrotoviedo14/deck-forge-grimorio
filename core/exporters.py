@@ -211,6 +211,9 @@ def _build_deck_data_json(deck: BuiltDeck, bracket: BracketReport) -> dict:
                     impact: str = "") -> dict:
         scryfall_id = card.get("scryfall_id") or card.get("id") or ""
         roles = list(cls.classify(card))
+        prices = card.get("prices") or {}
+        price_eur = prices.get("eur") or prices.get("eur_foil")
+        price_usd = prices.get("usd") or prices.get("usd_foil")
         return {
             "name": card.get("name", ""),
             "scryfall_id": scryfall_id,
@@ -228,6 +231,8 @@ def _build_deck_data_json(deck: BuiltDeck, bracket: BracketReport) -> dict:
             "is_land": card.get("is_land", False),
             "is_creature": card.get("is_creature", False),
             "rarity": card.get("rarity", ""),
+            "price_eur": round(float(price_eur), 2) if price_eur else None,
+            "price_usd": round(float(price_usd), 2) if price_usd else None,
         }
 
     categories = {}
@@ -1338,7 +1343,8 @@ function renderCardItem(c, deckConflictsMap) {{
   // Buscar conflicto para esta carta
   const conflict = deckConflictsMap && deckConflictsMap[c.name];
 
-  const cardData = `data-name="${{esc(c.name)}}" data-type="${{esc(c.type)}}" data-oracle="${{esc(c.oracle)}}" data-role="${{esc(c.role)}}" data-just="${{esc(c.justification)}}" data-impact="${{esc(c.impact||'')}}"
+  const peur = c.price_eur != null ? `€${{c.price_eur.toFixed(2)}}` : '';
+  const cardData = `data-name="${{esc(c.name)}}" data-type="${{esc(c.type)}}" data-oracle="${{esc(c.oracle)}}" data-role="${{esc(c.role)}}" data-just="${{esc(c.justification)}}" data-impact="${{esc(c.impact||'')}}" data-price="${{peur}}"
     ${{conflict ? `data-conflict="1" data-confowner="${{esc(conflict.reserved_by)}}" data-confalt="${{esc(conflict.alternative||'')}}"` : ''}}`;
 
   const conflictBadge = conflict
@@ -1466,8 +1472,39 @@ function renderDeckPanel(key, deck) {{
           <div class="stat-card"><div class="stat-value">${{deck.avg_cmc}}</div><div class="stat-label">CMC Medio</div></div>
           <div class="stat-card"><div class="stat-value">${{deck.manabase_score}}</div><div class="stat-label">Manabase /10</div></div>
           <div class="stat-card"><div class="stat-value" style="color:${{bracketColor(deck.bracket)}}">${{deck.bracket}}</div><div class="stat-label">Bracket</div></div>
+          ${{deck.price && deck.price.total_eur ? `<div class="stat-card"><div class="stat-value" style="color:#98f098">€${{deck.price.total_eur}}</div><div class="stat-label">Precio Aprox.</div></div>` : ''}}
+          ${{deck.price && deck.price.total_eur ? `<div class="stat-card"><div class="stat-value" style="color:#98f098">${{deck.price.cards_with_price}}</div><div class="stat-label">Cartas con precio</div></div>` : ''}}
         </div>
       </div>
+
+      ${{(deck.price && deck.price.top_10_expensive && deck.price.top_10_expensive.length > 0) ? `
+      <div class="section">
+        <div class="section-title">💰 Distribución de Precio</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="info-box">
+            <h4>Top cartas por precio</h4>
+            <div style="font-size:12px">
+              ${{deck.price.top_10_expensive.slice(0,8).map(c=>
+                `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)">
+                  <span style="color:var(--text2)">${{c.name}}</span>
+                  <span style="color:#98f098;font-weight:600">€${{c.price_eur}}</span>
+                </div>`
+              ).join('')}}
+            </div>
+          </div>
+          <div class="info-box">
+            <h4>Distribución por rango</h4>
+            <div style="font-size:12px">
+              ${{Object.entries(deck.price.price_buckets||{{}}).map(([range,count])=>
+                `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+                  <span style="color:var(--text3)">${{range}} €</span>
+                  <span style="color:var(--text2)">${{count}} cartas</span>
+                </div>`
+              ).join('')}}
+            </div>
+          </div>
+        </div>
+      </div>` : ''}}
 
       <div class="section">
         <div class="section-title">Estrategia</div>
@@ -1519,6 +1556,48 @@ function renderDeckPanel(key, deck) {{
           </div>
         </div>
       </div>
+
+      ${{(deck.combos && (deck.combos.complete?.length || deck.combos.near_1?.length)) ? `
+      <div class="section">
+        <div class="section-title">⚡ Combos Detectados (Commander Spellbook)</div>
+        ${{deck.combos.complete?.length ? `
+        <div style="margin-bottom:12px">
+          <div style="font-family:'Cinzel',serif;font-size:11px;color:#27ae60;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">
+            ✓ ${{deck.combos.complete.length}} Combos completos en tu mazo
+          </div>
+          ${{deck.combos.complete.slice(0,8).map(c=>`
+            <div style="background:rgba(39,174,96,0.07);border:1px solid rgba(39,174,96,0.2);border-radius:6px;padding:10px 14px;margin-bottom:6px">
+              <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px">
+                ${{c.cards.join(' + ')}}
+              </div>
+              <div style="font-size:11px;color:#27ae60">
+                → ${{c.produces.slice(0,2).join(' · ')}}
+              </div>
+              <div style="font-size:10px;color:var(--text3);margin-top:2px">
+                Popularidad: ${{c.popularity.toLocaleString()}} mazos
+                ${{c.bracketTag ? `· <span style="color:#f39c12">${{c.bracketTag}}</span>` : ''}}
+              </div>
+            </div>`).join('')}}
+        </div>` : ''}}
+        ${{deck.combos.near_1?.length ? `
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:11px;color:#f39c12;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">
+            ◎ ${{deck.combos.near_1.length}} Combos a 1 carta de distancia
+          </div>
+          ${{deck.combos.near_1.slice(0,5).map(c=>`
+            <div style="background:rgba(243,156,18,0.06);border:1px solid rgba(243,156,18,0.18);border-radius:6px;padding:10px 14px;margin-bottom:6px">
+              <div style="font-size:12px;color:var(--text2);margin-bottom:3px">
+                ${{c.cards.join(' + ')}}
+              </div>
+              <div style="font-size:11px;color:#f39c12">
+                Falta: <b>${{c.missing.join(', ')}}</b>
+              </div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">
+                → ${{c.produces.slice(0,1).join('')}}
+              </div>
+            </div>`).join('')}}
+        </div>` : ''}}
+      </div>` : ''}}
 
       ${{(deck.conflicts && deck.conflicts.length) ? `
       <div class="section">
@@ -1628,9 +1707,10 @@ function showTooltip(e, el) {{
   const name  = el.dataset.name  || '';
   const type  = el.dataset.type  || '';
   const oracle = el.dataset.oracle || '';
-  const role  = el.dataset.role  || '';
-  const just  = el.dataset.just  || '';
+  const role     = el.dataset.role   || '';
+  const just     = el.dataset.just   || '';
   const cardImpact = el.dataset.impact || '';
+  const price    = el.dataset.price  || '';
   const conf  = el.dataset.conflict || '';
   const confAlt = el.dataset.confalt || '';
   const confOwner = el.dataset.confowner || '';
@@ -1657,6 +1737,14 @@ function showTooltip(e, el) {{
     <div class="tt-label">🎯 Impacto esperado</div>
     <div class="tt-impact">${{impact}}</div>
   </div>`;
+
+  // Precio
+  if (price) {{
+    body += `<div class="tt-section">
+      <div class="tt-label">💰 Precio estimado</div>
+      <div class="tt-impact" style="color:#98f098">${{price}}</div>
+    </div>`;
+  }}
 
   // Texto de la carta
   if (oracle) {{
