@@ -1443,6 +1443,21 @@ function handleCmdTableClick(event) {
   row.classList.add('selected');
   document.getElementById('commander-select').value = name;
   document.getElementById('commander').value = name;
+
+  // ── SINCRONIZAR COLECCIÓN ──
+  // Si el análisis usó una colección concreta, asegurarse de que el
+  // build use la misma — evita el error "comandante no encontrado en pool"
+  var analyzeColId = document.getElementById('analyze-col-select').value;
+  var buildColSel  = document.getElementById('build-col-select');
+  if (analyzeColId && buildColSel) {
+    // Seleccionar la misma colección en el build si existe la opción
+    var opt = buildColSel.querySelector('option[value="' + analyzeColId + '"]');
+    if (opt) {
+      buildColSel.value = analyzeColId;
+      _buildColId = analyzeColId;
+    }
+  }
+
   document.querySelectorAll('.tab')[2].click();
   refreshSharedManager();
 }

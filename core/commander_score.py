@@ -169,9 +169,14 @@ _edhrec_cache: dict[str, dict] = {}   # cache en memoria para esta sesión
 
 def _edhrec_relevance(commander_name: str, pool_names: set[str]) -> float:
     """
-    FIX 2: usa los datos de EDHREC ya integrados para medir qué % de tu pool
-    recomienda EDHREC para este comandante específico.
-    0 si no hay datos disponibles (neutral, no penaliza).
+    Relevancia EDHREC mejorada: usa SOLO las cartas HIGH-SYNERGY del comandante,
+    no todas las recomendadas (que incluyen genéricas como Sol Ring para todos).
+
+    Las cartas high-synergy son las que EDHREC marca como específicas de ESTE
+    comandante (synergy score > 0.3) — cartas que se juegan MÁS con este
+    comandante que con la media. Son el verdadero diferenciador.
+
+    Score: % de esas cartas específicas que tienes en tu pool.
     """
     global _edhrec_cache
     try:
@@ -180,13 +185,28 @@ def _edhrec_relevance(commander_name: str, pool_names: set[str]) -> float:
             adv = EDHRecAdvisor(verbose=False)
             _edhrec_cache[commander_name] = adv.fetch_commander_data(commander_name)
         data = _edhrec_cache[commander_name]
-        edhrec_names = {n.lower() for n in data.get("all_cards", {})}
-        if not edhrec_names:
+
+        # Usar SOLO high_synergy — cartas específicas de este comandante
+        high_synergy = data.get("high_synergy", {})
+        if not high_synergy:
+            # Fallback: all_cards filtradas por synergy > 0.25
+            all_cards = data.get("all_cards", {})
+            high_synergy = {
+                n: v for n, v in all_cards.items()
+                if v.get("synergy", 0) > 0.25
+            }
+
+        if not high_synergy:
             return 0.0
+
+        hs_names = {n.lower() for n in high_synergy}
         pool_lower = {n.lower() for n in pool_names}
-        overlap = len(pool_lower & edhrec_names)
-        # Normalizar: 15+ cartas en común → 100
-        return min(overlap / 15 * 100.0, 100.0)
+        overlap = len(pool_lower & hs_names)
+
+        # Normalizar: 8+ cartas específicas en pool → score 100
+        # (tener 8 cartas que EDHREC marca como únicas para este commander
+        #  es excelente — demuestra que tu pool encaja con el plan del cmd)
+        return min(overlap / 8 * 100.0, 100.0)
     except Exception:
         return 0.0
 
@@ -275,4 +295,25 @@ def score_commanders(
         ))
 
     scores.sort(key=lambda s: -s.total_score)
-    return scores
+
+    # ── Diversidad: limitar dominancia de una misma identidad de color ──
+    # Si los 20 primeros son todos GU, el usuario no verá alternativas.
+    # Permitimos máx 4 commanders del mismo color identity en el top.
+    diversity_filtered: list[CommanderScore] = []
+    ci_count: dict[str, int] = {}
+    MAX_PER_CI = 4  # máximo por identidad exacta de color
+
+    for s in scores:
+        ci = s.colors
+        if ci_count.get(ci, 0) < MAX_PER_CI:
+            diversity_filtered.append(s)
+            ci_count[ci] = ci_count.get(ci, 0) + 1
+        # Los que no entran por diversidad aún pueden aparecer
+        # si hay huecos (el caller pide top=20 de ~50 slots posibles)
+
+    # Si la diversidad redujo demasiado, completar con los siguientes en score
+    if len(diversity_filtered) < len(scores):
+        remaining = [s for s in scores if s not in diversity_filtered]
+        diversity_filtered.extend(remaining)
+
+    return diversity_filtered
