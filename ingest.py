@@ -242,10 +242,29 @@ def main():
     real_cards = _process_csv(real_path, "real", bulk_index)
     fake_cards = _process_csv(fake_path, "fake", bulk_index) if fake_path else []
 
+    # ── Enriquecer con tags funcionales (tagger_cache) ─────────────────────
+    tagger_enabled = False
+    try:
+        import sys
+        sys.path.insert(0, str(Path(__file__).parent))
+        from core.tagger_cache import build_tag_index, enrich_card_with_tags
+        print("\n  [TAGGER] Cargando índice de tags funcionales...")
+        tag_index = build_tag_index(verbose=True)
+        tagged = 0
+        for card in real_cards + fake_cards:
+            prev = len(card.get("tagger_tags") or [])
+            enrich_card_with_tags(card, tag_index)
+            if len(card.get("tagger_tags") or []) > prev:
+                tagged += 1
+        tagger_enabled = True
+        print(f"  [TAGGER] {tagged}/{len(real_cards)} cartas con tags funcionales asignados")
+    except Exception as e:
+        print(f"  [TAGGER] No disponible: {e}")
+
     output = {
         "metadata": {
             "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "tagger_enabled": False,
+            "tagger_enabled": tagger_enabled,
             "real_count_unique": len(real_cards),
             "fake_count_unique": len(fake_cards),
             "real_count_total": sum(c["quantity"] for c in real_cards),
