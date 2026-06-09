@@ -651,7 +651,8 @@ async def interpret_prompt(
         pool,
         colors=parsed["colors"],
         tribe=parsed["tribe"],
-        top_n=8,
+        is_mono=parsed["is_mono"],
+        top_n=12,
     )
     seen = {c["name"] for c in candidates}
     for c in more:
@@ -661,8 +662,13 @@ async def interpret_prompt(
 
     # Serializar solo los campos necesarios para el frontend
     def _card_summary(c: dict) -> dict:
-        img = (c.get("image_uris") or {}).get("normal") or \
-              (c.get("image_uris") or {}).get("small") or ""
+        # La colección enriquecida guarda "img" como URL directa construida
+        # desde scryfall_id — NO usa el formato image_uris de la API de Scryfall
+        img = c.get("img") or ""
+        if not img:
+            sid = c.get("scryfall_id") or c.get("id") or ""
+            if sid and len(sid) >= 2:
+                img = f"https://cards.scryfall.io/normal/front/{sid[0]}/{sid[1]}/{sid}.jpg"
         return {
             "name": c["name"],
             "image": img,
@@ -677,7 +683,7 @@ async def interpret_prompt(
         "archetype": parsed["archetype"],
         "tribe": parsed["tribe"],
         "commander_hint": parsed["commander_hint"],
-        "candidates": [_card_summary(c) for c in candidates[:6]],
+        "candidates": [_card_summary(c) for c in candidates[:9]],
     }
 
 
