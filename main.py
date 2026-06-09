@@ -610,6 +610,78 @@ async def analyze(
 
 
 # ---------------------------------------------------------------------------
+# POST /api/interpret-prompt  — parse prompt → candidatos de comandante
+# ---------------------------------------------------------------------------
+
+@app.post("/api/interpret-prompt")
+async def interpret_prompt(
+    collection: str = Form(..., description="JSON string de collection_enriched"),
+    prompt: str = Form(..., description="Prompt en lenguaje natural"),
+):
+    """
+    Interpreta un prompt en lenguaje natural y devuelve:
+    - La interpretación (colores, tribu, arquetipo detectados)
+    - Lista de comandantes candidatos de la colección que encajan
+    """
+    from core.prompt_parser import parse_prompt, find_matching_commanders
+    from core.pool import build_real_pool
+
+    try:
+        coll = json.loads(collection)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"collection JSON inválido: {e}")
+
+    pool = build_real_pool(coll)
+
+    parsed = parse_prompt(prompt, pool=pool)
+
+    # Si el prompt nombró un comandante directamente, ponlo primero
+    candidates: list[dict] = []
+    if parsed["commander_hint"]:
+        direct = next(
+            (c for c in pool if c.get("can_be_commander")
+             and c["name"] == parsed["commander_hint"]),
+            None,
+        )
+        if direct:
+            candidates.append(direct)
+
+    # Añadir más candidatos por color + tribu
+    more = find_matching_commanders(
+        pool,
+        colors=parsed["colors"],
+        tribe=parsed["tribe"],
+        top_n=8,
+    )
+    seen = {c["name"] for c in candidates}
+    for c in more:
+        if c["name"] not in seen:
+            candidates.append(c)
+            seen.add(c["name"])
+
+    # Serializar solo los campos necesarios para el frontend
+    def _card_summary(c: dict) -> dict:
+        img = (c.get("image_uris") or {}).get("normal") or \
+              (c.get("image_uris") or {}).get("small") or ""
+        return {
+            "name": c["name"],
+            "image": img,
+            "color_identity": c.get("color_identity") or [],
+            "type_line": c.get("type_line") or "",
+            "edhrec_rank": c.get("edhrec_rank"),
+        }
+
+    return {
+        "interpretation": parsed["interpretation"],
+        "colors": parsed["colors"],
+        "archetype": parsed["archetype"],
+        "tribe": parsed["tribe"],
+        "commander_hint": parsed["commander_hint"],
+        "candidates": [_card_summary(c) for c in candidates[:6]],
+    }
+
+
+# ---------------------------------------------------------------------------
 # POST /api/build
 # ---------------------------------------------------------------------------
 

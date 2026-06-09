@@ -381,6 +381,42 @@
   }
   .shared-toggle:checked::before { transform:translateX(16px); }
 
+  /* ── PROMPT BUILD ── */
+  .prompt-textarea {
+    width: 100%; padding: 0.82rem 1rem; background: rgba(5,4,8,0.75);
+    border: 1px solid rgba(201,168,76,0.2); border-radius: 10px;
+    color: var(--ink); font-family: 'Cormorant Garamond', serif; font-size: 1.05rem;
+    outline: none; resize: vertical; line-height: 1.6;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .prompt-textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.14); }
+  .prompt-interp {
+    margin-top: 0.8rem; padding: 0.6rem 1rem; border-radius: 8px;
+    background: rgba(201,168,76,0.07); border: 1px solid rgba(201,168,76,0.2);
+    font-size: 0.82rem; color: var(--gold-l); letter-spacing: 0.04em;
+  }
+  .cand-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem; margin-top: 1rem;
+  }
+  .cand-card {
+    border: 2px solid rgba(201,168,76,0.18); border-radius: 10px; overflow: hidden;
+    cursor: pointer; transition: all 0.2s; background: rgba(5,4,8,0.6);
+    display: flex; flex-direction: column;
+  }
+  .cand-card:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+  .cand-card.selected { border-color: var(--gold-l); box-shadow: 0 0 0 3px rgba(201,168,76,0.3), 0 8px 24px rgba(0,0,0,0.5); }
+  .cand-card img { width: 100%; display: block; }
+  .cand-card-info { padding: 0.4rem 0.5rem; }
+  .cand-card-name { font-size: 0.62rem; font-weight: 700; color: var(--ink-s); line-height: 1.3; }
+  .cand-card.selected .cand-card-name { color: var(--gold-l); }
+  .cand-ci { display: flex; gap: 2px; margin-top: 3px; flex-wrap: wrap; }
+  .cand-ci span { width: 12px; height: 12px; border-radius: 50%; font-size: 0; }
+  .ci-W { background: #f6f2e0; } .ci-U { background: #1a4a88; }
+  .ci-B { background: #3a1858; } .ci-R { background: #8a2000; } .ci-G { background: #0a3a10; }
+  .cand-no-img { width: 100%; aspect-ratio: 5/7; background: linear-gradient(160deg,rgba(20,18,26,0.9),rgba(10,8,16,0.95)); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+  .hint { font-size: 0.88rem; color: var(--ink-m); line-height: 1.5; margin-top: 0.4rem; }
+
   /* ── SIMULADOR ── */
   .sim-controls { display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem; }
   .sim-btn { padding:0.5rem 1.1rem; border:1px solid var(--border-gold); border-radius:4px; background:var(--bg2); color:var(--gold-light); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.72rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
@@ -570,52 +606,100 @@
 
   <!-- ══ FORJAR ══ -->
   <div class="panel" id="panel-build">
-    <div class="card">
-      <div class="card-title">Forjar un mazo</div>
 
-      <label>Colección</label>
+    <!-- ══ COLECCIÓN ══ -->
+    <div class="card">
+      <div class="card-title">Colección</div>
       <select id="build-col-select" onchange="onBuildColChange()">
         <option value="">— Selecciona una colección —</option>
       </select>
+    </div>
 
-      <label>Comandante</label>
-      <select id="commander-select" onchange="onCommanderSelectChange()">
-        <option value="">— Elige del análisis o escribe abajo —</option>
-      </select>
-      <p class="hint" id="commander-hint">Analiza tu colección primero para ver sugerencias aquí.</p>
+    <!-- ══ FORJA POR DESCRIPCIÓN ══ -->
+    <div class="card">
+      <div class="card-title">Forja por descripción</div>
+      <p class="hint" style="margin-bottom:1rem">
+        Describe qué mazo quieres en lenguaje natural. Solo se usarán cartas de tu colección.
+      </p>
+      <textarea id="prompt-input" class="prompt-textarea"
+        placeholder="Ej: quiero un mazo monocolor de Goblins&#10;Ej: control azul con magos&#10;Ej: elfos verdes aggro&#10;Ej: Atraxa, Praetors Voice"
+        rows="3"
+        onkeydown="if(event.key==='Enter'&&event.ctrlKey)doInterpretPrompt()"></textarea>
+      <button class="primary" onclick="doInterpretPrompt()" id="btn-interpret" style="margin-top:0.8rem">
+        🔮 Interpretar y buscar comandantes
+      </button>
+      <div id="prompt-result"></div>
+    </div>
 
-      <label>O escribe el nombre exacto</label>
-      <input type="text" id="commander" placeholder="ej. Vorel of the Hull Clade"/>
+    <!-- ══ O ELIGE DIRECTAMENTE ══ -->
+    <div class="card">
+      <div class="card-title" style="cursor:pointer;user-select:none" onclick="toggleDirectMode()">
+        ⚔ O elige directamente
+        <span id="direct-toggle-icon" style="font-size:0.65rem;color:var(--ink-m);margin-left:0.5rem;font-weight:400">▼ expandir</span>
+      </div>
+      <div id="direct-mode-body" style="display:none">
+        <p class="hint" style="margin-bottom:0.8rem">
+          Escribe el nombre exacto del comandante o elige del último análisis.
+        </p>
 
-      <div class="row" style="margin-top:1rem">
-        <div>
-          <label>Identidad de color (opcional)</label>
-          <input type="text" id="colors" placeholder="ej. GU, WUB"/>
+        <select id="commander-select" onchange="onCommanderSelectChange()" style="margin-bottom:0.6rem">
+          <option value="">— Del último análisis (opcional) —</option>
+        </select>
+        <p class="hint" id="commander-hint" style="margin-top:0;margin-bottom:0.8rem">Analiza tu colección para ver sugerencias aquí.</p>
+
+        <label>Nombre del comandante</label>
+        <input type="text" id="commander" placeholder="ej. Vorel of the Hull Clade"
+               oninput="onDirectCommanderInput()" />
+
+        <div class="row" style="margin-top:1rem">
+          <div>
+            <label>Color (opcional)</label>
+            <input type="text" id="colors" placeholder="ej. GU, WUB, R"/>
+          </div>
+          <div>
+            <label>Arquetipo</label>
+            <select id="archetype">
+              <option value="">Auto-detectar</option>
+              <option value="counters">+1/+1 Counters</option>
+              <option value="equipment">Equipment Voltron</option>
+              <option value="aristocrats">Tokens / Sacrificio</option>
+              <option value="spellslinger">Spellslinger</option>
+              <option value="tribal">Tribal / Kindred</option>
+              <option value="blink">Blink / ETB</option>
+              <option value="landfall">Landfall</option>
+              <option value="lifegain">Lifegain</option>
+              <option value="reanimator">Reanimador</option>
+            </select>
+          </div>
         </div>
+
+        <button class="secondary" onclick="confirmDirectCommander()" style="margin-top:1rem;width:auto;padding:0.6rem 1.4rem">
+          Usar este comandante →
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ OPCIONES + FORJAR (visible al seleccionar comandante) ══ -->
+    <div class="card" id="forge-options-card" style="display:none">
+      <div class="card-title">Opciones de construcción</div>
+
+      <!-- Comandante seleccionado -->
+      <div id="selected-commander-display" style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;padding:0.8rem 1rem;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:10px">
+        <img id="selected-cmd-img" src="" alt="" style="width:52px;border-radius:6px;display:none"/>
         <div>
-          <label>Arquetipo</label>
-          <select id="archetype">
-            <option value="">Auto-detectar</option>
-            <option value="counters">+1/+1 Counters</option>
-            <option value="equipment">Equipment Voltron</option>
-            <option value="aristocrats">Tokens / Sacrificio</option>
-            <option value="spellslinger">Spellslinger</option>
-            <option value="tribal">Tribal / Kindred</option>
-            <option value="blink">Blink / ETB</option>
-            <option value="landfall">Landfall</option>
-            <option value="lifegain">Lifegain</option>
-            <option value="reanimator">Reanimador</option>
-          </select>
+          <div style="font-size:0.68rem;color:var(--ink-m);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.2rem">Comandante seleccionado</div>
+          <div id="selected-cmd-name" style="font-weight:700;color:var(--gold);font-size:1rem"></div>
         </div>
+        <button onclick="clearSelectedCommander()" style="margin-left:auto;background:none;border:1px solid rgba(201,168,76,0.2);border-radius:99px;color:var(--ink-m);font-size:0.65rem;padding:3px 10px">✕ cambiar</button>
       </div>
 
-      <div class="checkbox-row" style="margin-top:1rem">
+      <div class="checkbox-row">
         <input type="checkbox" id="use-edhrec" checked/>
-        <label for="use-edhrec">Usar EDHREC para mejorar la selección de cartas</label>
+        <label for="use-edhrec">Usar EDHREC para mejorar la selección</label>
       </div>
 
-      <!-- ══ GESTOR DE CARTAS COMPARTIDAS ══ -->
-      <div id="shared-cards-manager" style="display:none;margin-top:1.4rem">
+      <!-- Gestor de cartas compartidas -->
+      <div id="shared-cards-manager" style="display:none;margin-top:1.2rem">
         <div style="background:rgba(212,168,67,0.07);border:1px solid rgba(212,168,67,0.25);border-radius:10px;overflow:hidden">
           <div style="padding:0.9rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none"
                onclick="toggleSharedManager()">
@@ -627,8 +711,7 @@
           </div>
           <div id="shared-cards-body" style="display:none;padding:0 1rem 1rem">
             <p style="font-size:0.85rem;color:var(--ink-m);margin-bottom:0.8rem;line-height:1.5">
-              Estas cartas ya las usas en otros mazos. Marca las que quieres <strong>permitir</strong> en este también
-              (se incluirán aunque estén repetidas). Las no marcadas se sustituirán por la mejor alternativa disponible.
+              Estas cartas ya las usas en otros mazos. Marca las que quieres <strong>permitir</strong> en este también.
             </p>
             <div id="shared-cards-list"></div>
             <button class="secondary" style="margin-top:0.8rem;width:auto;padding:0.5rem 1.2rem;font-size:0.78rem"
@@ -639,9 +722,10 @@
         </div>
       </div>
 
-      <button class="primary" onclick="doBuild()">✦ Forjar el Mazo ✦</button>
+      <button class="primary" onclick="doBuild()" style="margin-top:1.4rem">✦ Forjar el Mazo ✦</button>
       <div id="build-result"></div>
     </div>
+
   </div>
 
   <!-- ══ GRIMORIO ══ -->
@@ -901,6 +985,144 @@ async function onAnalyzeColChange() {
 
 async function onBuildColChange() {
   _buildColId = document.getElementById('build-col-select').value || null;
+}
+
+// ── ESTADO DEL COMANDANTE SELECCIONADO ────────────────────────────────────
+let _selectedCommanderName = null;  // nombre del comandante elegido (prompt o directo)
+let _selectedCommanderImg  = null;  // imagen del comandante elegido
+
+function setSelectedCommander(name, imgUrl) {
+  _selectedCommanderName = name;
+  _selectedCommanderImg  = imgUrl || null;
+  // actualizar display
+  const nameEl = document.getElementById('selected-cmd-name');
+  const imgEl  = document.getElementById('selected-cmd-img');
+  if (nameEl) nameEl.textContent = name;
+  if (imgEl) {
+    if (imgUrl) { imgEl.src = imgUrl; imgEl.style.display = 'block'; }
+    else imgEl.style.display = 'none';
+  }
+  // sincronizar con el input oculto que usa doBuild()
+  const cmdInput = document.getElementById('commander');
+  if (cmdInput) cmdInput.value = name;
+  // mostrar panel de opciones
+  const optCard = document.getElementById('forge-options-card');
+  if (optCard) optCard.style.display = 'block';
+  // cargar shared manager
+  refreshSharedManager();
+}
+
+function clearSelectedCommander() {
+  _selectedCommanderName = null;
+  _selectedCommanderImg  = null;
+  const cmdInput = document.getElementById('commander');
+  if (cmdInput) cmdInput.value = '';
+  document.getElementById('forge-options-card').style.display = 'none';
+  // limpiar selección visual en la grilla
+  document.querySelectorAll('.cand-card').forEach(c => c.classList.remove('selected'));
+}
+
+// ── MODO DIRECTO (collapsible) ────────────────────────────────────────────
+function toggleDirectMode() {
+  const body = document.getElementById('direct-mode-body');
+  const icon = document.getElementById('direct-toggle-icon');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  icon.textContent = open ? '▼ expandir' : '▲ contraer';
+}
+
+function onDirectCommanderInput() {
+  // noop — el usuario confirma con el botón "Usar este comandante"
+}
+
+function confirmDirectCommander() {
+  const name = (document.getElementById('commander').value || '').trim();
+  if (!name) { alert('Escribe el nombre del comandante primero.'); return; }
+  setSelectedCommander(name, null);
+}
+
+// ── FORJA POR PROMPT ──────────────────────────────────────────────────────
+async function doInterpretPrompt() {
+  const colId = document.getElementById('build-col-select').value || _activeColId;
+  if (!colId) { alert('Selecciona una colección primero.'); return; }
+  const prompt = (document.getElementById('prompt-input').value || '').trim();
+  if (!prompt) { alert('Escribe una descripción primero.'); return; }
+
+  const collData = await getCollectionData(colId);
+  if (!collData) { alert('No se pudo cargar la colección.'); return; }
+
+  const btn = document.getElementById('btn-interpret');
+  const resultEl = document.getElementById('prompt-result');
+  btn.disabled = true;
+  btn.textContent = '🔮 Interpretando...';
+  resultEl.innerHTML = '';
+
+  try {
+    const fd = new FormData();
+    fd.append('collection', JSON.stringify(collData));
+    fd.append('prompt', prompt);
+    const res = await fetch('/api/interpret-prompt', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Error al interpretar');
+
+    renderPromptResult(data);
+  } catch (e) {
+    resultEl.innerHTML = `<div class="msg err" style="margin-top:0.8rem">⚠ ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔮 Interpretar y buscar comandantes';
+  }
+}
+
+function renderPromptResult(data) {
+  const el = document.getElementById('prompt-result');
+  const { interpretation, candidates } = data;
+
+  if (!candidates || !candidates.length) {
+    el.innerHTML = `
+      <div class="prompt-interp">🔍 ${interpretation}</div>
+      <div class="msg info" style="margin-top:0.8rem">
+        No se encontraron comandantes en tu colección con esos criterios.<br>
+        Prueba ampliar el prompt (p.ej. omite el color) o usa la selección directa.
+      </div>`;
+    return;
+  }
+
+  const cards = candidates.map(c => {
+    const ci = (c.color_identity || []).map(l =>
+      `<span class="ci-${l}" title="${l}"></span>`).join('');
+    const img = c.image
+      ? `<img src="${c.image}" alt="${c.name}" loading="lazy"/>`
+      : `<div class="cand-no-img">⚜</div>`;
+    return `
+      <div class="cand-card" onclick="selectPromptCommander('${c.name.replace(/'/g,"\\'")}','${(c.image||'').replace(/'/g,"\\'")}',this)"
+           title="${c.name}">
+        ${img}
+        <div class="cand-card-info">
+          <div class="cand-card-name">${c.name}</div>
+          <div class="cand-ci">${ci}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="prompt-interp">🔍 ${interpretation}</div>
+    <p class="hint" style="margin-top:0.8rem">
+      ${candidates.length} comandante${candidates.length !== 1 ? 's' : ''} disponible${candidates.length !== 1 ? 's' : ''} en tu colección — haz clic para seleccionar:
+    </p>
+    <div class="cand-grid">${cards}</div>`;
+}
+
+function selectPromptCommander(name, imgUrl, cardEl) {
+  // marcar seleccionado visualmente
+  document.querySelectorAll('.cand-card').forEach(c => c.classList.remove('selected'));
+  if (cardEl) cardEl.classList.add('selected');
+  setSelectedCommander(name, imgUrl);
+  // scroll suave al panel de opciones
+  setTimeout(() => {
+    const opt = document.getElementById('forge-options-card');
+    if (opt) opt.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
 }
 
 // ── GESTOR DE CARTAS COMPARTIDAS ──────────────────────────────────────────
@@ -1255,7 +1477,8 @@ async function doBuild() {
     fd.append('real_csv', realFileInput.files[0]);
   }
 
-  const cmd = document.getElementById('commander').value.trim();
+  // Prioridad: selección por prompt/directo > input de texto
+  const cmd = _selectedCommanderName || document.getElementById('commander').value.trim();
   const colors = document.getElementById('colors').value.trim();
   const arch = document.getElementById('archetype').value;
   const edhrec = document.getElementById('use-edhrec').checked;
