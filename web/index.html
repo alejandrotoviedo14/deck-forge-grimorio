@@ -63,9 +63,8 @@
       radial-gradient(45% 55% at 15% 10%, rgba(192,74,24,0.18), transparent 60%),
       radial-gradient(40% 50% at 82% 15%, rgba(100,60,160,0.15), transparent 60%),
       radial-gradient(55% 55% at 50% 108%, rgba(201,168,76,0.12), transparent 60%);
-    filter: blur(28px); animation: meshDrift 28s ease-in-out infinite alternate;
+    filter: blur(28px);
   }
-  @keyframes meshDrift { 0%{transform:translate3d(0,0,0);} 100%{transform:translate3d(-3%,2%,0) scale(1.06);} }
   .fx-runes { display: none; }
   .fx-vignette { position: absolute; inset: 0; background: radial-gradient(130% 90% at 50% 0%, transparent 38%, rgba(0,0,0,0.5) 100%); }
   #fx-embers { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -108,12 +107,8 @@
     font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 0.78rem; font-weight: 700;
     border: 2px solid transparent;
     box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.15);
-    transition: transform 0.2s cubic-bezier(.2,.9,.3,1.4), box-shadow 0.2s;
-    animation: orbBob 5s ease-in-out infinite;
+    transition: transform 0.2s, box-shadow 0.2s;
   }
-  .mana-orb:nth-child(2){animation-delay:.4s;} .mana-orb:nth-child(3){animation-delay:.8s;}
-  .mana-orb:nth-child(4){animation-delay:1.2s;} .mana-orb:nth-child(5){animation-delay:1.6s;}
-  @keyframes orbBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
   .mana-orb:hover{transform:translateY(-9px) scale(1.18);}
   .m-w{background:radial-gradient(circle at 35% 30%,#f6f2e0,#c8c0a0);color:#2a2818;border-color:rgba(248,244,224,0.7);}
   .m-u{background:radial-gradient(circle at 35% 30%,#3a7ab8,#0a2a58);color:#b0d8ff;border-color:rgba(58,122,184,0.8);}
@@ -141,9 +136,8 @@
   .tab.active { color: #1a1206; font-weight: 700; background: linear-gradient(180deg, #ffe090, #c9a84c 55%, #7a5c1e); border-color: rgba(255,240,160,0.3); box-shadow: 0 4px 16px rgba(201,168,76,0.35), inset 0 1px 2px rgba(255,255,255,0.5); transform: translateY(-1px); }
 
   /* PANELS */
-  .panel { display: none; animation: panelIn 0.4s cubic-bezier(.2,.8,.2,1); }
+  .panel { display: none; }
   .panel.active { display: block; }
-  @keyframes panelIn { from{opacity:0;transform:translateY(14px) scale(.99);} to{opacity:1;transform:none;} }
 
   /* CARD */
   .card { position: relative; margin-bottom: 1.8rem; padding: 2rem; background: linear-gradient(160deg, rgba(20,18,26,0.84), rgba(10,8,16,0.90)); border: 1px solid rgba(201,168,76,0.18); border-radius: var(--r); overflow: hidden; backdrop-filter: blur(8px); box-shadow: 0 20px 50px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.04); transition: transform .3s, box-shadow .3s; }
@@ -166,9 +160,8 @@
 
   /* BUTTONS */
   button.primary { margin-top:1.8rem; width:100%; padding:1rem 2rem; border-radius:99px; background:linear-gradient(180deg,#2a2010,#47320e 48%,#2a2010); border:1.5px solid var(--gold-d); position:relative; overflow:hidden; color:var(--gold-l); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; box-shadow:0 10px 26px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1); transition:transform .15s, box-shadow .25s, color .2s; }
-  button.primary::before { content:''; position:absolute; top:0; left:-120%; width:60%; height:100%; background:linear-gradient(105deg,transparent,rgba(232,201,106,0.4),transparent); transform:skewX(-18deg); transition:left .55s ease; }
-  button.primary:hover:not(:disabled) { color:#fff8e0; transform:translateY(-2px); border-color:var(--gold-l); box-shadow:0 0 26px rgba(201,168,76,0.28), 0 16px 36px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18); }
-  button.primary:hover:not(:disabled)::before { left:130%; }
+  button.primary::before { content: none; }
+  button.primary:hover:not(:disabled) { color:#fff8e0; border-color:var(--gold-l); box-shadow:0 0 20px rgba(201,168,76,0.2), 0 8px 20px rgba(0,0,0,0.5); }
   button.primary:active:not(:disabled) { transform:translateY(1px); }
   button.primary:disabled { opacity:0.4; }
   button.secondary { margin-top:0.75rem; width:100%; padding:0.62rem 1.4rem; border-radius:99px; border:1px solid rgba(201,168,76,0.25); background:rgba(201,168,76,0.05); color:var(--gold-l); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.73rem; letter-spacing:0.12em; text-transform:uppercase; transition:all .2s; }
@@ -2052,73 +2045,7 @@ loadCollections();
 autoRestorePin();
 </script>
 
-<!-- ═══ EFECTOS VISUALES ARCANOS ═══ -->
-<script>
-(function(){
-  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* ── Brasas flotantes en canvas ── */
-  const cv = document.getElementById('fx-embers');
-  if (cv && !reduce) {
-    const ctx = cv.getContext('2d');
-    let W, H, embers = [];
-    function resize(){ W = cv.width = innerWidth; H = cv.height = innerHeight; }
-    resize(); addEventListener('resize', resize);
-    const COUNT = Math.min(60, Math.floor(innerWidth / 22));
-    function mk(){
-      return {
-        x: Math.random()*W,
-        y: H + Math.random()*H*0.4,
-        r: Math.random()*2.2 + 0.6,
-        vy: -(Math.random()*0.5 + 0.18),
-        vx: (Math.random()-0.5)*0.3,
-        a: Math.random()*0.5 + 0.2,
-        hue: Math.random() < 0.6 ? 35 : (Math.random()<0.5 ? 24 : 270),
-        tw: Math.random()*Math.PI*2,
-      };
-    }
-    for (let i=0;i<COUNT;i++){ const e=mk(); e.y=Math.random()*H; embers.push(e); }
-    function tick(){
-      ctx.clearRect(0,0,W,H);
-      for (const e of embers){
-        e.y += e.vy; e.x += e.vx + Math.sin(e.tw)*0.15; e.tw += 0.02;
-        if (e.y < -10){ Object.assign(e, mk()); }
-        const flick = e.a * (0.7 + 0.3*Math.sin(e.tw*3));
-        const col = e.hue===270 ? `rgba(150,110,255,${flick})` : `rgba(255,${140+e.hue*1.5},${e.hue*1.2},${flick})`;
-        ctx.beginPath();
-        ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
-        ctx.fillStyle = col;
-        ctx.shadowBlur = 8; ctx.shadowColor = col;
-        ctx.fill();
-      }
-      requestAnimationFrame(tick);
-    }
-    tick();
-  }
-
-  /* ── Inclinación 3D de las cartas según el ratón ── */
-  if (!reduce && window.matchMedia('(pointer:fine)').matches) {
-    document.addEventListener('mousemove', (ev) => {
-      document.querySelectorAll('.card').forEach(card => {
-        const r = card.getBoundingClientRect();
-        if (r.bottom < 0 || r.top > innerHeight) return; // fuera de vista
-        const cx = r.left + r.width/2, cy = r.top + r.height/2;
-        const dx = (ev.clientX - cx) / r.width;
-        const dy = (ev.clientY - cy) / r.height;
-        const dist = Math.hypot(dx, dy);
-        if (dist > 1.1) { card.style.transform = ''; return; } // solo cerca
-        const rx = (-dy * 3.2).toFixed(2);
-        const ry = (dx * 3.2).toFixed(2);
-        card.style.transform = `perspective(1100px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`;
-      });
-    }, { passive: true });
-    document.addEventListener('mouseleave', () => {
-      document.querySelectorAll('.card').forEach(c => c.style.transform = '');
-    });
-  }
-
-})();
-</script>
+<!-- efectos visuales desactivados -->
 
 <!-- Card zoom modal (used by search and grimorio) -->
 <div id="card-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;cursor:pointer" onclick="closeCardModal()">
