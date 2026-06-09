@@ -552,21 +552,547 @@ REANIMATOR = Archetype(
 
 
 # ===========================================================================
+# ARQUETIPOS v3 — basados en EDHREC / Scryfall (10 nuevos)
+# ===========================================================================
+
+# === TOKENS (go-wide) ======================================================
+
+def is_tokens_commander(card: dict) -> bool:
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "create a 1/1", "create two 1/1", "create three 1/1",
+        "create x 1/1", "create a 2/2", "create a token",
+        "whenever you attack, create",
+        "whenever you cast a spell, create a",
+        "populate",
+        "double the number of tokens",
+        "creates a token",
+    )
+    return any(s in text for s in signals)
+
+
+TOKENS = Archetype(
+    key="tokens",
+    name="Tokens / Go-Wide",
+    description=(
+        "Generamos oleadas de tokens para dominar el campo de batalla. "
+        "El comandante fabrica o duplica tokens. Potenciamos el ejército "
+        "con anthems y lo mandamos todo a atacar. Wincons: combate amplio, "
+        "Overrun effects, Anointed Procession loops."
+    ),
+    commander_predicate=is_tokens_commander,
+    auto_includes=[
+        "Anointed Procession", "Parallel Lives", "Doubling Season",
+        "Intangible Virtue", "Cathars' Crusade",
+        "Craterhoof Behemoth", "Triumph of the Hordes",
+    ],
+    slots=[
+        Slot("Ramp", 8, cls.is_ramp, score_low_cmc_then_rank, "Ramp", "Acelera."),
+        Slot("Card Draw", 8, cls.is_draw, score_rank, "Draw", "Card flow."),
+        Slot("Removal & Sweepers", 7,
+             lambda c: cls.is_removal(c) or cls.is_sweeper(c),
+             score_rank, "Removal", "Responde."),
+        Slot("Token Generators", 12, cls.is_token_maker,
+             score_rank, "Token Gen", "Crea cuerpos de tokens."),
+        Slot("Anthems & Token Payoffs", 8, cls.is_token_payoff,
+             score_rank, "Anthem", "Potencia el ejército de tokens."),
+        Slot("Finisher / Alpha Strike", 5, cls.is_threat,
+             score_rank, "Wincon", "Efectos overrun o cierre de partida."),
+    ],
+)
+
+
+# === GROUP HUG ============================================================
+
+def is_group_hug_commander(card: dict) -> bool:
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "each player draws",
+        "each player may draw",
+        "each opponent draws",
+        "players draw cards",
+        "each player gains",
+        "each player may put",
+        "each player may play an additional",
+        "each player may search their library",
+        "whenever a player draws",
+        "each player gets an emblem",
+    )
+    return any(s in text for s in signals)
+
+
+GROUP_HUG = Archetype(
+    key="group_hug",
+    name="Group Hug / Política",
+    description=(
+        "Beneficiamos a todos los jugadores: cartas extra, maná adicional, "
+        "recursos compartidos. Creamos alianzas políticas y aprovechamos "
+        "la ventaja acumulada mejor que nadie. Wincons: combo oculto, "
+        "fatiga controlada, o aliar a todos contra el jugador más peligroso."
+    ),
+    commander_predicate=is_group_hug_commander,
+    auto_includes=[
+        "Howling Mine", "Dictate of Kruphix", "Temple Bell",
+        "Rites of Flourishing", "Collective Voyage",
+        "Minds Aglow", "Prosperity",
+    ],
+    slots=[
+        Slot("Ramp", 8, cls.is_ramp, score_low_cmc_then_rank, "Ramp", "Acelera."),
+        Slot("Card Draw", 7, cls.is_draw, score_rank, "Draw", "Card flow propio."),
+        Slot("Removal & Counterspells", 6,
+             lambda c: cls.is_removal(c) or cls.is_counterspell(c),
+             score_rank, "Interaction", "Responde selectivamente."),
+        Slot("Group Hug Effects", 14, cls.is_group_hug_piece,
+             score_rank, "Group Hug", "Beneficia a todos los jugadores."),
+        Slot("Pillowfort / Proteccion", 7, cls.is_pillowfort_piece,
+             score_rank, "Fort", "Nos protege mientras somos generosos."),
+        Slot("Wincons Politicos", 6,
+             lambda c: cls.is_threat(c) or cls.is_drain(c),
+             score_rank, "Wincon", "Cierra cuando el momento politico es correcto."),
+    ],
+)
+
+
+# === ENCHANTRESS ==========================================================
+
+def is_enchantress_commander(card: dict) -> bool:
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "whenever you cast an enchantment",
+        "whenever an enchantment enters the battlefield under your control",
+        "whenever an enchantment enters",
+        "enchantress",
+        "for each enchantment you control",
+        "enchantment spells you cast cost",
+        "whenever you attach an aura",
+        "whenever an aura becomes attached",
+    )
+    return any(s in text for s in signals)
+
+
+ENCHANTRESS = Archetype(
+    key="enchantress",
+    name="Enchantress / Encantamientos",
+    description=(
+        "Construimos una red de encantamientos que generan ventaja al "
+        "entrar o existir. El comandante es un motor de robo por encantamientos. "
+        "Wincons: tablero bloqueado con encantamientos de control + criatura "
+        "enorme buffeada con Auras, o combo de encantamientos."
+    ),
+    commander_predicate=is_enchantress_commander,
+    auto_includes=[
+        "Argothian Enchantress", "Enchantress's Presence", "Sythis, Harvest's Hand",
+        "Sphere of Safety", "Sigil of the Empty Throne", "Starfield of Nyx",
+        "Greater Auramancy", "Sterling Grove",
+    ],
+    slots=[
+        Slot("Ramp", 7, cls.is_ramp, score_low_cmc_then_rank, "Ramp", "Acelera."),
+        Slot("Card Draw", 8, cls.is_draw, score_rank, "Draw", "Card flow."),
+        Slot("Removal", 7,
+             lambda c: cls.is_removal(c) or cls.is_sweeper(c),
+             score_rank, "Removal", "Responde."),
+        Slot("Enchantress Draw Engines", 10, cls.is_enchantment_payoff,
+             score_rank, "Enchantress", "Roba cartas por encantamientos."),
+        Slot("Auras & Utility Enchantments", 12,
+             lambda c: cls.is_aura(c) and not has_type(c, "Land"),
+             score_low_cmc_then_rank, "Aura", "Aura ofensiva o defensiva."),
+        Slot("Wincon Enchantments", 4,
+             lambda c: cls.is_threat(c) or has_text(c, "starfield", "omniscience", "sigil of"),
+             score_rank, "Wincon", "Cierra partidas."),
+    ],
+)
+
+
+# === ARTIFACTS ============================================================
+
+def is_artifacts_commander(card: dict) -> bool:
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "whenever you cast an artifact",
+        "whenever an artifact enters the battlefield",
+        "whenever an artifact enters",
+        "for each artifact you control",
+        "artifact creatures you control",
+        "affinity for artifacts",
+        "metalcraft",
+        "artifacts you control have",
+        "artifacts you control get",
+    )
+    return any(s in text for s in signals)
+
+
+ARTIFACTS = Archetype(
+    key="artifacts",
+    name="Artifact Synergy / Urza-Style",
+    description=(
+        "Construimos un tablero denso de artefactos que se potencian entre si. "
+        "Cada artefacto que entra dispara ventaja. Wincons: combo de artefactos, "
+        "criatura indestructible con Darksteel + overrun, o Hellkite Tyrant."
+    ),
+    commander_predicate=is_artifacts_commander,
+    auto_includes=[
+        "Thopter Foundry", "Sword of the Meek",
+        "Krark-Clan Ironworks", "Darksteel Forge",
+    ],
+    slots=[
+        Slot("Artifact Ramp", 12,
+             lambda c: cls.is_ramp(c) and has_type(c, "Artifact"),
+             score_low_cmc_then_rank, "Art Ramp", "Roca de mana artefacto."),
+        Slot("Card Draw", 8, cls.is_draw, score_rank, "Draw", "Card flow."),
+        Slot("Removal & Interaction", 7,
+             lambda c: cls.is_removal(c) or cls.is_sweeper(c),
+             score_rank, "Removal", "Responde."),
+        Slot("Artifact Synergy & Payoffs", 12, cls.is_artifact_payoff,
+             score_rank, "Art Payoff", "Payoff de artefactos."),
+        Slot("Artifact Threats", 5,
+             lambda c: cls.is_threat(c) and has_type(c, "Artifact"),
+             score_rank, "Art Threat", "Amenaza artefacto."),
+    ],
+)
+
+
+# === VOLTRON (aura-based) ================================================
+
+def is_voltron_commander(card: dict) -> bool:
+    if not card.get("is_creature"):
+        return False
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "whenever this creature deals combat damage to a player",
+        "aura you control",
+        "auras attached to",
+        "for each aura attached",
+        "equipped or enchanted",
+        "whenever an aura becomes attached to this creature",
+        "for each equipment and aura",
+    )
+    keywords = [k.lower() for k in (card.get("keywords") or [])]
+    evasion = {"flying", "shadow", "menace", "fear", "intimidate", "trample", "unblockable"}
+    has_evasion = any(k in keywords for k in evasion)
+    has_aura_signal = any(s in text for s in signals)
+    return has_aura_signal or (
+        has_evasion
+        and "deals combat damage to a player" in text
+        and cmc(card) <= 3
+    )
+
+
+VOLTRON = Archetype(
+    key="voltron",
+    name="Voltron / Auras",
+    description=(
+        "Convertimos al comandante en una fuerza imparable cargada de Auras. "
+        "La clave es evasion + proteccion + pump. Wincons: 21 puntos de dano "
+        "de comandante (voltron clasico) o Infect con 10 veneno."
+    ),
+    commander_predicate=is_voltron_commander,
+    auto_includes=[
+        "Ethereal Armor", "All That Glitters", "Rancor",
+        "Aqueous Form", "Shielded by Faith", "Sage's Reverie",
+        "Hyena Umbra", "Eldrazi Conscription",
+    ],
+    slots=[
+        Slot("Ramp", 8, cls.is_ramp, score_low_cmc_then_rank, "Ramp", "Acelera."),
+        Slot("Card Draw", 6, cls.is_draw, score_rank, "Draw", "Card flow."),
+        Slot("Auras Ofensivas", 12, cls.is_aura,
+             score_low_cmc_then_rank, "Aura", "Buff para el comandante."),
+        Slot("Proteccion (hexproof/indestructible)", 8, cls.is_protection,
+             score_low_cmc_then_rank, "Protection", "Protege al comandante."),
+        Slot("Tutores de Auras", 5, cls.is_tutor, score_rank,
+             "Tutor", "Busca las Auras clave."),
+        Slot("Removal & Interaction", 5,
+             lambda c: cls.is_removal(c) or cls.is_counterspell(c),
+             score_rank, "Removal", "Responde amenazas."),
+    ],
+)
+
+
+# === STAX =================================================================
+
+def is_stax_commander(card: dict) -> bool:
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "spells cost {1} more",
+        "spells cost {2} more",
+        "each spell costs {1} more",
+        "each spell costs {2} more",
+        "players can't cast more than one spell",
+        "opponents can't cast spells",
+        "opponents can't draw",
+        "players can't search their libraries",
+        "nonbasic lands don't untap",
+        "permanents don't untap",
+        "whenever an opponent casts a spell, that player pays",
+        "whenever a player casts a spell, they pay",
+    )
+    return any(s in text for s in signals)
+
+
+STAX = Archetype(
+    key="stax",
+    name="Stax / Prison / Control Asimetrico",
+    description=(
+        "Imponemos costes adicionales y restricciones a todos los jugadores, "
+        "pero construimos en torno a evitarlos nosotros mismos. Ganamos "
+        "mientras el tablero esta bloqueado. Wincons: ventaja acumulada "
+        "bajo lock, combo con mana libre, o criatura indestructible imparable."
+    ),
+    commander_predicate=is_stax_commander,
+    auto_includes=[
+        "Smokestack", "Winter Orb", "Static Orb", "Tangle Wire",
+        "Thalia, Guardian of Thraben",
+        "Drannith Magistrate", "Rule of Law",
+    ],
+    slots=[
+        Slot("Ramp (asimetrico)", 9, cls.is_ramp,
+             score_low_cmc_then_rank, "Ramp", "Aceleramos sin afectarnos."),
+        Slot("Card Draw", 7, cls.is_draw, score_rank, "Draw", "Mantenemos ventaja."),
+        Slot("Stax / Lock Pieces", 12, cls.is_stax_piece,
+             score_rank, "Stax", "Niega recursos a los rivales."),
+        Slot("Removal & Interaction", 7,
+             lambda c: cls.is_removal(c) or cls.is_sweeper(c),
+             score_rank, "Removal", "Responde sin romper el lock."),
+        Slot("Hatebears", 7,
+             lambda c: c.get("is_creature") and cls.is_stax_piece(c),
+             score_rank, "Hatebear", "Criatura con efecto de stax."),
+        Slot("Wincons bajo Lock", 4,
+             lambda c: cls.is_threat(c) and cmc(c) <= 5,
+             score_rank, "Wincon", "Cierra mientras el tablero esta bloqueado."),
+    ],
+)
+
+
+# === MILL =================================================================
+
+def is_mill_commander(card: dict) -> bool:
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "target player mills",
+        "each player mills",
+        "target opponent mills",
+        "each opponent mills",
+        "whenever a card is put into an opponent",
+        "whenever a card is put into a graveyard from a library",
+        "each opponent puts the top",
+        "mill x",
+        "mill {x}",
+        "cards from target player's library",
+    )
+    return any(s in text for s in signals)
+
+
+MILL = Archetype(
+    key="mill",
+    name="Mill / Biblioteca Vacia",
+    description=(
+        "Vaciamos las bibliotecas de los rivales. Cada carta molida cuenta. "
+        "Aceleramos con efectos de mill masivo y bloqueamos la recuperacion. "
+        "Wincons: oponente sin cartas en biblioteca, "
+        "Altar of Dementia combo, o Bruvac multiplicador."
+    ),
+    commander_predicate=is_mill_commander,
+    auto_includes=[
+        "Bruvac the Grandiloquent", "Fraying Sanity", "Traumatize",
+        "Maddening Cacophony", "Altar of Dementia",
+        "Consuming Aberration",
+    ],
+    slots=[
+        Slot("Ramp", 8, cls.is_ramp, score_low_cmc_then_rank, "Ramp", "Acelera."),
+        Slot("Card Draw", 7, cls.is_draw, score_rank, "Draw", "Card flow."),
+        Slot("Removal & Interaction", 7,
+             lambda c: cls.is_removal(c) or cls.is_sweeper(c),
+             score_rank, "Removal", "Responde."),
+        Slot("Mill Effects", 14, cls.is_mill_piece,
+             score_rank, "Mill", "Manda cartas al cementerio rival."),
+        Slot("Mill Payoffs & Wincons", 8,
+             lambda c: has_text(c, "graveyard", "whenever a creature card",
+                                "power equal to") or cls.is_threat(c),
+             score_rank, "Wincon", "Payoff de mill o cierra partidas."),
+    ],
+)
+
+
+# === BIG MANA =============================================================
+
+def is_big_mana_commander(card: dict) -> bool:
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "untap all lands you control",
+        "untap up to",
+        "double the amount of mana",
+        "doubles the amount of mana",
+        "whenever you tap a land for mana",
+        "add mana equal",
+        "for each land you control, add",
+        "spend mana as though it were mana of any color",
+    )
+    return any(s in text for s in signals)
+
+
+BIG_MANA = Archetype(
+    key="big_mana",
+    name="Big Mana / X Spells",
+    description=(
+        "Generamos cantidades absurdas de mana y lo gastamos en hechizos-X "
+        "devastadores o criaturas descomunales. El comandante desbloquea el "
+        "potencial de mana. Wincons: Torment of Hailfire con X=20, "
+        "Finale of Devastation, o criatura indestructible masiva."
+    ),
+    commander_predicate=is_big_mana_commander,
+    auto_includes=[
+        "Selvala, Heart of the Wilds", "Mana Reflection",
+        "Torment of Hailfire", "Finale of Devastation",
+        "Nyxbloom Ancient", "Doubling Cube",
+    ],
+    slots=[
+        Slot("Ramp Masivo", 14, cls.is_ramp,
+             score_low_cmc_then_rank, "Ramp", "Genera mana adicional masivo."),
+        Slot("Card Draw", 8, cls.is_draw, score_rank, "Draw", "Mantiene mano llena."),
+        Slot("Removal & Interaction", 7,
+             lambda c: cls.is_removal(c) or cls.is_sweeper(c),
+             score_rank, "Removal", "Responde."),
+        Slot("Mana Doublers", 5, cls.is_big_mana_piece,
+             score_rank, "Mana Doubler", "Dobla el mana disponible."),
+        Slot("X-Spells & Finishers", 10,
+             lambda c: cls.is_big_mana_piece(c) or (cls.is_threat(c) and cmc(c) >= 6),
+             score_rank, "X-Spell", "Gasta el mana masivo como wincon."),
+    ],
+)
+
+
+# === SUPERFRIENDS =========================================================
+
+def is_superfriends_commander(card: dict) -> bool:
+    text = (card.get("oracle_text") or "").lower()
+    type_line = (card.get("type_line") or "").lower()
+    if "planeswalker" in type_line:
+        return True
+    signals = (
+        "planeswalker you control",
+        "whenever you cast a planeswalker",
+        "each planeswalker you control",
+        "planeswalkers you control have",
+        "loyalty counters on planeswalkers",
+        "planeswalkers can be your commander",
+        "whenever you activate a loyalty ability",
+    )
+    return any(s in text for s in signals)
+
+
+SUPERFRIENDS = Archetype(
+    key="superfriends",
+    name="Superfriends / Planeswalkers",
+    description=(
+        "Desplegamos una flota de Planeswalkers y los protegemos hasta "
+        "que ganen el juego por si solos. El comandante acelera las lealtades "
+        "o anade planeswalkers en la zona de comando. Wincons: emblemas acumulados, "
+        "ultimate devastadora, o combo con Doubling Season."
+    ),
+    commander_predicate=is_superfriends_commander,
+    auto_includes=[
+        "Doubling Season", "Deepglow Skate", "Spark Double",
+        "The Chain Veil", "Oath of Teferi",
+        "Teferi, Temporal Archmage",
+    ],
+    slots=[
+        Slot("Ramp", 9, cls.is_ramp, score_low_cmc_then_rank, "Ramp", "Acelera."),
+        Slot("Card Draw", 7, cls.is_draw, score_rank, "Draw", "Card flow."),
+        Slot("Planeswalkers", 12, cls.is_superfriends_payoff,
+             score_rank, "Planeswalker", "Planeswalker potente para el equipo."),
+        Slot("Proteccion de Planeswalkers", 8,
+             lambda c: cls.is_token_maker(c) or cls.is_pillowfort_piece(c),
+             score_rank, "PW Protection", "Genera cuerpos para bloquear o muro."),
+        Slot("Proliferate & Loyalty Synergy", 5,
+             lambda c: has_text(c, "proliferate", "loyalty counter", "additional loyalty"),
+             score_rank, "Loyalty", "Anade contadores de lealtad."),
+        Slot("Tutores & Wincons", 5,
+             lambda c: cls.is_tutor(c) or cls.is_threat(c),
+             score_rank, "Tutor/Win", "Busca al planeswalker correcto."),
+    ],
+)
+
+
+# === PILLOWFORT ===========================================================
+
+def is_pillowfort_commander(card: dict) -> bool:
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "creatures can't attack you",
+        "creatures can't attack you unless",
+        "whenever a creature attacks you",
+        "whenever a player attacks you",
+        "damage that would be dealt to you",
+        "you have hexproof",
+        "you and permanents you control have hexproof",
+        "opponents can't attack you",
+        "prevent all combat damage that would be dealt to you",
+    )
+    return any(s in text for s in signals)
+
+
+PILLOWFORT = Archetype(
+    key="pillowfort",
+    name="Pillowfort / Defensa Absoluta",
+    description=(
+        "Construimos un castillo inexpugnable de encantamientos y permanentes "
+        "que hacen imposible o carisimo atacarnos. Ganamos mientras los rivales "
+        "se destruyen entre si. Wincons: fatiga al resto de la mesa, combo "
+        "lento, o enchantment bomb (Felidar Sovereign, Approach of the Second Sun)."
+    ),
+    commander_predicate=is_pillowfort_commander,
+    auto_includes=[
+        "Ghostly Prison", "Propaganda", "Sphere of Safety",
+        "Collective Restraint", "Solitary Confinement",
+        "Windborn Muse", "Norn's Annex",
+    ],
+    slots=[
+        Slot("Ramp", 8, cls.is_ramp, score_low_cmc_then_rank, "Ramp", "Acelera."),
+        Slot("Card Draw", 8, cls.is_draw, score_rank, "Draw", "Card flow."),
+        Slot("Pillowfort Pieces", 14, cls.is_pillowfort_piece,
+             score_rank, "Fort", "Impide o encarece los ataques rivales."),
+        Slot("Removal & Sweepers", 7,
+             lambda c: cls.is_removal(c) or cls.is_sweeper(c),
+             score_rank, "Removal", "Responde amenazas que si llegan."),
+        Slot("Card Advantage Over Time", 5,
+             lambda c: cls.is_draw(c) and cmc(c) >= 3,
+             score_rank, "Draw Engine", "Engine sostenido a largo plazo."),
+        Slot("Wincons Lentos", 6,
+             lambda c: cls.is_threat(c) or cls.is_drain(c) or has_text(
+                 c, "sovereign", "approach of the second sun",
+                 "test of endurance"
+             ),
+             score_rank, "Wincon", "Cierra partidas sin combate directo."),
+    ],
+)
+
+
+# ===========================================================================
 # Registry
 # ===========================================================================
 
 ARCHETYPES: dict[str, Archetype] = {
-    # Originales
+    # Originales (v1)
     "counters":     COUNTERS,
     "equipment":    EQUIPMENT,
     "aristocrats":  ARISTOCRATS,
     "spellslinger": SPELLSLINGER,
-    # Nuevos sesión 4
+    # Sesión 4 (v2)
     "tribal":       TRIBAL,
     "blink":        BLINK,
     "landfall":     LANDFALL,
     "lifegain":     LIFEGAIN,
     "reanimator":   REANIMATOR,
+    # v3 — basados en EDHREC/Scryfall
+    "tokens":       TOKENS,
+    "group_hug":    GROUP_HUG,
+    "enchantress":  ENCHANTRESS,
+    "artifacts":    ARTIFACTS,
+    "voltron":      VOLTRON,
+    "stax":         STAX,
+    "mill":         MILL,
+    "big_mana":     BIG_MANA,
+    "superfriends": SUPERFRIENDS,
+    "pillowfort":   PILLOWFORT,
 }
 
 
@@ -574,18 +1100,14 @@ def detect_archetype(commander: dict) -> str | None:
     """
     Dado un comandante, sugiere el mejor arquetipo.
 
-    Prioridad de desempate (de más a menos específico):
-    1. Spellslinger — señales muy específicas (magecraft, "whenever you cast")
-    2. Blink — "exile target ... then return" es inconfundible
-    3. Landfall — "landfall" en oracle_text es tag único
-    4. Reanimator — "from your graveyard to the battlefield" muy específico
-    5. Aristocrats — sacrifice + death triggers
-    6. Lifegain — "whenever you gain life" + payoff
-    7. Tribal — "creatures you control get +" puede solapar con otros
-    8. Equipment — "equipment" en texto
-    9. Counters — +1/+1 counters, puede ser lo más genérico
+    Prioridad (de más a menos específico):
+    v1/v2: spellslinger, blink, landfall, reanimator, aristocrats,
+           lifegain, tribal, equipment, counters
+    v3:    mill, group_hug, stax, superfriends, enchantress,
+           artifacts, tokens, big_mana, pillowfort, voltron
     """
     text = (commander.get("oracle_text") or "").lower()
+    type_line = (commander.get("type_line") or "").lower()
     candidates = []
     for key, arch in ARCHETYPES.items():
         if arch.commander_predicate(commander):
@@ -598,6 +1120,51 @@ def detect_archetype(commander: dict) -> str | None:
 
     # Desempate por señales fuertes (orden de prioridad)
     priority_checks = [
+        # ── v3 muy específicos ──────────────────────────────────────────────
+        ("mill", lambda: any(s in text for s in (
+            "target player mills", "target opponent mills",
+            "each opponent mills", "each player mills",
+        ))),
+        ("group_hug", lambda: any(s in text for s in (
+            "each player draws", "each player may draw",
+            "each player may play an additional",
+        ))),
+        ("stax", lambda: any(s in text for s in (
+            "spells cost {1} more", "spells cost {2} more",
+            "players can't cast more than one spell",
+            "whenever an opponent casts a spell, that player pays",
+        ))),
+        ("superfriends", lambda: "planeswalker" in type_line or any(s in text for s in (
+            "whenever you cast a planeswalker",
+            "each planeswalker you control",
+        ))),
+        ("enchantress", lambda: any(s in text for s in (
+            "whenever you cast an enchantment",
+            "whenever an enchantment enters the battlefield",
+            "enchantress",
+        ))),
+        ("artifacts", lambda: any(s in text for s in (
+            "whenever you cast an artifact",
+            "whenever an artifact enters the battlefield",
+            "affinity for artifacts", "metalcraft",
+        ))),
+        ("big_mana", lambda: any(s in text for s in (
+            "untap all lands you control",
+            "double the amount of mana", "doubles the amount of mana",
+        ))),
+        ("pillowfort", lambda: any(s in text for s in (
+            "creatures can't attack you unless",
+            "whenever a creature attacks you",
+        ))),
+        ("voltron", lambda: any(s in text for s in (
+            "aura you control", "auras attached to",
+            "whenever an aura becomes attached",
+        ))),
+        ("tokens", lambda: any(s in text for s in (
+            "create a 1/1", "create two 1/1",
+            "whenever you attack, create", "populate",
+        ))),
+        # ── v1/v2 ───────────────────────────────────────────────────────────
         ("spellslinger", lambda: any(s in text for s in (
             "whenever you cast an instant", "whenever you cast a sorcery",
             "whenever you cast a noncreature", "magecraft",
@@ -632,6 +1199,8 @@ def detect_archetype(commander: dict) -> str | None:
 
     # Fallback: primer candidato por orden de prioridad
     priority_order = [
+        "mill", "group_hug", "stax", "superfriends", "enchantress",
+        "artifacts", "big_mana", "pillowfort", "voltron", "tokens",
         "spellslinger", "blink", "landfall", "reanimator",
         "aristocrats", "lifegain", "tribal", "equipment", "counters",
     ]

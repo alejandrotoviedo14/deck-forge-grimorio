@@ -104,7 +104,7 @@ TAG_TO_ROLES: dict[str, list[str]] = {
     # --- Equipment archetype ---
     "equipment":               ["equipment"],
     "equipment-matters":       ["equipment", "payoff_equipment"],
-    "voltron":                 ["equipment"],
+    "voltron":                 ["equipment", "payoff_voltron"],
 
     # --- Aristocrats archetype ---
     "token-generator":         ["payoff_tokens"],
@@ -156,7 +156,65 @@ TAG_TO_ROLES: dict[str, list[str]] = {
     "cheat-into-play":         ["payoff_reanimator"],
     "graveyard-matters":       ["payoff_reanimator"],
     "self-mill":               ["payoff_reanimator"],
-    "mill":                    ["payoff_reanimator"],
+    "mill":                    ["payoff_reanimator", "payoff_mill"],
+
+    # --- Tokens (go-wide, sin sacrifice engine) ---
+    "go-wide":                 ["payoff_tokens"],
+    "populate":                ["payoff_tokens"],
+    "token-matters":           ["payoff_tokens"],
+    "anthem":                  ["payoff_tokens"],
+
+    # --- Enchantress ---
+    "enchantress":             ["payoff_enchantress"],
+    "enchantment-matters":     ["payoff_enchantress"],
+    "aura-matters":            ["payoff_enchantress", "payoff_voltron"],
+
+    # --- Artifacts ---
+    "artifact-matters":        ["payoff_artifacts"],
+    "affinity":                ["payoff_artifacts"],
+    "metalcraft":              ["payoff_artifacts"],
+    "improvise":               ["payoff_artifacts"],
+    "historic-matters":        ["payoff_artifacts"],
+
+    # --- Voltron (aura / combat) ---
+    "aura":                    ["payoff_voltron"],
+    "aura-synergy":            ["payoff_voltron"],
+
+    # --- Wheels ---
+    "wheel":                   ["payoff_wheels"],
+    "wheel-effect":            ["payoff_wheels"],
+    "discard-matters":         ["payoff_wheels"],
+
+    # --- Group Hug ---
+    "group-hug":               ["payoff_group_hug"],
+    "shared-resources":        ["payoff_group_hug"],
+
+    # --- Stax ---
+    "stax":                    ["payoff_stax"],
+    "tax":                     ["payoff_stax"],
+    "hatebear":                ["payoff_stax"],
+    "prison":                  ["payoff_stax"],
+    "asymmetric-effect":       ["payoff_stax"],
+
+    # --- Mill (oponente) ---
+    "opponent-mill":           ["payoff_mill"],
+    "mill-matters":            ["payoff_mill"],
+
+    # --- Superfriends ---
+    "superfriends":            ["payoff_superfriends"],
+    "planeswalker-matters":    ["payoff_superfriends"],
+    "loyalty-matters":         ["payoff_superfriends"],
+
+    # --- Big Mana ---
+    "big-mana":                ["payoff_big_mana"],
+    "x-spell":                 ["payoff_big_mana"],
+    "mana-doubling":           ["payoff_big_mana", "ramp"],
+
+    # --- Pillowfort ---
+    "pillow-fort":             ["payoff_pillowfort"],
+    "pillowfort":              ["payoff_pillowfort"],
+    "fort":                    ["payoff_pillowfort"],
+    "moat-effect":             ["payoff_pillowfort"],
 }
 
 
@@ -536,6 +594,235 @@ def is_reanimator_payoff(card: dict) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Payoffs NUEVOS v3 (10 arquetipos extra basados en EDHREC/Scryfall)
+# ---------------------------------------------------------------------------
+
+def is_enchantment_payoff(card: dict) -> bool:
+    """Enchantress: beneficia de lanzar/tener encantamientos. También los propios encantamientos baratos son core."""
+    if "payoff_enchantress" in _roles_from_tags(card):
+        return True
+    text = (card.get("oracle_text") or "").lower()
+    type_line = (card.get("type_line") or "").lower()
+    signals = (
+        "whenever you cast an enchantment",
+        "whenever an enchantment enters the battlefield under your control",
+        "whenever an enchantment enters",
+        "enchantress",
+        "for each enchantment you control",
+        "enchantments you control get",
+        "enchantments you control have",
+        "enchantment spells you cast",
+        "whenever you attach an aura",
+    )
+    if any(s in text for s in signals):
+        return True
+    # Encantamientos propios (no Auras, no tierras) de CMC bajo son el núcleo del arquetipo
+    if "enchantment" in type_line and "aura" not in type_line and not has_type(card, "Land") and cmc(card) <= 5:
+        return True
+    return False
+
+
+def is_aura(card: dict) -> bool:
+    """Es un Aura — pieza ofensiva del voltron mágico."""
+    if "payoff_voltron" in _roles_from_tags(card):
+        return True
+    return "aura" in (card.get("type_line") or "").lower()
+
+
+def is_artifact_payoff(card: dict) -> bool:
+    """Artefacto relevante o payoff de artefactos."""
+    if "payoff_artifacts" in _roles_from_tags(card):
+        return True
+    text = (card.get("oracle_text") or "").lower()
+    type_line = (card.get("type_line") or "").lower()
+    signals = (
+        "whenever you cast an artifact",
+        "whenever an artifact enters the battlefield",
+        "whenever an artifact enters",
+        "for each artifact you control",
+        "artifact creatures you control",
+        "affinity for artifacts",
+        "metalcraft",
+        "improvise",
+    )
+    if any(s in text for s in signals):
+        return True
+    # Artefactos no-tierra de CMC bajo son el core del arquetipo
+    if "artifact" in type_line and not has_type(card, "Land") and cmc(card) <= 5:
+        return True
+    return False
+
+
+def is_wheel_piece(card: dict) -> bool:
+    """Wheel effects: descarta la mano y roba; payoffs por descartar."""
+    if "payoff_wheels" in _roles_from_tags(card):
+        return True
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "each player discards their hand",
+        "each player discards all the cards",
+        "discard your hand, then draw",
+        "each player draws",
+        "each player discards",
+        "whenever you discard",
+        "whenever a player discards",
+        "each opponent discards",
+        "draw cards equal to the number of cards discarded",
+    )
+    return any(s in text for s in signals)
+
+
+def is_group_hug_piece(card: dict) -> bool:
+    """Group hug: beneficia a todos los jugadores simultáneamente."""
+    if "payoff_group_hug" in _roles_from_tags(card):
+        return True
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "each player draws",
+        "each player may draw",
+        "each opponent draws",
+        "each player gains",
+        "each player may put",
+        "each player may play an additional",
+        "each player may search their library",
+        "each player gets",
+        "each player may cast",
+    )
+    return any(s in text for s in signals)
+
+
+def is_stax_piece(card: dict) -> bool:
+    """Stax / Prison: niega recursos o bloquea acciones del oponente."""
+    if "payoff_stax" in _roles_from_tags(card):
+        return True
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "spells cost {1} more",
+        "spells cost {2} more",
+        "each spell costs {1} more",
+        "each spell costs {2} more",
+        "players can't cast more than one spell",
+        "opponents can't cast spells",
+        "opponents can't draw",
+        "players can't search their libraries",
+        "nonbasic lands don't untap",
+        "can't untap more than",
+        "permanents don't untap",
+        "unless they pay",
+        "must pay {",
+        "can't be cast",
+        "whenever an opponent casts a spell, that player pays",
+    )
+    return any(s in text for s in signals)
+
+
+def is_mill_piece(card: dict) -> bool:
+    """Mill de oponentes: manda cartas de biblioteca al cementerio del rival."""
+    if "payoff_mill" in _roles_from_tags(card):
+        return True
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "target player mills",
+        "each player mills",
+        "target opponent mills",
+        "each opponent mills",
+        "put the top",
+        "puts the top",
+        "whenever a card is put into an opponent",
+        "whenever a card is put into a player",
+        "opponent puts the top",
+        "each player puts the top",
+        "mill x",
+        "mills for each",
+    )
+    return any(s in text for s in signals)
+
+
+def is_planeswalker(card: dict) -> bool:
+    """Es un permanente Planeswalker."""
+    return has_type(card, "Planeswalker")
+
+
+def is_superfriends_payoff(card: dict) -> bool:
+    """Superfriends: genera valor con planeswalkers o los protege."""
+    if "payoff_superfriends" in _roles_from_tags(card):
+        return True
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "whenever you cast a planeswalker",
+        "planeswalker you control",
+        "each planeswalker you control",
+        "planeswalkers you control have",
+        "loyalty counter",
+        "loyalty counters",
+        "additional loyalty counter",
+        "planeswalk",
+        "proliferate",  # sinergia con counters de lealtad
+    )
+    if any(s in text for s in signals):
+        return True
+    return is_planeswalker(card)
+
+
+def is_big_mana_piece(card: dict) -> bool:
+    """Big mana: dobla maná, X-spells o payoffs de maná masivo."""
+    if "payoff_big_mana" in _roles_from_tags(card):
+        return True
+    text = (card.get("oracle_text") or "").lower()
+    mana_signals = (
+        "doubles the amount of mana",
+        "double the amount of mana",
+        "untap all lands you control",
+        "for each mana spent to cast this spell",
+        "equal to the amount of mana",
+    )
+    if any(s in text for s in mana_signals):
+        return True
+    # X-spells con payoff grande
+    if "{x}" in text and cmc(card) >= 3 and any(
+        kw in text for kw in ("damage", "draw", "create", "put", "destroy")
+    ):
+        return True
+    return False
+
+
+def is_pillowfort_piece(card: dict) -> bool:
+    """Pillowfort: defiende al controlador de ataques directos."""
+    if "payoff_pillowfort" in _roles_from_tags(card):
+        return True
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "creatures can't attack you",
+        "creatures can't attack you unless",
+        "whenever a creature attacks you",
+        "whenever a creature attacks you or a planeswalker",
+        "you have hexproof",
+        "you and permanents you control have hexproof",
+        "damage that would be dealt to you",
+        "prevent all combat damage that would be dealt to you",
+        "if you would be dealt damage",
+    )
+    return any(s in text for s in signals)
+
+
+def is_token_payoff(card: dict) -> bool:
+    """Payoffs del arquetipo tokens: anthems, multiplicadores, synergy con muchas criaturas."""
+    if "payoff_tokens" in _roles_from_tags(card):
+        return True
+    text = (card.get("oracle_text") or "").lower()
+    signals = (
+        "creatures you control get +",
+        "creature tokens you control",
+        "tokens you control",
+        "whenever a token enters the battlefield under your control",
+        "for each creature you control",
+        "populate",
+        "number of creatures you control",
+    )
+    return any(s in text for s in signals)
+
+
+# ---------------------------------------------------------------------------
 # Master classifier
 # ---------------------------------------------------------------------------
 
@@ -584,5 +871,18 @@ def classify(card: dict) -> set[str]:
     if is_landfall_payoff(card):    roles.add("payoff_landfall")
     if is_lifegain_payoff(card):    roles.add("payoff_lifegain")
     if is_reanimator_payoff(card):  roles.add("payoff_reanimator")
+
+    # Payoffs nuevos v3 (10 arquetipos EDHREC)
+    if is_token_payoff(card):           roles.add("payoff_tokens")
+    if is_enchantment_payoff(card):     roles.add("payoff_enchantress")
+    if is_aura(card):                   roles.add("payoff_voltron")
+    if is_artifact_payoff(card):        roles.add("payoff_artifacts")
+    if is_wheel_piece(card):            roles.add("payoff_wheels")
+    if is_group_hug_piece(card):        roles.add("payoff_group_hug")
+    if is_stax_piece(card):             roles.add("payoff_stax")
+    if is_mill_piece(card):             roles.add("payoff_mill")
+    if is_superfriends_payoff(card):    roles.add("payoff_superfriends")
+    if is_big_mana_piece(card):         roles.add("payoff_big_mana")
+    if is_pillowfort_piece(card):       roles.add("payoff_pillowfort")
 
     return roles

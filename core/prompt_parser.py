@@ -137,77 +137,153 @@ TRIBES: dict[str, str] = {
 ARCHETYPE_KEYWORDS: dict[str, list[str]] = {
     "counters": [
         "+1/+1", "counters", "contadores", "proliferate", "proliferar",
-        "infect", "veneno", "poison", "crecer", "growth counters",
-        "poison counters", "oil counters",
+        "crecer", "growth counters", "oil counters",
     ],
     "equipment": [
-        "equipo", "equipment", "voltron", "equipamiento",
+        "equipo", "equipment", "equipamiento",
         "espada", "armadura", "armor", "sword", "hammer", "shield",
-        "espadachín", "swordsman",
     ],
     "aristocrats": [
-        "tokens", "sacrificio", "sacrifice", "aristocrats",
+        "sacrificio", "sacrifice", "aristocrats",
         "morir", "death trigger", "sac outlet", "fodder",
         "altar", "blood artist", "die trigger",
     ],
     "spellslinger": [
-        "control", "hechizos", "spells", "instantes", "sorceries",
+        "hechizos", "spells", "instantes", "sorceries",
         "conjuros", "copias", "copies", "contrahechizo", "counterspell",
-        "robar cartas", "draw spells", "izzet spells", "storm",
-        "tormenta", "prowess",
+        "draw spells", "izzet spells", "prowess", "magecraft",
     ],
     "blink": [
         "blink", "parpadeo", "flickering", "etb",
         "enters the battlefield", "entra al campo", "flickear",
-        "flicker", "bounce", "rebotar",
+        "flicker",
     ],
     "landfall": [
-        "tierras", "lands", "landfall", "caída de tierra",
-        "rampear", "ramp", "fetch", "terramorfos", "mana ramp",
+        "landfall", "caida de tierra",
+        "fetch", "terramorfos",
         "extra lands", "tierras adicionales",
     ],
     "lifegain": [
-        "vida", "lifegain", "ganar vida", "curación", "heal",
+        "vida", "lifegain", "ganar vida", "curacion", "heal",
         "life total", "extorsionar", "extort",
     ],
     "reanimator": [
-        "reanimator", "reanimador", "cementerio", "graveyard",
-        "revivir", "resurrect", "reanimar", "mill", "moler",
+        "reanimator", "reanimador", "revivir", "resurrect", "reanimar",
         "entierro", "bury", "self-mill",
     ],
-    # Arquetipos extra que mapean a los existentes
-    "tribal": [
-        # solo se activa si hay tribu detectada
+    # v3 — nuevos arquetipos con keywords propios
+    "tokens": [
+        "tokens", "fichas", "go wide", "go-wide",
+        "populate", "populacion", "anthems", "anthem",
     ],
+    "group_hug": [
+        "group hug", "group-hug", "grupohug", "ayudar a todos",
+        "compartir recursos", "generoso", "benevolente",
+    ],
+    "enchantress": [
+        "encantamientos", "enchantments", "enchantress",
+        "auras", "aura synergy",
+    ],
+    "artifacts": [
+        "artefactos", "artifacts", "artifact synergy",
+        "affinity", "metalcraft", "urza",
+    ],
+    "voltron": [
+        "voltron", "aura voltron", "combat damage",
+        "daño de combate", "21 daño",
+    ],
+    "stax": [
+        "stax", "prison", "prision", "lock", "bloqueo",
+        "hatebear", "tax", "impuesto",
+    ],
+    "mill": [
+        "mill", "moler", "biblioteca vacia", "empty library",
+        "graveyard from library", "cementerio desde biblioteca",
+    ],
+    "big_mana": [
+        "big mana", "x spells", "hechizos x", "mana masivo",
+        "turbo ramp", "turbo lands", "rampear", "ramp",
+        "tierras", "lands",
+    ],
+    "superfriends": [
+        "planeswalkers", "walkers", "superfriends",
+        "lealtad", "loyalty", "emblema", "emblem",
+    ],
+    "pillowfort": [
+        "pillowfort", "pillow fort", "fortaleza", "defensa",
+        "no me ataquen", "propaganda", "ghostly prison",
+    ],
+    # Tribal solo se activa si hay tribu detectada
+    "tribal": [],
 }
 
-# Arquetipos "alias" → mapean a un arquetipo válido del backend
+# Aliases → apuntan a un key del backend.
+# Orden: los mas largos primero para evitar falsos positivos.
 ARCHETYPE_ALIASES: dict[str, tuple[str, str]] = {
     # keyword → (archetype_key, label)
-    "group hug":    ("spellslinger", "Group Hug (base: Spellslinger)"),
-    "group-hug":    ("spellslinger", "Group Hug (base: Spellslinger)"),
-    "gruphug":      ("spellslinger", "Group Hug (base: Spellslinger)"),
-    "pillowfort":   ("spellslinger", "Pillowfort (base: Spellslinger)"),
-    "pillow fort":  ("spellslinger", "Pillowfort (base: Spellslinger)"),
-    "stax":         ("spellslinger", "Stax (base: Spellslinger)"),
-    "superfriends": ("counters",     "Superfriends/Planeswalkers (base: Counters)"),
-    "planeswalkers":("counters",     "Planeswalkers (base: Counters)"),
-    "walkers":      ("counters",     "Planeswalkers (base: Counters)"),
-    "combo":        ("spellslinger", "Combo (base: Spellslinger)"),
-    "aggro":        ("aristocrats",  "Aggro Tokens (base: Aristocrats)"),
-    "agresivo":     ("aristocrats",  "Aggro (base: Aristocrats)"),
-    "aggresivo":    ("aristocrats",  "Aggro (base: Aristocrats)"),
-    "stompy":       ("counters",     "Stompy (base: Counters)"),
-    "big mana":     ("landfall",     "Big Mana (base: Landfall)"),
-    "turbo lands":  ("landfall",     "Turbo Lands (base: Landfall)"),
-    "turbo-lands":  ("landfall",     "Turbo Lands (base: Landfall)"),
-    "voltron":      ("equipment",    "Voltron (base: Equipment)"),
-    "auras":        ("equipment",    "Auras/Voltron (base: Equipment)"),
-    "enchantress":  ("blink",        "Enchantress (base: Blink/ETB)"),
-    "aristocratas": ("aristocrats",  "Aristócratas"),
-    "tokens aggro": ("aristocrats",  "Tokens Aggro"),
-    "storm":        ("spellslinger", "Storm (base: Spellslinger)"),
-    "mill":         ("reanimator",   "Mill/Reanimator"),
+
+    # ── Group Hug (key propio) ───────────────────────────────────────────
+    "group hug":      ("group_hug",    "Group Hug"),
+    "group-hug":      ("group_hug",    "Group Hug"),
+    "grupohug":       ("group_hug",    "Group Hug"),
+    "gruphug":        ("group_hug",    "Group Hug"),
+    "generoso":       ("group_hug",    "Group Hug"),
+    "benevolente":    ("group_hug",    "Group Hug"),
+
+    # ── Pillowfort (key propio) ──────────────────────────────────────────
+    "pillow fort":    ("pillowfort",   "Pillowfort / Defensa"),
+    "fortaleza":      ("pillowfort",   "Pillowfort / Defensa"),
+    "ghostly prison": ("pillowfort",   "Pillowfort"),
+    "propaganda":     ("pillowfort",   "Pillowfort"),
+
+    # ── Stax (key propio) ────────────────────────────────────────────────
+    "prison":         ("stax",         "Stax / Prison"),
+    "prision":        ("stax",         "Stax / Prison"),
+    "hatebear":       ("stax",         "Stax / Hatebears"),
+    "impuesto":       ("stax",         "Stax / Tax"),
+
+    # ── Superfriends (key propio) ────────────────────────────────────────
+    "walkers":        ("superfriends", "Superfriends / Planeswalkers"),
+    "emblema":        ("superfriends", "Superfriends"),
+    "emblem":         ("superfriends", "Superfriends"),
+
+    # ── Voltron (key propio) ─────────────────────────────────────────────
+    "aura voltron":   ("voltron",      "Voltron / Auras"),
+
+    # ── Enchantress (key propio) ─────────────────────────────────────────
+    "enchantments":   ("enchantress",  "Enchantress"),
+    "encantamientos": ("enchantress",  "Enchantress"),
+
+    # ── Big Mana (key propio) ────────────────────────────────────────────
+    "turbo ramp":     ("big_mana",     "Big Mana / Turbo Ramp"),
+    "turbo lands":    ("big_mana",     "Big Mana / Turbo Lands"),
+    "turbo-lands":    ("big_mana",     "Big Mana / Turbo Lands"),
+    "x spells":       ("big_mana",     "Big Mana / X Spells"),
+    "hechizos x":     ("big_mana",     "Big Mana / X Spells"),
+
+    # ── Mill (key propio) ────────────────────────────────────────────────
+    "milling":        ("mill",         "Mill"),
+
+    # ── Tokens (key propio) ──────────────────────────────────────────────
+    "fichas":         ("tokens",       "Tokens / Go-Wide"),
+    "tokens aggro":   ("tokens",       "Tokens Aggro"),
+    "go wide":        ("tokens",       "Tokens / Go-Wide"),
+    "go-wide":        ("tokens",       "Tokens / Go-Wide"),
+
+    # ── Aliases que siguen al mas cercano ────────────────────────────────
+    "combo":          ("spellslinger", "Combo / Spellslinger"),
+    "stompy":         ("counters",     "Stompy / Counters"),
+    "storm":          ("spellslinger", "Storm / Spellslinger"),
+    "aristocratas":   ("aristocrats",  "Aristocratas"),
+    "aristorats":     ("aristocrats",  "Aristocratas"),
+    "infect":         ("counters",     "Infect / Counters"),
+    "veneno":         ("counters",     "Infect / Counters"),
+    "poison":         ("counters",     "Infect / Counters"),
+    "self-mill":      ("reanimator",   "Self-Mill / Reanimator"),
+    "dredge":         ("reanimator",   "Dredge / Reanimator"),
+    "control":        ("spellslinger", "Control / Spellslinger"),
+    "aggro":          ("tokens",       "Aggro / Tokens"),
+    "agresivo":       ("tokens",       "Aggro / Tokens"),
 }
 
 
