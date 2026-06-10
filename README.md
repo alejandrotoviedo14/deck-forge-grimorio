@@ -18,7 +18,7 @@ Deck Forge construye mazos de Commander optimizados a partir de las cartas que y
 
 | Función | Descripción |
 |---|---|
-| **Constructor de mazos** | Heurísticas por arquetipo + EDHREC + Claude Haiku para 9 arquetipos distintos |
+| **Constructor de mazos** | Heurísticas por arquetipo + EDHREC + Claude Sonnet para 19 arquetipos distintos |
 | **Identidad de color estricta** | Tres capas de validación — ninguna carta ilegal puede entrar al mazo |
 | **Grimorio** | Visor de mazos con imágenes Scryfall, filtros por color/tipo, ordenación, zoom |
 | **Simulador de mesa** | Mesa de juego interactiva con todas las fases de turno, maná, combate y tokens |
@@ -71,8 +71,9 @@ Accede en [/simulator](https://deckforge.up.railway.app/simulator).
 
 ---
 
-## Arquetipos disponibles (9)
+## Arquetipos disponibles (19)
 
+### Clásicos
 | Arquetipo | Descripción |
 |---|---|
 | `counters` | +1/+1 Counters / Proliferate |
@@ -84,6 +85,24 @@ Accede en [/simulator](https://deckforge.up.railway.app/simulator).
 | `landfall` | Landfall / Land Matters |
 | `lifegain` | Lifegain / Life Matters |
 | `reanimator` | Reanimator / Graveyard |
+
+### EDHREC / Scryfall (v4)
+| Arquetipo | Descripción |
+|---|---|
+| `tokens` | Go-Wide / Token Swarm |
+| `group_hug` | Group Hug / Wheels |
+| `enchantress` | Enchantress / Enchantment Payoffs |
+| `artifacts` | Artifacts / Treasure / Affinity |
+| `voltron` | Voltron / Auras |
+| `stax` | Stax / Prison / Hatebears |
+| `mill` | Mill (opponent) |
+| `big_mana` | Big Mana / X Spells / Ramp Payoffs |
+| `superfriends` | Superfriends / Planeswalkers |
+| `pillowfort` | Pillowfort / Defensive |
+
+La detección de arquetipo prioriza los **themes reales de EDHREC** para ese
+comandante (cómo lo juega la comunidad); si no hay datos, cae a heurística por
+oracle text del comandante.
 
 ---
 
@@ -98,18 +117,39 @@ Accede en [/simulator](https://deckforge.up.railway.app/simulator).
 
 | Componente | Peso |
 |---|---|
-| EDHREC score para este comandante | 40% |
-| Sinergia con arquetipo (oracle text) | 25% |
-| Manabase friendliness (pips de color) | 20% |
-| Encaje en la curva actual | 15% |
+| Sinergia con el comandante (EDHREC) | 40% |
+| Sinergia con el arquetipo (oracle text) | 25% |
+| EDHREC rank general (calidad bruta) | 25% |
+| Encaje en la curva actual (CMC) | 10% |
 
 **Multi-rol bonus:** +15% por cada rol extra que cumple la carta.
 
-### 3. LLM Critic (Claude Haiku)
-Después del builder heurístico, Claude Haiku revisa el mazo holísticamente y propone la composición óptima de 50 cartas no tierra. Solo usa cartas disponibles en tu colección. Genera también una guía de juego detallada en español.
+### 3. Manabase y tierras (v4)
+- **Básicas proporcionales a pips de color**: cuenta los símbolos `{W}{U}{B}{R}{G}` de
+  todo el mazo y reparte las básicas según esa proporción (mínimo 2 por color),
+  no a partes iguales.
+- **Nº de tierras dinámico**: `31 + avgCMC×2 − ramp×0.4`, acotado entre 33 y 40 —
+  mazos agresivos de curva baja con mucho ramp llevan menos tierras que los de
+  big mana.
 
-### 4. EDHREC
-Consulta EDHREC para el comandante específico y enriquece el scoring. Falla gracefully si no hay conexión — usa scoring local sin interrumpir.
+### 4. LLM Critic (Claude Sonnet 4.6)
+Después del builder heurístico, Claude Sonnet revisa el mazo holísticamente y
+propone la composición óptima de 50 cartas no tierra, usando como referencia el
+**plan de slots del arquetipo detectado** (no un molde único para todos). Solo
+usa cartas disponibles en tu colección. Genera también una guía de juego
+detallada en español.
+
+### 5. EDHREC
+Consulta EDHREC para el comandante específico (themes, high-synergy cards) y
+enriquece tanto la detección de arquetipo como el scoring. Falla gracefully si
+no hay conexión — usa scoring local sin interrumpir.
+
+### 6. Selección de comandante (v5)
+El ranking de comandantes prioriza **tu colección**, no la popularidad en
+EDHREC: sinergia real con tu pool (`density_score`) y poder alcanzable
+(`bracket_ceiling`) pesan 65-95% del score. La popularidad EDHREC es solo un
+desempate (5%). Comandantes poco jugados pero bien soportados por tu colección
+aparecen marcados con 💎 **nicho**.
 
 ---
 
@@ -121,7 +161,7 @@ Consulta EDHREC para el comandante específico y enriquece el scoring. Falla gra
 | Base de datos | Supabase (PostgreSQL) — sesiones PIN |
 | Despliegue | Railway |
 | Datos de cartas | Scryfall bulk API (caché 7 días) |
-| IA | Claude Haiku (Anthropic) |
+| IA | Claude Sonnet 4.6 (Anthropic) |
 | Frontend | HTML/CSS/JS vanilla |
 
 ---
@@ -138,13 +178,13 @@ Consulta EDHREC para el comandante específico y enriquece el scoring. Falla gra
 └── core/
     ├── pool.py             # Filtrado del pool y color identity
     ├── classifier.py       # Detecta roles de cada carta
-    ├── archetypes.py       # 9 arquetipos con slots
-    ├── builder.py          # Ensambla el mazo (score compuesto + EDHREC + LLM)
+    ├── archetypes.py       # 19 arquetipos con slots + EDHREC theme mapping
+    ├── builder.py          # Ensambla el mazo (score compuesto + manabase + EDHREC + LLM)
     ├── edhrec_advisor.py   # Integración EDHREC
-    ├── llm_critic.py       # Revisión con Claude Haiku
+    ├── llm_critic.py       # Revisión con Claude Sonnet 4.6
     ├── bracket.py          # Estimación de bracket WotC
     ├── exporters.py        # HTML grimorio + ManaBox CSV + Moxfield txt
-    ├── commander_score.py  # Scoring de comandantes
+    ├── commander_score.py  # Scoring de comandantes (v5: prioriza tu colección)
     ├── deck_index.py       # Índice persistente de mazos
     └── upgrader.py         # Análisis de gaps y mejoras
 ```
@@ -192,3 +232,6 @@ Consulta EDHREC para el comandante específico y enriquece el scoring. Falla gra
 | v32 | **EDHREC themes + inclusión %**: themes como pills, % de inclusión real de cada carta en mazos reales. |
 | v33 | **Scryfall Tagger propio**: índice de 4952 cartas con 24 tags funcionales (mana-rock, cantrip, board-wipe…) construido desde oracle text. Classifier 10× más preciso. |
 | v34 | **Dashboard visual del mazo**: curva de maná, distribución de tipos, radar de categorías, colores. Sinergias detectadas (10 tipos). Análisis enriquecido de comandantes (combos, precio, themes, relevancia). Búsqueda Scryfall integrada filtrada a colección. |
+| v35 | **10 arquetipos nuevos** (tokens, group hug, enchantress, artifacts, voltron, stax, mill, big mana, superfriends, pillowfort) — total 19. UI sin animaciones. |
+| v36 | **Manabase y arquetipo data-driven**: básicas proporcionales a pips de color, tierras dinámicas (31+avgCMC×2−ramp×0.4), arquetipo detectado por themes reales de EDHREC, Critic en Sonnet 4.6 con plan de slots por arquetipo, queries de upgrade para los 19 arquetipos. |
+| v37 | **Selector de comandante por colección**: comandantes de nicho (poco datos en EDHREC) ya no se penalizan por popularidad — el ranking se basa en sinergia real con tu pool y poder alcanzable. Badge 💎 nicho en el análisis. |
