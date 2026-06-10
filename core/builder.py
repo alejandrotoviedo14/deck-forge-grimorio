@@ -97,24 +97,73 @@ class BuiltDeck:
             out.setdefault(c.category, []).append(c)
         return out
 
+    def color_pip_distribution(self) -> dict[str, int]:
+        """
+        Cuenta los pips de color en los costes de maná de todo el mazo
+        (comandante incluido). Base para repartir básicas proporcionalmente.
+        """
+        pips: dict[str, int] = {}
+        for card in [self.commander] + [c.card for c in self.cards]:
+            mana_cost = (card.get("mana_cost") or "").upper()
+            for c in "WUBRG":
+                n = mana_cost.count(f"{{{c}}}") + mana_cost.count(f"/{c}}}")
+                if n:
+                    pips[c] = pips.get(c, 0) + n
+        return pips
+
     def all_cards_with_basics(self, basics: dict[str, dict] | None = None) -> list[dict]:
+        """
+        Reparte las básicas PROPORCIONALMENTE a los pips de color del mazo
+        (no a partes iguales). Un mazo WUB con 60% de pips negros recibe ~60%
+        Swamps. Mínimo 2 básicas por color para estabilidad.
+        """
         out = [self.commander] + [c.card for c in self.cards]
-        if self.needed_basics > 0:
-            colors = list(self.colors)
+        if self.needed_basics <= 0:
+            return out
+
+        colors = [c for c in self.colors if c in "WUBRG"]
+        if not colors:
+            colors = ["C"]
+        basic_map = {"W": "Plains", "U": "Island", "B": "Swamp",
+                     "R": "Mountain", "G": "Forest", "C": "Wastes"}
+
+        pips = self.color_pip_distribution()
+        pips = {c: pips.get(c, 0) for c in colors}
+        total_pips = sum(pips.values())
+
+        counts: dict[str, int] = {}
+        if total_pips == 0 or len(colors) == 1:
+            # Sin información de pips o monocolor: reparto uniforme
             split = self.needed_basics // len(colors)
             rem = self.needed_basics - split * len(colors)
-            basic_map = {"W": "Plains", "U": "Island", "B": "Swamp",
-                         "R": "Mountain", "G": "Forest"}
             for i, c in enumerate(colors):
-                n = split + (1 if i < rem else 0)
-                bn = basic_map[c]
-                stub = {
-                    "name": bn, "is_land": True, "cmc": 0,
-                    "type_line": f"Basic Land — {bn}", "oracle_text": "",
-                    "produced_mana": [c], "color_identity": [],
-                }
-                for _ in range(n):
-                    out.append(stub)
+                counts[c] = split + (1 if i < rem else 0)
+        else:
+            # Mínimo garantizado por color, resto proporcional a pips
+            min_per_color = min(2, self.needed_basics // len(colors))
+            remaining = self.needed_basics - min_per_color * len(colors)
+            for c in colors:
+                counts[c] = min_per_color
+            if remaining > 0:
+                quotas = {c: remaining * pips[c] / total_pips for c in colors}
+                floors = {c: int(quotas[c]) for c in colors}
+                assigned = sum(floors.values())
+                for c in colors:
+                    counts[c] += floors[c]
+                # Restos: a los colores con mayor parte fraccional
+                leftovers = sorted(colors, key=lambda c: -(quotas[c] - floors[c]))
+                for i in range(remaining - assigned):
+                    counts[leftovers[i % len(leftovers)]] += 1
+
+        for c, n in counts.items():
+            bn = basic_map[c]
+            stub = {
+                "name": bn, "is_land": True, "cmc": 0,
+                "type_line": f"Basic Land — {bn}", "oracle_text": "",
+                "produced_mana": [c], "color_identity": [],
+            }
+            for _ in range(n):
+                out.append(stub)
         return out
 
 
@@ -386,9 +435,24 @@ def build_deck(
             f"archetype={archetype_key}"
         )
 
-    # 2. Arquetipo
+    # 2. Arquetipo — v4: EDHREC themes primero (datos reales de la comunidad),
+    #    heurística de oracle text como fallback.
     if not archetype:
-        detected = detect_archetype(commander)
+        detected = None
+        if use_edhrec:
+            try:
+                from .archetypes import archetype_from_themes
+                from .edhrec_advisor import EDHRecAdvisor
+                themes = EDHRecAdvisor(verbose=False).fetch_commander_data(
+                    commander["name"]
+                ).get("themes") or []
+                detected = archetype_from_themes(themes)
+                if detected:
+                    print(f"  [BUILD] Arquetipo por EDHREC themes {themes[:3]}: {detected}")
+            except Exception as e:
+                print(f"  [BUILD] EDHREC themes no disponibles ({e})")
+        if not detected:
+            detected = detect_archetype(commander)
         if not detected:
             raise ValueError(
                 f"No pude detectar arquetipo para '{commander['name']}'. "
@@ -510,13 +574,24 @@ def build_deck(
             _track_cmc(c)
             added += 1
 
-    # 7. Tierras de utilidad (objetivo: 12)
-    # Basado en Jeskai Striker (WotC precon 2025 - referencia Bracket 2):
-    # 37 tierras = 14 básicas + 23 no-básicas (12 utility + 11 duales/check)
-    # El builder pone 12 utility lands; el resto se completa con básicas.
-    TARGET_UTILITY_LANDS = 12
-    TARGET_BASICS         = 25   # básicas objetivo (14 básicas del estándar, ajustadas por utility)
-    TARGET_NON_LANDS      = 99 - TARGET_UTILITY_LANDS - TARGET_BASICS  # = 62
+    # 7. Tierras — número DINÁMICO según curva y ramp (v4)
+    # Heurística tipo Karsten adaptada a Commander:
+    #   total_lands = 31 + avg_cmc*2 - ramp_count*0.4, clamp [33, 40]
+    # Un mazo agresivo de curva 2.5 con 10 ramp → ~33; big mana curva 4 → ~38.
+    _non_land_so_far = [dc.card for dc in deck.cards if not dc.card.get("is_land")]
+    _cmcs = [int(cmc(c) or 0) for c in _non_land_so_far]
+    _avg_cmc = (sum(_cmcs) / len(_cmcs)) if _cmcs else 3.0
+    _ramp_count = sum(1 for c in _non_land_so_far
+                      if "ramp" in roles_by_card.get(c["name"], set()))
+    _total_lands = max(33, min(40, round(31 + _avg_cmc * 2 - _ramp_count * 0.4)))
+
+    TARGET_UTILITY_LANDS = min(12, _total_lands - 20)
+    TARGET_BASICS         = _total_lands - TARGET_UTILITY_LANDS
+    TARGET_NON_LANDS      = 99 - _total_lands
+
+    print(f"  [BUILD] Tierras dinámicas: {_total_lands} "
+          f"(avg CMC {_avg_cmc:.2f}, ramp {_ramp_count}) "
+          f"= {TARGET_UTILITY_LANDS} utility + {TARGET_BASICS} básicas")
 
     utility_lands = [
         c for c in pool

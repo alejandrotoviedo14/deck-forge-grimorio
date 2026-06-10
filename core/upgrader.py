@@ -30,6 +30,17 @@ _SCRYFALL_QUERIES_ARCHETYPE: dict[tuple[str,str], str] = {
     ("game_changer", "landfall"):     '(o:"landfall" OR o:"whenever a land enters") (r:rare OR r:mythic) cmc<=5',
     ("game_changer", "lifegain"):     '(o:"whenever you gain life" OR o:"lifelink") (r:rare OR r:mythic) cmc<=4',
     ("game_changer", "reanimator"):   '(o:"from your graveyard" OR o:"graveyard to the battlefield") (r:rare OR r:mythic) cmc<=6',
+    # v3 archetypes (v4 upgrade queries)
+    ("game_changer", "tokens"):       '(o:"create" o:"token" OR o:"populate") (r:rare OR r:mythic) cmc<=5',
+    ("game_changer", "group_hug"):    '(o:"each player draws" OR o:"each player may") (r:rare OR r:mythic) cmc<=5',
+    ("game_changer", "enchantress"):  '(o:"whenever you cast an enchantment" OR o:"whenever an enchantment enters") (r:rare OR r:mythic) cmc<=4',
+    ("game_changer", "artifacts"):    '(o:"whenever an artifact enters" OR o:"for each artifact you control") (r:rare OR r:mythic) cmc<=4',
+    ("game_changer", "voltron"):      '(t:aura o:"enchanted creature gets") (r:rare OR r:mythic) cmc<=4',
+    ("game_changer", "stax"):         '(o:"more to cast" OR o:"don\'t untap") (r:rare OR r:mythic) cmc<=4',
+    ("game_changer", "mill"):         '(o:"mills" OR o:"mill x") (r:rare OR r:mythic) cmc<=5',
+    ("game_changer", "big_mana"):     '(o:"double the amount of mana" OR o:"untap all lands") (r:rare OR r:mythic) cmc<=6',
+    ("game_changer", "superfriends"): '(t:planeswalker OR o:"loyalty counter") (r:rare OR r:mythic) cmc<=5',
+    ("game_changer", "pillowfort"):   '(o:"can\'t attack you" OR o:"attack you unless") (r:rare OR r:mythic) cmc<=4',
 }
 
 

@@ -1096,6 +1096,49 @@ ARCHETYPES: dict[str, Archetype] = {
 }
 
 
+# ───────────────────────────────────────────────────────────────────────────
+# THEME → ARCHETYPE (v4): mapeo de themes de EDHREC a nuestros 19 keys.
+# Los themes vienen del caché de edhrec_advisor (fetch_commander_data → "themes")
+# y reflejan cómo la comunidad REALMENTE juega cada comandante.
+# ───────────────────────────────────────────────────────────────────────────
+
+THEME_TO_ARCHETYPE: dict[str, str] = {
+    "tokens": "tokens",
+    "+1/+1 counters": "counters", "counters": "counters",
+    "proliferate": "counters", "infect": "counters",
+    "group hug": "group_hug", "wheels": "group_hug",
+    "stax": "stax", "prison": "stax", "hatebears": "stax", "group slug": "stax",
+    "mill": "mill",
+    "voltron": "voltron", "auras": "voltron",
+    "equipment": "equipment",
+    "enchantress": "enchantress", "enchantments": "enchantress",
+    "artifacts": "artifacts", "treasure": "artifacts", "affinity": "artifacts",
+    "lifegain": "lifegain", "lifedrain": "lifegain",
+    "reanimator": "reanimator", "graveyard": "reanimator",
+    "self-mill": "reanimator", "dredge": "reanimator",
+    "aristocrats": "aristocrats", "sacrifice": "aristocrats",
+    "spellslinger": "spellslinger", "storm": "spellslinger",
+    "cantrips": "spellslinger", "spell copy": "spellslinger",
+    "x spells": "big_mana", "big mana": "big_mana",
+    "blink": "blink", "etb": "blink", "flicker": "blink",
+    "landfall": "landfall", "lands matter": "landfall", "lands": "landfall",
+    "superfriends": "superfriends", "planeswalkers": "superfriends",
+    "pillow fort": "pillowfort", "pillowfort": "pillowfort",
+}
+
+
+def archetype_from_themes(themes: list[str]) -> str | None:
+    """
+    Dado el listado de themes EDHREC de un comandante (ordenados por
+    popularidad), devuelve el primer arquetipo propio que matchea.
+    """
+    for t in themes or []:
+        key = THEME_TO_ARCHETYPE.get((t or "").strip().lower())
+        if key:
+            return key
+    return None
+
+
 def detect_archetype(commander: dict) -> str | None:
     """
     Dado un comandante, sugiere el mejor arquetipo.

@@ -79,7 +79,7 @@ class LLMCritic:
 
     # Modelos: Sonnet para razonamiento de construcción (calidad superior),
     # Haiku para la guía de juego (texto, más barato).
-    MODEL_REVIEW = "claude-sonnet-4-5"
+    MODEL_REVIEW = "claude-sonnet-4-6"
     MODEL_GUIDE  = "claude-haiku-4-5"
 
     def _call_claude(self, prompt: str, max_tokens: int = 2000,
@@ -207,6 +207,11 @@ Full ability text: {commander_oracle}
 
 ## ARCHETYPE: {deck.archetype.name}
 Strategy: {deck.archetype.description}
+
+## ARCHETYPE SLOT PLAN — approximate these proportions for THIS archetype
+(The Jeskai Striker standard above is the generic baseline; THIS plan overrides
+it where they differ — e.g. stax/mill/group hug have different structures):
+{chr(10).join(f"  {s.name}: {s.target_count} cards — {s.justification}" for s in deck.archetype.slots)}
 
 ## CARDS CURRENTLY IN DRAFT (heuristic build — improve on it):
 {"".join(current_deck_cards)}
