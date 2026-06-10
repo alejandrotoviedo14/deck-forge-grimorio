@@ -563,16 +563,29 @@ async def analyze(
             # Campos enriquecidos (rellenados abajo)
             "themes":             [],
             "combos_in_pool":     0,
-            "pool_relevance_pct": round(s.edhrec_relevance, 1),  # ya calculado en score
+            "pool_relevance_pct": 0.0,
+            "edhrec_sample":      0,
+            "niche_pick":         False,
             "est_price_eur":      None,
         }
 
         # Temas EDHREC (llamada ligera usando cache ya precargado por score_commanders)
+        # Aprovechamos la misma llamada para recalcular pool_relevance_pct, que en
+        # el scoring inicial va a 0 (use_edhrec=False por rendimiento).
         try:
             from core.edhrec_advisor import EDHRecAdvisor
+            from core.commander_score import _edhrec_relevance
             _adv = EDHRecAdvisor(verbose=False)
             _edata = _adv.fetch_commander_data(s.name)
             entry["themes"] = _edata.get("themes", [])[:5]
+
+            rel_pct, rel_n = _edhrec_relevance(s.name, pool_names)
+            entry["pool_relevance_pct"] = round(rel_pct, 1)
+            entry["edhrec_sample"] = rel_n
+            # "Niche pick": EDHREC apenas tiene datos de este comandante (poco
+            # popular) pero igualmente quedó en el top — significa que tu PROPIA
+            # colección lo respalda (sinergia/bracket), no la comunidad.
+            entry["niche_pick"] = rel_n < 5
         except Exception:
             pass
 

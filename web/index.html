@@ -1356,12 +1356,15 @@ async function doAnalyze() {
       var combosBadge = c.combos_in_pool > 0
         ? '<span style="background:rgba(39,174,96,0.15);color:#27ae60;font-size:0.6rem;padding:1px 5px;border-radius:3px;margin-left:3px">⚡' + c.combos_in_pool + '</span>'
         : '';
+      var nicheBadge = c.niche_pick
+        ? '<span title="Poco popular en EDHREC, pero tu colección lo respalda" style="background:rgba(108,99,255,0.15);color:#8c7bff;font-size:0.6rem;padding:1px 5px;border-radius:3px;margin-left:3px">💎 nicho</span>'
+        : '';
       var relPct = c.pool_relevance_pct || 0;
       var relColor = relPct >= 60 ? '#27ae60' : relPct >= 30 ? '#f39c12' : 'var(--ink-m)';
       var priceTxt = c.est_price_eur ? ' · €' + c.est_price_eur : '';
       return '<tr class="clickable" data-cmdname="' + (c.name||'').replace(/"/g,'&quot;') + '">'
         + '<td>'
-          + '<div style="font-weight:500;color:var(--ink)">' + (c.name||'') + combosBadge + '</div>'
+          + '<div style="font-weight:500;color:var(--ink)">' + (c.name||'') + combosBadge + nicheBadge + '</div>'
           + '<div style="margin-top:3px">' + themes + '</div>'
         + '</td>'
         + '<td>' + colorBadges(c.colors) + '</td>'

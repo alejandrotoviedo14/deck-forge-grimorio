@@ -1,19 +1,33 @@
 """
-commander_score.py — Scoring inteligente de comandantes v2.
+commander_score.py — Scoring inteligente de comandantes v5.
 
-Correcciones sobre v1:
+Filosofía v5: "el mejor comandante PARA TU COLECCIÓN, no el más popular
+en EDHREC". Popularidad (rank_score) queda como desempate mínimo (5%);
+todo lo demás se calcula sobre TU pool real.
+
+Correcciones sobre v1-v4:
   FIX 1 — Multi-arquetipo: evalúa TODOS los arquetipos para cada comandante
            y se queda con el que mejor encaja con el pool del jugador.
   FIX 2 — Comandantes sin arquetipo detectado: reciben score basado en
-           pool relevance y popularidad, no score 0.
+           pool relevance y bracket, no score 0.
   FIX 3 — Bracket ceiling más granular: usa pesos distintos por tipo de carta
            en lugar de umbrales binarios que igualan a todos.
+  FIX 5 — Comandantes "de nicho" (pocos datos en EDHREC, <5 cartas
+           high-synergy registradas) NO se penalizan: su score se calcula
+           casi enteramente con density_score + bracket_score (tu pool),
+           ignorando rel_sc/rank_sc que dependen de popularidad/datos externos.
 
-Métricas (weighted sum, ahora 4 componentes):
+Métricas (weighted sum):
+  Con arquetipo, datos EDHREC suficientes (>=5 high-synergy):
     - 45% densidad de sinergia  (mejor arquetipo disponible en el pool)
-    - 25% relevancia EDHREC     (% cartas del pool recomendadas para este cmd)
-    - 20% bracket alcanzable    (potencia real construible)
-    - 10% popularidad EDHREC    (desempate suave — contenido online disponible)
+    - 25% bracket alcanzable    (potencia real construible)
+    - 25% relevancia EDHREC     (% cartas del pool que EDHREC marca como específicas)
+    -  5% popularidad EDHREC    (desempate mínimo)
+  Con arquetipo, comandante de nicho (<5 high-synergy):
+    - 65% densidad de sinergia · 30% bracket · 5% popularidad
+  Sin arquetipo detectado:
+    - 45% relevancia EDHREC · 35% bracket · 20% popularidad (datos suficientes)
+    - 75% bracket · 25% popularidad (nicho)
 """
 
 from __future__ import annotations
@@ -34,6 +48,7 @@ class CommanderScore:
     bracket_ceiling: float      # 1.0-5.0
     rank_score:      float      # 0-100
     edhrec_relevance: float     # 0-100: % pool que EDHREC recomienda para este cmd
+    edhrec_sample:   int        # nº cartas high-synergy conocidas (0 = nicho/sin datos)
     total_score:     float
 
     @property
@@ -167,7 +182,7 @@ def _bracket_ceiling(commander: dict, pool: list[dict]) -> float:
 _edhrec_cache: dict[str, dict] = {}   # cache en memoria para esta sesión
 
 
-def _edhrec_relevance(commander_name: str, pool_names: set[str]) -> float:
+def _edhrec_relevance(commander_name: str, pool_names: set[str]) -> tuple[float, int]:
     """
     Relevancia EDHREC mejorada: usa SOLO las cartas HIGH-SYNERGY del comandante,
     no todas las recomendadas (que incluyen genéricas como Sol Ring para todos).
@@ -177,6 +192,11 @@ def _edhrec_relevance(commander_name: str, pool_names: set[str]) -> float:
     comandante que con la media. Son el verdadero diferenciador.
 
     Score: % de esas cartas específicas que tienes en tu pool.
+
+    Devuelve (score, sample_size). sample_size = nº de cartas high-synergy que
+    EDHREC conoce para este comandante. Comandantes poco jugados (nicho) tienen
+    sample_size bajo — el caller usa esto para NO penalizarlos por falta de
+    datos de popularidad (ver score_commanders).
     """
     global _edhrec_cache
     try:
@@ -197,7 +217,7 @@ def _edhrec_relevance(commander_name: str, pool_names: set[str]) -> float:
             }
 
         if not high_synergy:
-            return 0.0
+            return (0.0, 0)
 
         hs_names = {n.lower() for n in high_synergy}
         pool_lower = {n.lower() for n in pool_names}
@@ -206,9 +226,9 @@ def _edhrec_relevance(commander_name: str, pool_names: set[str]) -> float:
         # Normalizar: 8+ cartas específicas en pool → score 100
         # (tener 8 cartas que EDHREC marca como únicas para este commander
         #  es excelente — demuestra que tu pool encaja con el plan del cmd)
-        return min(overlap / 8 * 100.0, 100.0)
+        return (min(overlap / 8 * 100.0, 100.0), len(hs_names))
     except Exception:
-        return 0.0
+        return (0.0, 0)
 
 
 # ── Función principal ─────────────────────────────────────────────────────
@@ -258,29 +278,50 @@ def score_commanders(
         bracket = _bracket_ceiling(cmd, pool)
         bracket_score = (bracket - 1.0) / 4.0 * 100.0
 
-        # Popularidad (desempate suave)
+        # Popularidad (desempate suave — NO debe decidir el ranking)
         rank_sc = _normalize_rank(cmd.get("edhrec_rank"))
 
-        # FIX 2: relevancia EDHREC
-        rel_sc = 0.0
+        # FIX 2: relevancia EDHREC (+ tamaño de muestra)
+        rel_sc, rel_n = (0.0, 0)
         if use_edhrec:
-            rel_sc = _edhrec_relevance(cmd["name"], pool_names)
+            rel_sc, rel_n = _edhrec_relevance(cmd["name"], pool_names)
 
-        # FIX 2: comandantes sin arquetipo ya no reciben 0 automático
-        # Si arch es None, su score depende de EDHREC + bracket + popularidad
+        # v5 — "best for MY collection", no "most popular on EDHREC":
+        # Si EDHREC apenas tiene datos de este comandante (poco jugado/nicho),
+        # rel_sc no es fiable: redistribuimos su peso hacia density/bracket,
+        # que se calculan 100% sobre TU pool y no dependen de popularidad.
+        SPARSE = 5  # < 5 cartas high-synergy conocidas = comandante de nicho
+
         if arch is None:
-            total_score = (
-                rel_sc    * 0.45
-                + bracket_score * 0.30
-                + rank_sc       * 0.25
-            )
+            # FIX 2: comandantes sin arquetipo ya no reciben 0 automático
+            if rel_n >= SPARSE:
+                total_score = (
+                    rel_sc    * 0.45
+                    + bracket_score * 0.35
+                    + rank_sc       * 0.20
+                )
+            else:
+                # Sin arquetipo Y sin datos EDHREC: solo poder bruto del pool
+                total_score = (
+                    bracket_score * 0.75
+                    + rank_sc       * 0.25
+                )
         else:
-            total_score = (
-                density_score  * 0.45
-                + rel_sc       * 0.25
-                + bracket_score * 0.20
-                + rank_sc       * 0.10
-            )
+            if rel_n >= SPARSE:
+                total_score = (
+                    density_score  * 0.45
+                    + rel_sc       * 0.25
+                    + bracket_score * 0.25
+                    + rank_sc       * 0.05
+                )
+            else:
+                # Comandante de nicho: tu pool es la única señal fiable —
+                # cuánto encaja (density) y cuánto poder puedes desplegar (bracket)
+                total_score = (
+                    density_score  * 0.65
+                    + bracket_score * 0.30
+                    + rank_sc       * 0.05
+                )
 
         scores.append(CommanderScore(
             commander        = cmd,
@@ -291,6 +332,7 @@ def score_commanders(
             bracket_ceiling  = bracket,
             rank_score       = rank_sc,
             edhrec_relevance = rel_sc,
+            edhrec_sample    = rel_n,
             total_score      = round(total_score, 1),
         ))
 
