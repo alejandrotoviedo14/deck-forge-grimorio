@@ -233,6 +233,33 @@ def _tribal_fit(commander: dict, pool: list[dict]) -> float:
     return min(matches / 15.0 * 100.0, 100.0) * weight
 
 
+def _tribal_fit_fast(commander: dict, creatures: list[tuple[str, frozenset]]) -> float:
+    """
+    v9: misma semántica que _tribal_fit pero sobre la lista precomputada de
+    (nombre, subtipos) de criaturas EN IDENTIDAD — sin re-filtrar el pool.
+    """
+    type_line = commander.get("type_line") or ""
+    if "Creature" not in type_line or "—" not in type_line:
+        return 0.0
+    own_subtypes = {
+        w.strip(",")
+        for w in type_line.split("—", 1)[1].replace("//", " ").split()
+        if w and w[0].isupper() and w not in ("Legendary", "Creature")
+    }
+    if not own_subtypes:
+        return 0.0
+    oracle = commander.get("oracle_text") or ""
+    mentioned = {
+        t for t in own_subtypes
+        if re.search(rf"\b{re.escape(t)}s?\b", oracle)
+    }
+    targets = mentioned or own_subtypes
+    weight = 1.0 if mentioned else 0.5
+    cmd_name = commander["name"]
+    matches = sum(1 for (n, subs) in creatures if n != cmd_name and subs & targets)
+    return min(matches / 15.0 * 100.0, 100.0) * weight
+
+
 # ── FIX 3: Bracket ceiling granular ─────────────────────────────────────
 
 def _bracket_ceiling(commander: dict, pool: list[dict]) -> float:
@@ -240,13 +267,17 @@ def _bracket_ceiling(commander: dict, pool: list[dict]) -> float:
     FIX 3: usa pesos continuos por tipo de carta en lugar de umbrales binarios.
     Esto diferencia mejor entre colecciones similares.
     """
-    from .bracket import _load_reference
-
     deck_ci = set(commander.get("color_identity", []))
     in_identity_names = {
         c["name"] for c in pool
         if fits_color_identity(c, deck_ci)
     }
+    return _bracket_from_names(in_identity_names)
+
+
+def _bracket_from_names(in_identity_names: set[str]) -> float:
+    """Núcleo del bracket ceiling — cacheable por identidad de color (v9)."""
+    from .bracket import _load_reference
 
     ref = _load_reference()
     gc  = len(in_identity_names & set(ref["game_changers"]))
@@ -359,9 +390,66 @@ def score_commanders(
     pool_names = {c["name"] for c in pool}
     scores: list[CommanderScore] = []
 
+    # ── v9 PRECOMPUTOS — una vez por pool, no por candidato ──
+    # Antes: cada candidato re-filtraba el pool 19 veces (una por arquetipo)
+    # y re-evaluaba todos los predicados de slot → O(candidatos × 19 × pool).
+    # Ahora: predicados 1 vez por carta/arquetipo + grupos por color identity.
+    non_land_pool = [c for c in pool if not c.get("is_land")]
+
+    # a) Por arquetipo: nombres del pool que matchean algún slot (1 sola pasada)
+    arch_match: dict[str, set[str]] = {}
+    for _key, _arch in ARCHETYPES.items():
+        _s = set()
+        for _c in non_land_pool:
+            if any(_slot.predicate(_c) for _slot in _arch.slots):
+                _s.add(_c["name"])
+        arch_match[_key] = _s
+
+    # b) Subtipos de criatura por carta (para tribal fit)
+    _creature_subs: list[tuple[str, frozenset]] = []
+    for _c in non_land_pool:
+        _tl = _c.get("type_line") or ""
+        if "Creature" in _tl and "—" in _tl:
+            _creature_subs.append((
+                _c["name"],
+                frozenset(_tl.split("—", 1)[1].replace("//", " ").split()),
+            ))
+
+    # c) Datos por identidad de color exacta (compartidos entre candidatos)
+    _ci_cache: dict[frozenset, dict] = {}
+
+    def _ci_data(ci: frozenset) -> dict:
+        if ci not in _ci_cache:
+            in_id_names = {c["name"] for c in non_land_pool
+                           if fits_color_identity(c, ci)}
+            all_in_id = {c["name"] for c in pool if fits_color_identity(c, ci)}
+            _ci_cache[ci] = {
+                "names": in_id_names,
+                "bracket": _bracket_from_names(all_in_id),
+                "creatures": [(n, s) for (n, s) in _creature_subs
+                              if n in in_id_names],
+            }
+        return _ci_cache[ci]
+
     for cmd in candidates:
-        # FIX 1 + FIX 6b: mejor arquetipo y densidad del arquetipo DETECTADO
-        arch, raw, total, density, det_density = _best_archetype_score(cmd, pool)
+        _data = _ci_data(frozenset(cmd.get("color_identity", [])))
+        _names = _data["names"] - {cmd["name"]}
+        total = len(_names)
+
+        # FIX 1 + FIX 6b (vía precomputos): mejor arquetipo y densidad del DETECTADO
+        detected_key = detect_archetype(cmd)
+        arch = None
+        raw = 0
+        density = 0.0
+        det_density = 0.0
+        for _key, _archetype in ARCHETYPES.items():
+            _raw_n = len(_names & arch_match[_key])
+            _d = (_raw_n / total) if total else 0.0
+            if _key == detected_key:
+                det_density = _d
+            _bonus = 0.02 if _key == detected_key else 0.0
+            if _d + _bonus > density:
+                arch, raw, density = _archetype, _raw_n, _d + _bonus
 
         # FIX 6b — fit específico del comandante:
         # 60% lo que SU texto pide (det_density), 40% lo mejor que ofrece el
@@ -373,11 +461,11 @@ def score_commanders(
         else:
             fit_score = _smooth_density(density) * 0.85
 
-        # FIX 6c — soporte tribal real
-        tribal_sc = _tribal_fit(cmd, pool)
+        # FIX 6c — soporte tribal real (precomputado por identidad)
+        tribal_sc = _tribal_fit_fast(cmd, _data["creatures"])
 
-        # FIX 3: bracket granular
-        bracket = _bracket_ceiling(cmd, pool)
+        # FIX 3: bracket granular (cacheado por identidad de color)
+        bracket = _data["bracket"]
         bracket_score = (bracket - 1.0) / 4.0 * 100.0
 
         # Popularidad (desempate suave — NO debe decidir el ranking)

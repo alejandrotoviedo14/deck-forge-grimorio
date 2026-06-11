@@ -23,24 +23,28 @@
     --ember: #c04a18;
     --bg-0: #07050a; --bg-1: #0d0b10; --bg-2: #141218; --bg-3: #1c1824;
     --border: rgba(201,168,76,0.22);
-    --ink: #e8dcc8; --ink-s: #b0a080; --ink-m: #706050;
+    /* v9 contraste: --ink-m subido de #706050 (≈3.2:1 sobre bg) a #9c8b72 (≈5.6:1) */
+    --ink: #ece1cf; --ink-s: #c2b294; --ink-m: #9c8b72;
     --glass: rgba(10,8,14,0.72);
     --r: 12px; --ok: #5bbf6a; --err: #e0563f;
     /* ── aliases (inline-style backward-compat) ── */
     --gold-light: #e8c96a; --gold-dark: #7a5c1e;
-    --text: #e8dcc8; --text-muted: #706050;
+    --text: #ece1cf; --text-muted: #9c8b72;
     --bg2: #141218; --border-gold: rgba(201,168,76,0.22);
     --panel: #13100a; --panel2: #1a1510;
   }
 
-  /* CURSOR MARTILLO */
+  /* Cursores estándar — los cursores custom dificultan la precisión y
+     ocultan las affordances nativas (texto, arrastre, enlaces) */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html {
-    background: var(--bg-0);
-    cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cmVjdCB4PSI0IiB5PSIzIiB3aWR0aD0iMjQiIGhlaWdodD0iMTIiIHJ4PSIzIiBmaWxsPSIjYzlhODRjIiBzdHJva2U9IiNlOGM5NmEiIHN0cm9rZS13aWR0aD0iMSIvPjxyZWN0IHg9IjQiIHk9IjMiIHdpZHRoPSIyNCIgaGVpZ2h0PSI1IiByeD0iMyIgZmlsbD0iI2U4Yzk2YSIgb3BhY2l0eT0iMC40Ii8+PHJlY3QgeD0iMTMiIHk9IjE1IiB3aWR0aD0iNiIgaGVpZ2h0PSIxNSIgcng9IjIiIGZpbGw9IiM0YTJmMGUiLz48cmVjdCB4PSIxMCIgeT0iOCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjUiIHJ4PSIxIiBmaWxsPSIjODA2MDEwIiBvcGFjaXR5PSIwLjYiLz48L3N2Zz4=") 16 3, crosshair;
-  }
-  a, button, input, select, .tab, .dl-btn, tr.clickable, .stk {
-    cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj48cmVjdCB4PSI0IiB5PSIzIiB3aWR0aD0iMjQiIGhlaWdodD0iMTIiIHJ4PSIzIiBmaWxsPSIjZThjOTZhIiBzdHJva2U9IiNmZmUwOTAiIHN0cm9rZS13aWR0aD0iMSIvPjxyZWN0IHg9IjQiIHk9IjMiIHdpZHRoPSIyNCIgaGVpZ2h0PSI1IiByeD0iMyIgZmlsbD0iI2ZmZjBiMCIgb3BhY2l0eT0iMC41Ii8+PHJlY3QgeD0iMTMiIHk9IjE1IiB3aWR0aD0iNiIgaGVpZ2h0PSIxNSIgcng9IjIiIGZpbGw9IiM0YTJmMGUiLz48cmVjdCB4PSIxMCIgeT0iOCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjUiIHJ4PSIxIiBmaWxsPSIjODA2MDEwIiBvcGFjaXR5PSIwLjYiLz48L3N2Zz4=") 16 3, pointer;
+  html { background: var(--bg-0); }
+  a, button, .tab, .dl-btn, tr.clickable, .stk, .chip { cursor: pointer; }
+
+  /* Accesibilidad: foco visible al navegar con teclado */
+  :focus-visible {
+    outline: 2px solid var(--gold-l);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -130,7 +134,7 @@
 
   /* TABS */
   .tabs { display: flex; gap: 4px; margin-bottom: 2.4rem; padding: 5px; background: rgba(10,8,14,0.82); border: 1px solid rgba(201,168,76,0.2); border-radius: 99px; backdrop-filter: blur(12px); box-shadow: 0 16px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04); position: sticky; top: 10px; z-index: 30; flex-wrap: wrap; }
-  .tab { flex: 1 1 auto; min-width: 80px; padding: 0.75rem 0.5rem; border-radius: 99px; background: none; border: 1px solid transparent; color: var(--ink-m); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 0.72rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.2s; }
+  .tab { flex: 1 1 auto; min-width: 80px; min-height: 42px; padding: 0.75rem 0.5rem; border-radius: 99px; background: none; border: 1px solid transparent; color: var(--ink-s); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: all 0.2s; }
   .tab::after { content: none; }
   .tab:hover:not(.active) { color: var(--ink); background: rgba(201,168,76,0.08); }
   .tab.active { color: #1a1206; font-weight: 700; background: linear-gradient(180deg, #ffe090, #c9a84c 55%, #7a5c1e); border-color: rgba(255,240,160,0.3); box-shadow: 0 4px 16px rgba(201,168,76,0.35), inset 0 1px 2px rgba(255,255,255,0.5); transform: translateY(-1px); }
@@ -167,11 +171,11 @@
   button.secondary { margin-top:0.75rem; width:100%; padding:0.62rem 1.4rem; border-radius:99px; border:1px solid rgba(201,168,76,0.25); background:rgba(201,168,76,0.05); color:var(--gold-l); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.73rem; letter-spacing:0.12em; text-transform:uppercase; transition:all .2s; }
   button.secondary:hover { border-color:var(--gold); background:rgba(201,168,76,0.12); }
   .dl-row { display:flex; gap:0.7rem; margin-top:1rem; flex-wrap:wrap; }
-  .dl-btn { padding:0.5rem 1.1rem; border-radius:99px; border:1px solid rgba(201,168,76,0.28); background:rgba(201,168,76,0.06); color:var(--gold-l); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; transition:all .2s; text-decoration:none; }
+  .dl-btn { padding:0.58rem 1.2rem; border-radius:99px; border:1px solid rgba(201,168,76,0.35); background:rgba(201,168,76,0.08); color:var(--gold-l); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; transition:all .2s; text-decoration:none; }
   .dl-btn:hover { border-color:var(--gold-l); background:rgba(201,168,76,0.16); transform:translateY(-1px); }
 
   /* MISC */
-  .divider { display:flex; align-items:center; gap:1rem; margin:1.5rem 0; color:var(--gold-d); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.64rem; letter-spacing:0.2em; text-transform:uppercase; }
+  .divider { display:flex; align-items:center; gap:1rem; margin:1.5rem 0; color:var(--gold); font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.72rem; letter-spacing:0.16em; text-transform:uppercase; }
   .divider::before,.divider::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--gold-d),transparent); }
   .steps { margin-bottom:1.4rem; }
   .step { display:flex; align-items:flex-start; gap:1rem; padding:0.82rem 0; border-bottom:1px solid rgba(201,168,76,0.1); }
@@ -196,13 +200,13 @@
   .stat:hover { transform:translateY(-3px); box-shadow:0 14px 30px rgba(0,0,0,0.5); }
   .stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
   .stat .val { display:block; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:1.8rem; font-weight:800; background:linear-gradient(180deg,#ffe090,#c9a84c); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; line-height:1.1; }
-  .stat .lbl { display:block; margin-top:0.4rem; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-m); }
+  .stat .lbl { display:block; margin-top:0.4rem; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-s); }
 
   /* TABLE */
   .table-wrap { overflow-x:auto; margin-top:1rem; border:1px solid rgba(201,168,76,0.15); border-radius:12px; }
   table { width:100%; border-collapse:collapse; font-size:0.92rem; }
   thead tr { background:rgba(201,168,76,0.06); }
-  th { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.64rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold-d); padding:0.7rem 0.85rem; text-align:left; }
+  th { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:0.74rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); padding:0.7rem 0.85rem; text-align:left; }
   td { padding:0.58rem 0.85rem; border-bottom:1px solid rgba(201,168,76,0.08); }
   tr.clickable:hover td { background:rgba(201,168,76,0.07); }
   tr.selected td { background:rgba(201,168,76,0.13); box-shadow:inset 2px 0 0 var(--gold); }
@@ -228,7 +232,7 @@
   .spinner { display:inline-block; width:15px; height:15px; border:2px solid rgba(201,168,76,0.2); border-top-color:var(--gold); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:0.4rem; }
 
   @media(max-width:580px){.row{grid-template-columns:1fr;}}
-  @media(max-width:640px){ .tab{font-size:0.58rem; padding:0.6rem 0.25rem; letter-spacing:0.04em;} .card{padding:1.3rem 1.1rem;} header{padding:3rem 1rem 2.2rem;} header h1{font-size:clamp(1.8rem,10vw,3rem);} }
+  @media(max-width:640px){ .tab{font-size:0.7rem; padding:0.7rem 0.3rem; letter-spacing:0.03em; min-height:44px;} .card{padding:1.3rem 1.1rem;} header{padding:3rem 1rem 2.2rem;} header h1{font-size:clamp(1.8rem,10vw,3rem);} }
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
   
   /* ── HERO BACKGROUND (Wrath of God, Kev Walker) ── */
@@ -295,8 +299,8 @@
   .card label { color: #4a2c10 !important; }
   .card .step-text { color: #2a1808; }
   .card .step-text b { color: #6a3a10 !important; }
-  .card .hint { color: #6a5030 !important; }
-  .card .col-empty { color: #6a5030; }
+  .card .hint { color: #54401e !important; }
+  .card .col-empty { color: #54401e; }
   .card .col-selector-header { color: #5a3a10 !important; }
   .card .col-selector { background: rgba(120,80,20,0.08); border-color: rgba(139,106,40,0.35); }
   .card input[type="text"], .card input[type="number"], .card select {
@@ -318,7 +322,7 @@
   .card input[type="file"]:hover { background: rgba(250,240,218,0.9) !important; }
   .card .checkbox-row label { color: #3a2010 !important; }
   .card .stat { background: rgba(240,225,190,0.6); border-color: rgba(139,106,40,0.35); }
-  .card .stat .lbl { color: #6a5030 !important; }
+  .card .stat .lbl { color: #54401e !important; }
   .card .stat .val {
     background: linear-gradient(180deg, #5a3208, #8b5a18);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
@@ -329,13 +333,14 @@
   .card .msg.err { background: rgba(140,20,20,0.12); color: #8a1a1a; }
   .card .msg.info{ background: rgba(100,70,10,0.1);  color: #5a3a10; }
   .card td { border-bottom-color: rgba(139,106,40,0.15); color: #2a1808; }
-  .card th { color: #7a5018 !important; }
+  .card th { color: #5e3c0e !important; }
   .card thead tr { background: rgba(139,106,40,0.1); }
   .card tr.clickable:hover td { background: rgba(139,106,40,0.1); }
   .card .table-wrap { border-color: rgba(139,106,40,0.3); }
 
   /* ── SIMPLIFICACIONES UI ── */
-  .card-desc { font-size:0.92rem; color:var(--ink-m); line-height:1.6; margin-bottom:0.4rem; }
+  .card-desc { font-size:0.95rem; color:var(--ink-s); line-height:1.6; margin-bottom:0.4rem; }
+  .card .card-desc { color:#4a3418; }  /* sobre pergamino: marrón legible */
 
   /* Chips de búsqueda rápida */
   .chip {
@@ -347,8 +352,7 @@
 
   /* Tabs con emojis — más legibles */
   .tabs { flex-wrap:wrap; gap:3px; }
-  .tab { font-size:0.75rem; letter-spacing:0.04em; }
-  @media(max-width:600px){ .tab{font-size:0.65rem;padding:0.6rem 0.3rem;} }
+  @media(max-width:600px){ .tab{font-size:0.7rem;padding:0.7rem 0.3rem;min-height:44px;} }
 
   /* Gestor de cartas compartidas */
   .shared-deck-block { margin-bottom:1rem; }
@@ -515,14 +519,14 @@
 </header>
 
 <main>
-  <nav class="tabs">
-    <button class="tab active" onclick="showTab('setup',this)">📦 Colección</button>
-    <button class="tab" onclick="showTab('analyze',this)">🔮 Analizar</button>
-    <button class="tab" onclick="showTab('build',this)">⚔ Forjar</button>
-    <button class="tab" onclick="showTab('grimorio',this)">📖 Grimorio</button>
-    <button class="tab" onclick="showTab('search',this)">🔍 Buscar</button>
-    <button class="tab" onclick="showTab('import',this)">⬆ Importar</button>
-    <button class="tab" onclick="openSimulator()">🎮 Simular</button>
+  <nav class="tabs" role="tablist" aria-label="Pasos de Deck Forge">
+    <button class="tab active" role="tab" onclick="showTab('setup',this)" title="Paso 1: sube tu colección de ManaBox">📦 1·Colección</button>
+    <button class="tab" role="tab" onclick="showTab('analyze',this)" title="Paso 2: descubre tus mejores comandantes">🔮 2·Analizar</button>
+    <button class="tab" role="tab" onclick="showTab('build',this)" title="Paso 3: forja el mazo de 100 cartas">⚔ 3·Forjar</button>
+    <button class="tab" role="tab" onclick="showTab('grimorio',this)" title="Paso 4: visualiza y exporta tu mazo">📖 4·Grimorio</button>
+    <button class="tab" role="tab" onclick="showTab('search',this)" title="Busca cartas con sintaxis Scryfall">🔍 Buscar</button>
+    <button class="tab" role="tab" onclick="showTab('import',this)" title="Importa un mazo existente de ManaBox">⬆ Importar</button>
+    <button class="tab" role="tab" onclick="openSimulator()" title="Prueba tu mazo en una mesa virtual">🎮 Simular</button>
   </nav>
 
   <!-- ══ COLECCIÓN ══ -->
@@ -1271,7 +1275,10 @@ async function doIngest() {
         <span class="pin-number" onclick="copyPin('${pin}')" title="Haz click para copiar">${pin}</span>
         <span class="pin-copy-hint">Haz click para copiar</span>
         <p class="pin-warning">⚠ Anota este PIN — no se puede recuperar si lo pierdes</p>
-      </div>`;
+      </div>
+      <button class="primary" onclick="document.querySelectorAll('.tab')[1].click()">
+        🔮 Siguiente paso: descubre tus mejores comandantes →
+      </button>`;
   } catch(e) {
     msg(result, 'err', '✗ El ritual ha fallado: ' + e.message);
   } finally {
