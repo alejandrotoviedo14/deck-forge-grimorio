@@ -1346,7 +1346,7 @@ async function doAnalyze() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail);
 
-    _analyzedCommanders = data.commanders;
+    _analyzedCommanders = data.commanders.concat(data.discoveries || []);
     updateCommanderDropdown();
 
     const rows = data.commanders.map(function(c, i) {
@@ -1383,6 +1383,29 @@ async function doAnalyze() {
         + '</tr>';
     }).join('');
 
+    var discoveryRows = (data.discoveries || []).map(function(c) {
+      return '<tr class="clickable" data-cmdname="' + (c.name||'').replace(/"/g,'&quot;') + '">'
+        + '<td style="font-weight:500;color:var(--ink)">' + (c.name||'') + '</td>'
+        + '<td>' + colorBadges(c.colors) + '</td>'
+        + '<td style="color:var(--ink-m);font-size:0.85rem">' + (c.archetype_name||'—') + '</td>'
+        + '<td style="color:var(--gold)">' + c.total_score + '</td>'
+        + '</tr>';
+    }).join('');
+    var discoveryBlock = discoveryRows
+      ? `<div style="margin-top:18px">
+           <div style="font-size:0.8rem;color:var(--ink-m);margin-bottom:6px">
+             💡 <strong style="color:var(--gold)">Descubrimientos de hoy</strong> —
+             comandantes fuera del top que también funcionan con tu colección. Rotan cada día.
+           </div>
+           <div class="table-wrap">
+             <table>
+               <thead><tr><th>Comandante</th><th>Colores</th><th>Arquetipo</th><th>Score</th></tr></thead>
+               <tbody onclick="handleCmdTableClick(event)">${discoveryRows}</tbody>
+             </table>
+           </div>
+         </div>`
+      : '';
+
     result.innerHTML = `
       <div class="msg ok">✦ Haz click en un comandante para seleccionarlo y forjar su mazo</div>
       <div class="stat-grid">
@@ -1395,7 +1418,8 @@ async function doAnalyze() {
           <thead><tr><th>Comandante</th><th>Colores</th><th>Arquetipo / Info</th><th>Score</th><th>Bracket</th></tr></thead>
           <tbody id="commanders-tbody" onclick="handleCmdTableClick(event)">${rows}</tbody>
         </table>
-      </div>`;
+      </div>
+      ${discoveryBlock}`;
   } catch(e) {
     msg(result, 'err', '✗ El oráculo no pudo responder: ' + e.message);
   } finally {
@@ -1417,7 +1441,7 @@ function handleCmdTableClick(event) {
   var row = event.target.closest('tr[data-cmdname]');
   if (!row) return;
   var name = row.dataset.cmdname;
-  document.querySelectorAll('#commanders-tbody tr').forEach(function(r){ r.classList.remove('selected'); });
+  document.querySelectorAll('#analyze-result tr').forEach(function(r){ r.classList.remove('selected'); });
   row.classList.add('selected');
   document.getElementById('commander-select').value = name;
   document.getElementById('commander').value = name;

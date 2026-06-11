@@ -144,12 +144,23 @@ Consulta EDHREC para el comandante específico (themes, high-synergy cards) y
 enriquece tanto la detección de arquetipo como el scoring. Falla gracefully si
 no hay conexión — usa scoring local sin interrumpir.
 
-### 6. Selección de comandante (v5)
+### 6. Selección de comandante (v6)
 El ranking de comandantes prioriza **tu colección**, no la popularidad en
-EDHREC: sinergia real con tu pool (`density_score`) y poder alcanzable
-(`bracket_ceiling`) pesan 65-95% del score. La popularidad EDHREC es solo un
-desempate (5%). Comandantes poco jugados pero bien soportados por tu colección
-aparecen marcados con 💎 **nicho**.
+EDHREC, y es **específico de cada comandante**:
+
+- **`fit`**: mezcla la densidad del arquetipo que el texto del comandante pide
+  (60%) con la mejor densidad de tu pool en sus colores (40%). Dos comandantes
+  con la misma identidad de color ya no puntúan igual.
+- **`tribal_fit`**: si el comandante referencia una tribu, cuenta cuántas
+  criaturas de esa tribu tienes de verdad.
+- Curva de densidad **suave y sin cap** — sin empates masivos donde la
+  popularidad decidía el orden.
+- La popularidad EDHREC es solo un desempate (5%). Comandantes poco jugados
+  pero bien soportados por tu colección aparecen marcados con 💎 **nicho**.
+- **Diversidad**: máx. 4 comandantes por identidad de color y 6 por arquetipo
+  en el top.
+- **💡 Descubrimientos de hoy**: 5 comandantes fuera del top-N que rotan cada
+  día — las joyas del rango 21-60 también tienen su oportunidad.
 
 ---
 
@@ -235,3 +246,4 @@ aparecen marcados con 💎 **nicho**.
 | v35 | **10 arquetipos nuevos** (tokens, group hug, enchantress, artifacts, voltron, stax, mill, big mana, superfriends, pillowfort) — total 19. UI sin animaciones. |
 | v36 | **Manabase y arquetipo data-driven**: básicas proporcionales a pips de color, tierras dinámicas (31+avgCMC×2−ramp×0.4), arquetipo detectado por themes reales de EDHREC, Critic en Sonnet 4.6 con plan de slots por arquetipo, queries de upgrade para los 19 arquetipos. |
 | v37 | **Selector de comandante por colección**: comandantes de nicho (poco datos en EDHREC) ya no se penalizan por popularidad — el ranking se basa en sinergia real con tu pool y poder alcanzable. Badge 💎 nicho en el análisis. |
+| v38 | **Scoring específico del comandante (v6)**: fin de los empates — curva de densidad suave sin cap, `fit` que mezcla lo que el texto del comandante pide con lo que ofrece tu pool, soporte tribal real (cuenta tus Elfos/Dragones de verdad), diversidad por arquetipo además de por colores, y **💡 Descubrimientos de hoy**: 5 comandantes fuera del top que rotan a diario. |

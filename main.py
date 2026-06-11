@@ -614,11 +614,35 @@ async def analyze(
 
         enriched_commanders.append(entry)
 
+    # ── Descubrimientos del día (v6) ──
+    # El ranking es determinista: sin esto, los comandantes 21+ no aparecen
+    # NUNCA aunque sean buenos. Rotamos 5 candidatos del rango [top, top+40]
+    # con seed por fecha — cada día se asoman joyas distintas, sin mentir
+    # sobre su score.
+    import random as _random
+    from datetime import date as _date
+    discoveries = []
+    beyond = scores[top: top + 40]
+    if beyond:
+        rng = _random.Random(int(_date.today().strftime("%Y%m%d")))
+        picked = rng.sample(beyond, min(5, len(beyond)))
+        picked.sort(key=lambda s: -s.total_score)
+        for s in picked:
+            discoveries.append({
+                "name":            s.name,
+                "colors":          s.colors,
+                "archetype":       s.archetype.key  if s.archetype else None,
+                "archetype_name":  s.archetype.name if s.archetype else None,
+                "total_score":     round(s.total_score, 1),
+                "bracket_ceiling": round(s.bracket_ceiling, 2),
+            })
+
     return {
         "pool_size": len(pool),
         "max_bracket": max_b,
         "max_bracket_reason": reason,
         "commanders": enriched_commanders,
+        "discoveries": discoveries,
     }
 
 
