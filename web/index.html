@@ -1362,6 +1362,14 @@ async function doAnalyze() {
       var relPct = c.pool_relevance_pct || 0;
       var relColor = relPct >= 60 ? '#27ae60' : relPct >= 30 ? '#f39c12' : 'var(--ink-m)';
       var priceTxt = c.est_price_eur ? ' · €' + c.est_price_eur : '';
+      var fitW = Math.min((c.fit_score||0)*0.6, 60);
+      var triW = Math.min((c.tribal_fit||0)*0.6, 60);
+      var breakdown = (c.fit_score != null)
+        ? '<div title="Encaje con tu pool: ' + c.fit_score + ' · Tribal: ' + (c.tribal_fit||0) + '" style="margin-top:4px">'
+          + '<div style="height:3px;width:' + fitW + 'px;background:var(--gold);border-radius:2px;opacity:0.85"></div>'
+          + (triW > 0 ? '<div style="height:3px;width:' + triW + 'px;background:#8c7bff;border-radius:2px;margin-top:2px;opacity:0.85"></div>' : '')
+          + '</div>'
+        : '<span class="score-bar" style="width:' + Math.min(c.total_score*0.8, 80) + 'px"></span>';
       return '<tr class="clickable" data-cmdname="' + (c.name||'').replace(/"/g,'&quot;') + '">'
         + '<td>'
           + '<div style="font-weight:500;color:var(--ink)">' + (c.name||'') + combosBadge + nicheBadge + '</div>'
@@ -1377,7 +1385,7 @@ async function doAnalyze() {
         + '</td>'
         + '<td>'
           + '<span style="color:var(--gold);font-weight:600">' + c.total_score + '</span>'
-          + '<span class="score-bar" style="width:' + Math.min(c.total_score*0.8, 80) + 'px"></span>'
+          + breakdown
         + '</td>'
         + '<td style="color:var(--ink-m)">' + c.bracket_ceiling + '</td>'
         + '</tr>';
@@ -1437,7 +1445,49 @@ function selectCommanderFromTable(name) {
   document.querySelectorAll('.tab')[2].click();
 }
 
+// ── v7: Preview de carta flotante al pasar el ratón sobre un comandante ──
+var _cardPreviewEl = null;
+function ensureCardPreview() {
+  if (_cardPreviewEl) return _cardPreviewEl;
+  _cardPreviewEl = document.createElement('img');
+  _cardPreviewEl.id = 'card-hover-preview';
+  _cardPreviewEl.alt = '';
+  _cardPreviewEl.style.cssText =
+    'position:fixed;z-index:9999;width:240px;border-radius:12px;' +
+    'box-shadow:0 10px 34px rgba(0,0,0,0.55);pointer-events:none;display:none';
+  _cardPreviewEl.onerror = function(){ _cardPreviewEl.style.display = 'none'; };
+  document.body.appendChild(_cardPreviewEl);
+  return _cardPreviewEl;
+}
+function hideCardPreview() {
+  if (_cardPreviewEl) _cardPreviewEl.style.display = 'none';
+}
+document.addEventListener('mouseover', function(e){
+  if (!e.target.closest) return;
+  var row = e.target.closest('tr[data-cmdname]');
+  if (!row) { hideCardPreview(); return; }
+  var img = ensureCardPreview();
+  var url = 'https://api.scryfall.com/cards/named?exact='
+          + encodeURIComponent(row.dataset.cmdname) + '&format=image&version=normal';
+  if (img.dataset.current !== url) {
+    img.style.display = 'none';      // no enseñar la carta anterior mientras carga
+    img.dataset.current = url;
+    img.onload = function(){ if (img.dataset.current === url) img.style.display = 'block'; };
+    img.src = url;
+  } else {
+    img.style.display = 'block';
+  }
+});
+document.addEventListener('mousemove', function(e){
+  if (!_cardPreviewEl || _cardPreviewEl.style.display === 'none') return;
+  var x = Math.min(e.clientX + 18, window.innerWidth  - 258);
+  var y = Math.min(e.clientY + 14, window.innerHeight - 352);
+  _cardPreviewEl.style.left = Math.max(8, x) + 'px';
+  _cardPreviewEl.style.top  = Math.max(8, y) + 'px';
+});
+
 function handleCmdTableClick(event) {
+  hideCardPreview();
   var row = event.target.closest('tr[data-cmdname]');
   if (!row) return;
   var name = row.dataset.cmdname;
@@ -1566,6 +1616,22 @@ async function doBuild() {
         </div>
       </div>` : '';
 
+    // v7: simulación de manos — ¿el mazo roba jugable?
+    const hs = data.hand_sim || {};
+    const hsColor = hs.keepable_pct >= 90 ? '#27ae60' : hs.keepable_pct >= 80 ? '#f39c12' : '#e74c3c';
+    const handSimHtml = hs.keepable_pct != null ? `
+      <div style="margin-top:0.8rem;padding:0.7rem 1rem;background:rgba(201,168,76,0.05);border:1px solid var(--border-gold);border-radius:6px">
+        <div style="font-size:0.7rem;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem">
+          🎲 Simulación de ${hs.n} manos iniciales
+        </div>
+        <div style="display:flex;gap:1.4rem;flex-wrap:wrap;font-size:0.85rem">
+          <span><b style="color:${hsColor}">${hs.keepable_pct}%</b> manos jugables</span>
+          <span><b style="color:var(--ink)">${hs.early_play_pct}%</b> con jugada turno 1-2</span>
+          <span><b style="color:var(--ink)">${hs.avg_lands}</b> tierras medias</span>
+          <span><b style="color:var(--ink)">${hs.avg_mulligans}</b> mulligans medios</span>
+        </div>
+      </div>` : '';
+
     result.innerHTML = `
       <div class="msg ok">✦ Mazo forjado: <b>${data.commander}</b></div>
       ${pinBadge}
@@ -1575,6 +1641,7 @@ async function doBuild() {
         <div class="stat"><span class="val">${data.bracket}</span><span class="lbl">Bracket</span></div>
         <div class="stat"><span class="val">${data.archetype}</span><span class="lbl">Arquetipo</span></div>
       </div>
+      ${handSimHtml}
       <div class="divider" style="margin:1.2rem 0 0.8rem">Exportar</div>
       <div class="dl-row">
         <button class="dl-btn" onclick="download('${data.deck_key}_moxfield.txt', _lastBuild.moxfield_txt)">⬇ Moxfield .txt</button>

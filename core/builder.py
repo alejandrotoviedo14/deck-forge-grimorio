@@ -600,10 +600,50 @@ def build_deck(
         and fits_color_identity(c, deck_ci)
     ]
 
+    # v7: scoring de utility lands consciente del mazo, no genérico.
+    # Pips de color de lo construido hasta ahora → qué colores NECESITA fijar.
+    _deck_pips: dict[str, int] = {}
+    for _c in [commander] + [dc.card for dc in deck.cards]:
+        _mc = (_c.get("mana_cost") or "").upper()
+        for _col in "WUBRG":
+            _n = _mc.count(f"{{{_col}}}") + _mc.count(f"/{_col}}}")
+            if _n:
+                _deck_pips[_col] = _deck_pips.get(_col, 0) + _n
+    _total_pips = sum(_deck_pips.values()) or 1
+
     def land_score(land: dict) -> float:
+        """
+        Score (menor = mejor) por:
+        - Fixing ponderado: producir un color vale lo que ese color pesa en
+          los pips del mazo — una tierra WU en un mazo 70% negro fixea poco.
+        - ETB tapped: penaliza, y más cuanto más agresiva es la curva.
+        - Texto de utilidad (sacar cartas, crear tokens…): bonus pequeño.
+        - EDHREC rank como desempate fino.
+        """
         produced = land.get("produced_mana", []) or []
-        wubrg = [m for m in produced if m in ("W", "U", "B", "R", "G")]
-        return -len(wubrg) * 100_000 + (land.get("edhrec_rank") or 999_999)
+        text = (land.get("oracle_text") or "").lower()
+
+        fixing = sum(
+            _deck_pips.get(m, 0) / _total_pips
+            for m in produced if m in "WUBRG"
+        )
+        if "any color" in text or "any type" in text:
+            fixing = max(fixing, 0.95)
+
+        tapped_pen = 0.0
+        if "enters the battlefield tapped" in text or "enters tapped" in text:
+            # Curva 2.5 → -0.45; curva 4 → -0.15. Untapped siempre preferible.
+            tapped_pen = max(0.15, 0.45 - (_avg_cmc - 2.5) * 0.2)
+            if "unless" in text or "if you control" in text:
+                tapped_pen *= 0.5  # condicionales (checklands…) duelen menos
+
+        utility_bonus = 0.10 if any(
+            k in text for k in ("draw a card", "create a", "scry",
+                                "return", "search your library")
+        ) else 0.0
+
+        rank_tiebreak = (land.get("edhrec_rank") or 999_999) / 1_000_000
+        return -(fixing - tapped_pen + utility_bonus) + rank_tiebreak
 
     utility_lands.sort(key=land_score)
     util_added = 0

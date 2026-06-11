@@ -560,6 +560,8 @@ async def analyze(
             "synergy_density": round(s.synergy_density, 1),
             "bracket_ceiling": round(s.bracket_ceiling, 2),
             "rank_score":      round(s.rank_score, 1),
+            "fit_score":       round(s.fit_score, 1),
+            "tribal_fit":      round(s.tribal_fit, 1),
             # Campos enriquecidos (rellenados abajo)
             "themes":             [],
             "combos_in_pool":     0,
@@ -898,6 +900,19 @@ async def build(
         print(f"  [COMBOS] Error detectando combos: {e}")
         html_data["combos"] = {"complete": [], "near_1": [], "near_2": []}
 
+    # ── SIMULACIÓN DE MANOS (v7) — ¿el mazo roba jugable? ────────────────
+    try:
+        from core.hand_sim import simulate_hands
+        sim99 = [c for c in full_list if c["name"] != deck.commander["name"]]
+        hand_stats = simulate_hands(sim99, n=2000)
+        html_data["hand_sim"] = hand_stats
+        print(f"  [HAND SIM] keepable {hand_stats['keepable_pct']}% | "
+              f"jugada temprana {hand_stats['early_play_pct']}% | "
+              f"tierras medias {hand_stats['avg_lands']}")
+    except Exception as e:
+        print(f"  [HAND SIM] Error: {e}")
+        html_data["hand_sim"] = {}
+
     register_deck(
         output_dir=deck_dir,
         deck_key=safe,
@@ -958,6 +973,7 @@ async def build(
         "moxfield_txt": mox_path.read_text(encoding="utf-8"),
         "manabox_csv": csv_path.read_text(encoding="utf-8"),
         "sim_cards": sim_cards,
+        "hand_sim": html_data.get("hand_sim", {}),
         "saved_to_pin": saved_to_pin,
         "conflicts": [
             {
