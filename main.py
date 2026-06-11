@@ -801,6 +801,33 @@ async def build(
     # con el contexto correcto (pool filtrado por color + EDHREC + reservas).
     # No volver a llamarlo aquí (causaba doble coste y sobrescritura con peor contexto).
 
+    # ── BUCLE CERRADO v8: validar manos ANTES de exportar y autocorregir ──
+    # Si <85% de manos son jugables, cambiamos la peor carta de relleno por
+    # una básica extra y re-simulamos (máx 3 iteraciones). El mazo que sale
+    # por la puerta está VALIDADO, no solo construido.
+    try:
+        from core.hand_sim import simulate_hands
+        for _ in range(3):
+            _full_try = deck.all_cards_with_basics(basics)
+            _sim99 = [c for c in _full_try if c["name"] != deck.commander["name"]]
+            _hs = simulate_hands(_sim99, n=1500)
+            if _hs["keepable_pct"] >= 85.0:
+                break
+            _fill_idx = None
+            for _i in range(len(deck.cards) - 1, -1, -1):
+                _dc = deck.cards[_i]
+                if _dc.category in ("Soporte General", "Soporte") and not _dc.card.get("is_land"):
+                    _fill_idx = _i
+                    break
+            if _fill_idx is None:
+                break  # nada seguro que cortar — no tocar slots del arquetipo
+            _removed = deck.cards.pop(_fill_idx)
+            deck.needed_basics += 1
+            print(f"  [HAND SIM] {_hs['keepable_pct']}% manos jugables (<85%) — "
+                  f"swap '{_removed.card['name']}' → +1 básica")
+    except Exception as e:
+        print(f"  [HAND SIM LOOP] {e}")
+
     full_list = deck.all_cards_with_basics(basics)
     bracket = estimate_bracket(full_list)
 

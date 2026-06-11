@@ -134,6 +134,33 @@ class LLMCritic:
         """
         commander_oracle = (deck.commander.get("oracle_text") or "")[:600].replace("\n", " ")
 
+        # v8: ESTADO COMPUTADO del draft — curva, pips y roles ya calculados.
+        # Sin esto el modelo tenía que inferirlos contando la lista a ojo.
+        non_land = [dc.card for dc in deck.cards if not dc.card.get("is_land")]
+        cmcs = [int(c.get("cmc") or 0) for c in non_land]
+        avg_cmc = (sum(cmcs) / len(cmcs)) if cmcs else 0.0
+        curve_hist = {b: 0 for b in ("0-1", "2", "3", "4", "5", "6+")}
+        for v in cmcs:
+            b = "0-1" if v <= 1 else "6+" if v >= 6 else str(v)
+            curve_hist[b] += 1
+        cat_counts: dict[str, int] = {}
+        for dc in deck.cards:
+            if not dc.card.get("is_land"):
+                cat_counts[dc.category] = cat_counts.get(dc.category, 0) + 1
+        pips: dict[str, int] = {}
+        for c in [deck.commander] + non_land:
+            mc = (c.get("mana_cost") or "").upper()
+            for col in "WUBRG":
+                n = mc.count(f"{{{col}}}") + mc.count(f"/{col}}}")
+                if n:
+                    pips[col] = pips.get(col, 0) + n
+        deck_state = (
+            f"  Non-land cards: {len(non_land)} | Avg CMC: {avg_cmc:.2f}\n"
+            f"  Curve: " + " · ".join(f"CMC {b}: {n}" for b, n in curve_hist.items()) + "\n"
+            f"  Category counts: " + ", ".join(f"{k}: {v}" for k, v in sorted(cat_counts.items())) + "\n"
+            f"  Color pips: " + (", ".join(f"{k}={v}" for k, v in sorted(pips.items())) or "—")
+        )
+
         # Cartas actuales del draft (no tierras)
         current_deck_cards = []
         for cat, cards in deck.categorized().items():
@@ -213,24 +240,40 @@ Strategy: {deck.archetype.description}
 it where they differ — e.g. stax/mill/group hug have different structures):
 {chr(10).join(f"  {s.name}: {s.target_count} cards — {s.justification}" for s in deck.archetype.slots)}
 
+## CURRENT DRAFT STATE (computed — use these numbers, do not re-count by eye):
+{deck_state}
+
 ## CARDS CURRENTLY IN DRAFT (heuristic build — improve on it):
 {"".join(current_deck_cards)}
 
 ## ADDITIONAL CARDS AVAILABLE IN COLLECTION (★ = proven EDHREC synergy):
 {"".join(pool_lines)}
 
-## EDHREC HIGH-SYNERGY CARDS FOR THIS COMMANDER:
+## EDHREC HIGH-SYNERGY CARDS FOR THIS COMMANDER (real community data from thousands of decks):
 {edhrec_block}
 {reserved_section}
 ## YOUR REASONING PROCESS
-1. RAMP FIRST: Identify Sol Ring + the 2-3 Signets for this color identity. Are they available? Pick them.
-2. CANTRIPS: Find 3-5 CMC-1 cantrips in these colors. These go in automatically.
-3. ENGINE: Which 2-3 cards directly power up the commander's specific ability?
-4. SYNERGY PACKAGES: Build 2-3 clusters of cards that reference each other AND the commander.
-5. WIN CONDITIONS: Define 2-3 concrete paths to victory using cards from the available pool.
-6. INTERACTION: 4 single removal + 2 sweepers minimum. Check Swords/Path/Abrade availability.
-7. CUTS: Remove anything with CMC 5+ that doesn't win the game or generate massive advantage.
-8. CURVE CHECK: Does the final list have a CMC average around 2.8? Adjust if higher.
+1. GAME PLAN: In one sentence, state how THIS commander wins. Every later pick must serve that sentence.
+2. RAMP FIRST: Identify Sol Ring + the 2-3 Signets for this color identity. Are they available? Pick them.
+3. CANTRIPS: Find 3-5 CMC-1 cantrips in these colors. These go in automatically.
+4. ENGINE: Which 2-3 cards directly power up the commander's specific ability?
+5. SYNERGY PACKAGES: Build 2-3 clusters of cards that reference each other AND the commander.
+   Prefer cards with high EDHREC synergy/inclusion data when two candidates are close — that
+   data reflects thousands of real games.
+6. WIN CONDITIONS: Define 2-3 concrete paths to victory using cards from the available pool.
+7. INTERACTION: 4 single removal + 2 sweepers minimum. Check Swords/Path/Abrade availability.
+8. CUTS: Remove anything with CMC 5+ that doesn't win the game or generate massive advantage.
+   Also cut "good stuff" cards that don't serve the step-1 sentence, even if individually strong.
+9. CURVE CHECK: Compare your final list against CURRENT DRAFT STATE. Target avg CMC ~2.8
+   (up to ~3.5 only for big_mana/reanimator). If above target, swap expensive picks for cheaper ones.
+
+## SELF-CHECK BEFORE ANSWERING (do this silently, fix violations, then output)
+- Count your cards: EXACTLY 60. If 59 or 61, add/remove before responding.
+- Every name appears verbatim in "CARDS CURRENTLY IN DRAFT" or "ADDITIONAL CARDS AVAILABLE".
+- Every card's color identity ⊆ {deck.colors}. Cards with off-color pips or off-color
+  activation costs are ILLEGAL even if their card frame looks mono-color.
+- Zero cards from the reserved list. Zero duplicates. Zero basic lands. Not the commander.
+- At least 8 ramp, at least 8 draw, at least 6 interaction pieces in the final 60.
 
 ## STRICT RULES
 - Every card must exist in "CARDS CURRENTLY IN DRAFT" or "ADDITIONAL CARDS AVAILABLE"

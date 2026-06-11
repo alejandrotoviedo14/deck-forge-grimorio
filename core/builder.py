@@ -724,7 +724,13 @@ def build_deck(
                     adv = EDHRecAdvisor(verbose=False)
                     cached_data = adv.fetch_commander_data(commander["name"])
                     hs = cached_data.get("high_synergy", {})
-                    edhrec_recs = sorted(hs, key=lambda n: -hs[n].get("synergy", 0))[:15]
+                    # v8: pasar synergy + inclusion% reales, no solo nombres —
+                    # el Critic puede ponderar cuánto confía la comunidad en cada carta
+                    edhrec_recs = [
+                        f"{n} — synergy {hs[n].get('synergy', 0):.2f}, "
+                        f"jugada en {hs[n].get('inclusion_pct', '?')}% de los mazos"
+                        for n in sorted(hs, key=lambda n: -hs[n].get("synergy", 0))[:20]
+                    ]
                 except Exception:
                     pass
 

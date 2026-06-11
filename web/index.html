@@ -1630,6 +1630,9 @@ async function doBuild() {
           <span><b style="color:var(--ink)">${hs.avg_lands}</b> tierras medias</span>
           <span><b style="color:var(--ink)">${hs.avg_mulligans}</b> mulligans medios</span>
         </div>
+        <button class="dl-btn" style="margin-top:0.7rem" onclick="drawSampleHand()">🎲 Roba una mano de ejemplo</button>
+        <div id="sample-hand" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+        <div id="sample-hand-info" style="font-size:0.78rem;color:var(--ink-m);margin-top:4px"></div>
       </div>` : '';
 
     result.innerHTML = `
@@ -1656,6 +1659,31 @@ async function doBuild() {
     msg(result, 'err', '✗ La forja ha fallado: ' + e.message);
   } finally {
     btn.disabled = false; btn.innerHTML = btn.dataset.orig;
+  }
+}
+
+// ── v8: Mano de ejemplo con imágenes reales del mazo recién forjado ──
+function drawSampleHand() {
+  var cards = (_lastBuild && _lastBuild.sim_cards) || [];
+  var el = document.getElementById('sample-hand');
+  var info = document.getElementById('sample-hand-info');
+  if (!cards.length || !el) return;
+  var idx = cards.map(function(_, i){ return i; });
+  for (var i = idx.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = idx[i]; idx[i] = idx[j]; idx[j] = t;
+  }
+  var hand = idx.slice(0, 7).map(function(i){ return cards[i]; });
+  el.innerHTML = hand.map(function(c){
+    return c.img
+      ? '<img src="' + c.img + '" title="' + (c.name||'').replace(/"/g,'&quot;') + '" loading="lazy" style="width:96px;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,0.35)">'
+      : '<div style="width:96px;height:134px;border:1px solid var(--border-gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;text-align:center;padding:4px;color:var(--ink-m)">' + (c.name||'') + '</div>';
+  }).join('');
+  var lands = hand.filter(function(c){ return c.is_land; }).length;
+  if (info) {
+    info.textContent = lands + ' tierra' + (lands === 1 ? '' : 's') + ' — '
+      + (lands >= 2 && lands <= 5 ? 'mano jugable ✓' : 'mulligan probable ✗');
+    info.style.color = (lands >= 2 && lands <= 5) ? '#27ae60' : '#e74c3c';
   }
 }
 
