@@ -514,12 +514,32 @@ def build_deck(
             selected_names.add(auto_name)
             _track_cmc(match)
 
+    # v11: tribu objetivo del comandante — para especializar el slot de
+    # cuerpos tribales a SU tipo (antes metía cualquier criatura barata).
+    from .archetypes import commander_tribes, tribe_mentioned
+    _own = commander_tribes(commander)
+    _oracle_raw = commander.get("oracle_text") or ""
+    _mentioned = {t for t in _own if tribe_mentioned(_oracle_raw, t)}
+    _tribal_targets: set[str] = _mentioned or _own
+
+    def _shares_tribe(c: dict) -> bool:
+        ctl = c.get("type_line") or ""
+        if "Creature" not in ctl or "—" not in ctl:
+            return False
+        return bool(set(ctl.split("—", 1)[1].replace("//", " ").split())
+                    & _tribal_targets)
+
     # 6. Slots del arquetipo — con score compuesto y detección de conflictos
     for slot in archetype.slots:
+        slot_pred = slot.predicate
+        if (archetype.key == "tribal" and slot.name == "Criaturas del mismo tipo"
+                and _tribal_targets):
+            slot_pred = lambda c, _p=slot.predicate: _p(c) and _shares_tribe(c)
+
         # Candidatos que pasan el predicado y no están ya seleccionados
         candidates = [c for c in in_identity
                       if c["name"] not in selected_names
-                      and slot.predicate(c)]
+                      and slot_pred(c)]
 
         # Ordenar por score compuesto (descendente = mejor primero)
         candidates.sort(

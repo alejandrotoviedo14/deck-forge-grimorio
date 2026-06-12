@@ -93,17 +93,38 @@ def _normalize_rank(rank: int | None) -> float:
 
 def _smooth_density(density: float) -> float:
     """
-    v6: curva exponencial suave en lugar de cap duro a 100.
+    v6: curva exponencial suave en lugar de cap duro a 100 (que causaba
+    empates masivos donde la popularidad EDHREC decidía el orden real).
 
-    El cap anterior (density/0.15*100, máx 100) hacía que CUALQUIER
-    comandante con >=15% de densidad puntuara exactamente 100 → empates
-    masivos donde la popularidad EDHREC decidía el orden real.
+    v11: la densidad ahora se calcula SOLO sobre slots temáticos (payoffs),
+    sin el Ramp/Draw/Removal compartido por los 19 arquetipos — los valores
+    típicos bajaron de 15-40% a 2-10%, así que la curva se reescala:
 
-    Curva: 100·(1 − e^(−d/0.10))
-      5% → 39 · 10% → 63 · 15% → 78 · 25% → 92 · 40% → 98
+    Curva: 100·(1 − e^(−d/0.05))
+      2% → 33 · 4% → 55 · 6% → 70 · 10% → 86 · 15% → 95
     Siempre creciente, nunca empata: más densidad = más score, sin techo.
     """
-    return 100.0 * (1.0 - math.exp(-max(density, 0.0) / 0.10))
+    return 100.0 * (1.0 - math.exp(-max(density, 0.0) / 0.05))
+
+
+# ── v11: slots que NO discriminan arquetipo ──────────────────────────────
+# Ramp/Draw/Removal aparecen en los 19 arquetipos con predicados idénticos:
+# meterlos en la densidad hacía que el "mejor arquetipo" lo decidiera solo
+# el slot de payoff con el texto más común del pool (p.ej. counters), y el
+# análisis devolvía un monocultivo. La densidad se calcula únicamente sobre
+# slots TEMÁTICOS ("Spellslinger Payoffs", "Mill Effects", "Ramp Masivo"…).
+GENERIC_SLOT_NAMES = frozenset({
+    "Ramp", "Card Draw",
+    "Removal & Interaction", "Removal", "Removal & Sweepers",
+    "Removal & Counterspells",
+    "Wincons & Big Threats", "Wincon Threats",  # cls.is_threat = genérico
+})
+
+
+def _density_slots(archetype: Archetype) -> list:
+    return [s for s in archetype.slots
+            if getattr(s, "counts_for_density", True)
+            and s.name not in GENERIC_SLOT_NAMES]
 
 
 # ── FIX 1: Multi-arquetipo ────────────────────────────────────────────────
@@ -127,10 +148,11 @@ def _synergy_for_archetype(
     if not in_identity:
         return (0, 0, 0.0)
 
-    # Usar todos los slots — el total de cartas útiles es lo que cuenta
+    # v11: solo slots temáticos (sin Ramp/Draw/Removal genéricos ni catch-alls)
+    slots = _density_slots(archetype)
     raw = sum(
         1 for card in in_identity
-        if any(slot.predicate(card) for slot in archetype.slots)
+        if any(slot.predicate(card) for slot in slots)
     )
     total = len(in_identity)
     density = raw / total if total else 0.0
@@ -237,22 +259,14 @@ def _tribal_fit_fast(commander: dict, creatures: list[tuple[str, frozenset]]) ->
     """
     v9: misma semántica que _tribal_fit pero sobre la lista precomputada de
     (nombre, subtipos) de criaturas EN IDENTIDAD — sin re-filtrar el pool.
+    v11: usa tribe_mentioned (plurales MTG: Elves, Wolves, Mice…).
     """
-    type_line = commander.get("type_line") or ""
-    if "Creature" not in type_line or "—" not in type_line:
-        return 0.0
-    own_subtypes = {
-        w.strip(",")
-        for w in type_line.split("—", 1)[1].replace("//", " ").split()
-        if w and w[0].isupper() and w not in ("Legendary", "Creature")
-    }
+    from .archetypes import commander_tribes, tribe_mentioned
+    own_subtypes = commander_tribes(commander)
     if not own_subtypes:
         return 0.0
     oracle = commander.get("oracle_text") or ""
-    mentioned = {
-        t for t in own_subtypes
-        if re.search(rf"\b{re.escape(t)}s?\b", oracle)
-    }
+    mentioned = {t for t in own_subtypes if tribe_mentioned(oracle, t)}
     targets = mentioned or own_subtypes
     weight = 1.0 if mentioned else 0.5
     cmd_name = commander["name"]
@@ -396,12 +410,15 @@ def score_commanders(
     # Ahora: predicados 1 vez por carta/arquetipo + grupos por color identity.
     non_land_pool = [c for c in pool if not c.get("is_land")]
 
-    # a) Por arquetipo: nombres del pool que matchean algún slot (1 sola pasada)
+    # a) Por arquetipo: nombres del pool que matchean algún slot TEMÁTICO
+    #    (v11: sin Ramp/Draw/Removal compartidos ni slots catch-all — solo
+    #    los payoffs discriminan qué arquetipo soporta de verdad tu pool)
     arch_match: dict[str, set[str]] = {}
     for _key, _arch in ARCHETYPES.items():
+        _slots = _density_slots(_arch)
         _s = set()
         for _c in non_land_pool:
-            if any(_slot.predicate(_c) for _slot in _arch.slots):
+            if any(_slot.predicate(_c) for _slot in _slots):
                 _s.add(_c["name"])
         arch_match[_key] = _s
 
@@ -436,28 +453,40 @@ def score_commanders(
         _names = _data["names"] - {cmd["name"]}
         total = len(_names)
 
-        # FIX 1 + FIX 6b (vía precomputos): mejor arquetipo y densidad del DETECTADO
+        # v11 — EL TEXTO DEL COMANDANTE MANDA:
+        # Si detect_archetype reconoce qué quiere construir este comandante,
+        # ESE es su arquetipo; el pool solo mide cuánto lo soporta (densidad).
+        # El "mejor arquetipo del pool" queda como fallback para comandantes
+        # genéricos. Antes el mejor-del-pool decidía la etiqueta de TODOS los
+        # comandantes a la vez → monocultivos (todo tribal, todo pillowfort…)
+        # que ninguna regla de diversidad podía arreglar.
         detected_key = detect_archetype(cmd)
-        arch = None
-        raw = 0
-        density = 0.0
-        det_density = 0.0
+
+        best_arch = None
+        best_raw = 0
+        best_density = 0.0
         for _key, _archetype in ARCHETYPES.items():
             _raw_n = len(_names & arch_match[_key])
             _d = (_raw_n / total) if total else 0.0
-            if _key == detected_key:
-                det_density = _d
-            _bonus = 0.02 if _key == detected_key else 0.0
-            if _d + _bonus > density:
-                arch, raw, density = _archetype, _raw_n, _d + _bonus
+            if _d > best_density:
+                best_arch, best_raw, best_density = _archetype, _raw_n, _d
 
-        # FIX 6b — fit específico del comandante:
-        # 60% lo que SU texto pide (det_density), 40% lo mejor que ofrece el
-        # pool en sus colores. Si su texto no detecta arquetipo, solo cuenta
-        # el pool con un descuento del 15% — un general cuyo plan coincide
-        # con tu colección merece ir por delante de uno genérico.
-        if det_density > 0:
-            fit_score = _smooth_density(0.6 * det_density + 0.4 * density)
+        if detected_key:
+            arch = ARCHETYPES[detected_key]
+            raw = len(_names & arch_match[detected_key])
+            density = (raw / total) if total else 0.0
+            det_density = density
+        else:
+            arch, raw, density = best_arch, best_raw, best_density
+            det_density = 0.0
+
+        # FIX 6b / v11 — fit específico del comandante:
+        # detectado → 70% el soporte de SU plan + 30% lo mejor del pool
+        # (premia pools que además soportan otras líneas). Sin detección →
+        # mejor densidad del pool con descuento del 15%: un general cuyo
+        # plan coincide con tu colección va por delante de uno genérico.
+        if detected_key:
+            fit_score = _smooth_density(0.7 * det_density + 0.3 * best_density)
         else:
             fit_score = _smooth_density(density) * 0.85
 

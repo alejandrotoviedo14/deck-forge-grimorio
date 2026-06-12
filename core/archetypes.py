@@ -34,6 +34,11 @@ class Slot:
     scorer: Callable[[dict], float] = field(default=lambda c: edhrec_rank(c))
     role_label: str = "Synergy"
     justification: str = "Sinergia con el arquetipo."
+    # v11: si False, el slot NO cuenta para la densidad de sinergia del
+    # arquetipo en commander_score. Para slots "catch-all" (p.ej. cuerpos
+    # tribales = cualquier criatura barata) que inflarían la densidad y
+    # harían que ese arquetipo ganara SIEMPRE el mejor-densidad.
+    counts_for_density: bool = True
 
 
 @dataclass
@@ -147,6 +152,7 @@ EQUIPMENT = Archetype(
                                 "whenever equipped creature", "equip") and not cls.is_equipment(c),
              score_rank, "Equip Care", "Premia tener muchos equipment en juego."),
         # Criaturas con sinergia real: utilidad + bajo coste + rank conocido
+        # counts_for_density=False (v11): catch-all, no discrimina arquetipo
         Slot("Soporte & Cuerpos", 5,
              lambda c: c.get("is_creature") and cmc(c) <= 3
              and c.get("edhrec_rank") is not None
@@ -158,7 +164,8 @@ EQUIPMENT = Archetype(
                           "when this creature enters", "first strike", "double strike",
                           "vigilance", "haste", "lifelink", "deathtouch")
              ),
-             score_rank, "Beater", "Cuerpo con sinergia para equipar."),
+             score_rank, "Beater", "Cuerpo con sinergia para equipar.",
+             counts_for_density=False),
         Slot("Wincons & Amenazas", 5,
              lambda c: c.get("is_creature")
              and c.get("edhrec_rank") is not None
@@ -290,11 +297,59 @@ SPELLSLINGER = Archetype(
 
 # === TRIBAL ================================================================
 
+# Plurales irregulares de tipos de criatura MTG (Elf→Elves, Mouse→Mice…)
+_TRIBE_IRREGULAR_PLURALS = {
+    "Mouse": "Mice", "Goose": "Geese", "Foot": "Feet",
+    "Child": "Children", "Werewolf": "Werewolves",
+}
+
+
+def tribe_mentioned(oracle_raw: str, subtype: str) -> bool:
+    """
+    ¿El oracle text menciona este tipo de criatura, en singular O plural?
+    Maneja plurales MTG: Elf→Elves, Wolf→Wolves, Dwarf→Dwarves,
+    Mercenary→Mercenaries, Mouse→Mice, además del genérico +s/+es.
+    """
+    import re as _re
+    forms = {subtype, subtype + "s", subtype + "es"}
+    if subtype.endswith("f"):
+        forms.add(subtype[:-1] + "ves")        # Elf→Elves, Wolf→Wolves
+    if subtype.endswith("fe"):
+        forms.add(subtype[:-2] + "ves")
+    if subtype.endswith("y"):
+        forms.add(subtype[:-1] + "ies")        # Mercenary→Mercenaries
+    if subtype in _TRIBE_IRREGULAR_PLURALS:
+        forms.add(_TRIBE_IRREGULAR_PLURALS[subtype])
+    pattern = r"\b(?:" + "|".join(_re.escape(f) for f in forms) + r")\b"
+    return bool(_re.search(pattern, oracle_raw))
+
+
+def commander_tribes(card: dict) -> set[str]:
+    """Subtipos de criatura del comandante (de su type_line)."""
+    type_line = card.get("type_line") or ""
+    if "Creature" not in type_line or "—" not in type_line:
+        return set()
+    return {
+        w.strip(",")
+        for w in type_line.split("—", 1)[1].replace("//", " ").split()
+        if w and w[0].isupper() and w not in ("Legendary", "Creature")
+    }
+
+
 def is_tribal_commander(card: dict) -> bool:
     """
-    Comandante con sinergia tribal: premian un tipo de criatura específico.
-    Señales: "creatures you control of the chosen type", "other [Type]s you control",
-    "as long as you control", o keyword Kindred.
+    Comandante con sinergia tribal: premia un tipo de criatura ESPECÍFICO.
+
+    v11 — endurecido. Las señales genéricas anteriores ("you control get +",
+    "other creatures you control have"…) matcheaban cualquier anthem go-wide,
+    así que media base de comandantes se detectaba como tribal y el análisis
+    solo ofrecía comandantes "Tribal / Kindred".
+
+    Ahora exige una de estas señales fuertes:
+      - keyword Kindred (Scryfall)
+      - frases de "tipo elegido" ("choose a creature type"…)
+      - que el oracle text mencione la PROPIA tribu del comandante
+        ("other Elves you control" en un comandante Elfo)
     """
     text = (card.get("oracle_text") or "").lower()
     keywords = [k.lower() for k in (card.get("keywords") or [])]
@@ -302,17 +357,17 @@ def is_tribal_commander(card: dict) -> bool:
         return True
     signals = (
         "creatures you control of the chosen type",
-        "other creatures you control get +",
-        "other creatures you control have",
-        "each other creature you control",
         "choose a creature type",
+        "of the chosen type",
         "of that creature type",
         "share a creature type with",
-        # Lords con tipo específico: "other Cats you control", "other Elves you control"
-        "you control get +",   # "other [Type]s you control get +"
-        "you control have",    # "other [Type]s you control have"
     )
-    return any(s in text for s in signals)
+    if any(s in text for s in signals):
+        return True
+
+    # ¿Menciona su propia tribu? (señal tribal inequívoca)
+    oracle_raw = card.get("oracle_text") or ""
+    return any(tribe_mentioned(oracle_raw, t) for t in commander_tribes(card))
 
 
 TRIBAL = Archetype(
@@ -337,9 +392,14 @@ TRIBAL = Archetype(
              score_rank, "Removal", "Responde."),
         Slot("Tribal Payoffs & Lords", 12, cls.is_tribal_payoff,
              score_rank, "Tribal", "Lord o payoff tribal."),
+        # counts_for_density=False: este predicado matchea CUALQUIER criatura
+        # barata — si contara para densidad, tribal ganaría siempre el
+        # mejor-arquetipo de cada comandante. El builder lo especializa a la
+        # tribu real del comandante en build_deck (v11).
         Slot("Criaturas del mismo tipo", 12,
              lambda c: c.get("is_creature") and cmc(c) <= 5,
-             score_low_cmc_then_rank, "Tribe Member", "Cuerpo del tipo correcto."),
+             score_low_cmc_then_rank, "Tribe Member", "Cuerpo del tipo correcto.",
+             counts_for_density=False),
     ],
 )
 
@@ -355,10 +415,13 @@ def is_blink_commander(card: dict) -> bool:
     signals = (
         "exile target creature you control, then return",
         "exile target permanent you control, then return",
+        "exile up to one target creature you control, then return",
+        "exile up to one other target creature",
         "exile any number of target",  # Brago: "exile any number of target nonland permanents"
         "then return those cards to the battlefield",
-        "when this creature enters the battlefield",
-        "whenever a creature enters the battlefield under your control",
+        "when this creature enters",
+        "whenever a creature enters under your control",
+        "creature you control enters",
         "whenever another creature enters",
         "leaves the battlefield",
         "blink",
@@ -403,7 +466,7 @@ def is_landfall_commander(card: dict) -> bool:
     """Comandante con landfall trigger o que permite extra land drops."""
     text = (card.get("oracle_text") or "").lower()
     signals = (
-        "landfall", "whenever a land enters the battlefield",
+        "landfall", "whenever a land enters", "land you control enters",
         "whenever a land you control enters",
         "play an additional land", "put a land card from your hand",
         "land cards from your library",
@@ -659,8 +722,9 @@ def is_enchantress_commander(card: dict) -> bool:
     text = (card.get("oracle_text") or "").lower()
     signals = (
         "whenever you cast an enchantment",
-        "whenever an enchantment enters the battlefield under your control",
-        "whenever an enchantment enters",
+        "whenever an enchantment enters under your control",
+        "enchantment you control enters",
+        "whenever an enchantment enters", "enchantment you control enters",
         "enchantress",
         "for each enchantment you control",
         "enchantment spells you cast cost",
@@ -709,8 +773,8 @@ def is_artifacts_commander(card: dict) -> bool:
     text = (card.get("oracle_text") or "").lower()
     signals = (
         "whenever you cast an artifact",
-        "whenever an artifact enters the battlefield",
-        "whenever an artifact enters",
+        "whenever an artifact enters", "artifact you control enters",
+        "whenever an artifact enters", "artifact you control enters",
         "for each artifact you control",
         "artifact creatures you control",
         "affinity for artifacts",
@@ -1053,15 +1117,19 @@ PILLOWFORT = Archetype(
         Slot("Removal & Sweepers", 7,
              lambda c: cls.is_removal(c) or cls.is_sweeper(c),
              score_rank, "Removal", "Responde amenazas que si llegan."),
+        # counts_for_density=False (v11): draw/threat genéricos — solo
+        # "Pillowfort Pieces" discrimina de verdad este arquetipo.
         Slot("Card Advantage Over Time", 5,
              lambda c: cls.is_draw(c) and cmc(c) >= 3,
-             score_rank, "Draw Engine", "Engine sostenido a largo plazo."),
+             score_rank, "Draw Engine", "Engine sostenido a largo plazo.",
+             counts_for_density=False),
         Slot("Wincons Lentos", 6,
              lambda c: cls.is_threat(c) or cls.is_drain(c) or has_text(
                  c, "sovereign", "approach of the second sun",
                  "test of endurance"
              ),
-             score_rank, "Wincon", "Cierra partidas sin combate directo."),
+             score_rank, "Wincon", "Cierra partidas sin combate directo.",
+             counts_for_density=False),
     ],
 )
 
@@ -1183,31 +1251,29 @@ def detect_archetype(commander: dict) -> str | None:
         ))),
         ("enchantress", lambda: any(s in text for s in (
             "whenever you cast an enchantment",
-            "whenever an enchantment enters the battlefield",
+            "whenever an enchantment enters", "enchantment you control enters",
             "enchantress",
         ))),
         ("artifacts", lambda: any(s in text for s in (
             "whenever you cast an artifact",
-            "whenever an artifact enters the battlefield",
+            "whenever an artifact enters", "artifact you control enters",
             "affinity for artifacts", "metalcraft",
         ))),
         ("big_mana", lambda: any(s in text for s in (
             "untap all lands you control",
             "double the amount of mana", "doubles the amount of mana",
         ))),
-        ("pillowfort", lambda: any(s in text for s in (
-            "creatures can't attack you unless",
-            "whenever a creature attacks you",
-        ))),
         ("voltron", lambda: any(s in text for s in (
             "aura you control", "auras attached to",
             "whenever an aura becomes attached",
         ))),
-        ("tokens", lambda: any(s in text for s in (
-            "create a 1/1", "create two 1/1",
-            "whenever you attack, create", "populate",
+        # ── triggers específicos ANTES que efectos amplios (v11) ──
+        # Un comandante landfall que crea tokens es LANDFALL (el trigger
+        # define el mazo); "create a 1/1" es solo el efecto.
+        ("landfall", lambda: "landfall" in text or any(s in text for s in (
+            "whenever a land enters", "land you control enters",
+            "whenever a land you control enters",
         ))),
-        # ── v1/v2 ───────────────────────────────────────────────────────────
         ("spellslinger", lambda: any(s in text for s in (
             "whenever you cast an instant", "whenever you cast a sorcery",
             "whenever you cast a noncreature", "magecraft",
@@ -1216,9 +1282,9 @@ def detect_archetype(commander: dict) -> str | None:
         ("blink", lambda: any(s in text for s in (
             "exile target creature you control, then return",
             "exile target permanent you control, then return",
-            "whenever another creature enters the battlefield under your control",
+            "exile up to one target creature you control, then return",
+            "whenever another creature enters under your control",
         ))),
-        ("landfall", lambda: "landfall" in text or "whenever a land enters the battlefield" in text),
         ("reanimator", lambda: "from your graveyard to the battlefield" in text),
         ("aristocrats", lambda: (
             ("sacrifice a creature" in text or "whenever a creature dies" in text)
@@ -1228,24 +1294,34 @@ def detect_archetype(commander: dict) -> str | None:
             "whenever you gain life" in text
             and any(s in text for s in ("you gain", "life equal", "life total"))
         )),
-        ("tribal", lambda: any(s in text for s in (
-            "choose a creature type", "creatures you control of the chosen type",
-            "other creatures you control get",
-        ))),
         ("equipment", lambda: "equipment" in text),
         ("counters", lambda: "+1/+1 counter" in text or "proliferate" in text),
+        # v11: is_tribal_commander ya es estricto (kindred / chosen type /
+        # mención de la propia tribu) — si pasó el predicado, ES tribal.
+        ("tribal", lambda: is_tribal_commander(commander)),
+        # ── efectos amplios al FINAL: solo etiquetan si nada más matchea ──
+        ("pillowfort", lambda: any(s in text for s in (
+            "creatures can't attack you unless",
+            "whenever a creature attacks you",
+        ))),
+        ("tokens", lambda: any(s in text for s in (
+            "create a 1/1", "create two 1/1",
+            "whenever you attack, create", "populate",
+        ))),
     ]
 
     for key, check in priority_checks:
         if key in candidates and check():
             return key
 
-    # Fallback: primer candidato por orden de prioridad
+    # Fallback: primer candidato por orden de prioridad (triggers antes
+    # que efectos amplios, igual que arriba)
     priority_order = [
         "mill", "group_hug", "stax", "superfriends", "enchantress",
-        "artifacts", "big_mana", "pillowfort", "voltron", "tokens",
-        "spellslinger", "blink", "landfall", "reanimator",
-        "aristocrats", "lifegain", "tribal", "equipment", "counters",
+        "artifacts", "big_mana", "voltron",
+        "landfall", "spellslinger", "blink", "reanimator",
+        "aristocrats", "lifegain", "equipment", "counters", "tribal",
+        "pillowfort", "tokens",
     ]
     for p in priority_order:
         if p in candidates:

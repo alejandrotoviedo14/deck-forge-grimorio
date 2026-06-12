@@ -496,7 +496,7 @@ def is_blink_payoff(card: dict) -> bool:
     Payoffs de ETB / blink: cartas que se benefician de entrar al campo,
     o que hace blink (exile + return).
     Tags primarios: blink, flicker, etb-matters, etb.
-    Fallback: "when ~ enters", "whenever ~ enters the battlefield", "exile ~ then return"
+    Fallback: "when ~ enters", "whenever ~ enters", "exile ~ then return"
     """
     if "payoff_blink" in _roles_from_tags(card):
         return True
@@ -505,7 +505,8 @@ def is_blink_payoff(card: dict) -> bool:
     signals = (
         "when ~ enters",
         "when this creature enters",
-        "whenever a creature enters the battlefield under your control",
+        "whenever a creature enters under your control",
+        "creature you control enters",
         "exile target creature, then return",
         "exile ~ return it",
         "blinks",
@@ -514,8 +515,8 @@ def is_blink_payoff(card: dict) -> bool:
     # podemos detectar "when this creature enters" o "when it enters"
     etb_patterns = (
         "when this creature enters",
-        "when it enters the battlefield",
-        "whenever a creature enters",
+        "when it enters",
+        "whenever a creature enters", "creature you control enters",
         "exile target creature you control, then return",
         "exile ~ and return",
         "exile target permanent, then return",
@@ -527,13 +528,13 @@ def is_landfall_payoff(card: dict) -> bool:
     """
     Payoffs de landfall: triggers cuando una tierra entra, o permite drops extra.
     Tags primarios: landfall, land-matters, extra-land.
-    Fallback: "whenever a land enters", "play an additional land"
+    Fallback: "whenever a land enters", "land you control enters", "play an additional land"
     """
     if "payoff_landfall" in _roles_from_tags(card):
         return True
     text = (card.get("oracle_text") or "").lower()
     signals = (
-        "whenever a land enters the battlefield",
+        "whenever a land enters", "land you control enters",
         "whenever a land you control enters",
         "landfall",
         "play an additional land",
@@ -605,8 +606,9 @@ def is_enchantment_payoff(card: dict) -> bool:
     type_line = (card.get("type_line") or "").lower()
     signals = (
         "whenever you cast an enchantment",
-        "whenever an enchantment enters the battlefield under your control",
-        "whenever an enchantment enters",
+        "whenever an enchantment enters under your control",
+        "enchantment you control enters",
+        "whenever an enchantment enters", "enchantment you control enters",
         "enchantress",
         "for each enchantment you control",
         "enchantments you control get",
@@ -637,8 +639,8 @@ def is_artifact_payoff(card: dict) -> bool:
     type_line = (card.get("type_line") or "").lower()
     signals = (
         "whenever you cast an artifact",
-        "whenever an artifact enters the battlefield",
-        "whenever an artifact enters",
+        "whenever an artifact enters", "artifact you control enters",
+        "whenever an artifact enters", "artifact you control enters",
         "for each artifact you control",
         "artifact creatures you control",
         "affinity for artifacts",
@@ -814,7 +816,8 @@ def is_token_payoff(card: dict) -> bool:
         "creatures you control get +",
         "creature tokens you control",
         "tokens you control",
-        "whenever a token enters the battlefield under your control",
+        "whenever a token enters under your control",
+        "token you control enters",
         "for each creature you control",
         "populate",
         "number of creatures you control",
